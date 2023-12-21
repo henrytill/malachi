@@ -1,11 +1,9 @@
 project(
     'malachi',
-    'cpp',
+    'c',
     version: '0.1',
-    default_options: ['warning_level=2', 'cpp_std=c++20'],
+    default_options: ['warning_level=2', 'c_std=gnu11'],
 )
-
-catch2_dep = dependency('catch2-with-main', required: true)
 
 mupdf_dep = dependency('mupdf', required: true)
 
@@ -15,7 +13,7 @@ config_include_dir = include_directories('include/config')
 
 config = static_library(
     'config',
-    sources: ['lib/config/Config.cpp'],
+    sources: ['lib/config/config.c'],
     include_directories: config_include_dir,
     install: false,
 )
@@ -27,14 +25,14 @@ config_dep = declare_dependency(
 
 executable(
     'malachi',
-    sources: ['bin/main.cpp'],
+    sources: ['bin/main.c'],
     dependencies: [mupdf_dep, sqlite_dep, config_dep],
 )
 
 config_test = executable(
     'config_test',
-    sources: ['test/config_test.cpp'],
-    dependencies: [catch2_dep, config_dep],
+    sources: ['test/config_test.c'],
+    dependencies: [config_dep],
 )
 
 test('config_test', config_test)
