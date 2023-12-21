@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ['master']
+  pull_request:
+    branches: ['master']
+  workflow_dispatch:
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [g++-13, clang++-15]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hendrikmuhs/ccache-action@v1.2.10
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.compiler }}
+      - name: Install dependencies
+        run: |
+          sudo apt install -yyq --no-install-recommends \
+            build-essential meson ninja-build \
+            libsqlite3-dev libmupdf-dev
+      - name: Configure
+        run: |
+          meson setup ${{ github.workspace }}/build
+        env:
+          CXX: ccache ${{ matrix.compiler }}
+      - name: Build
+        working-directory: ${{ github.workspace }}/build
+        run: ninja -j0
+      - name: Test
+        working-directory: ${{ github.workspace }}/build
+        run: ninja test
