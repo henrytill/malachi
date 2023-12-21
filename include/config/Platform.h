@@ -33,7 +33,6 @@ constexpr auto to_string(Platform p) -> std::string {
   case Platform::Linux:
     return "Linux";
   case Platform::Unknown:
-    [[fallthrough]];
   default:
     return "Unknown";
   };
