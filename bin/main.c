@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <mupdf/fitz.h>
+#include <sqlite3.h>
+
 #include "config.h"
 #include "platform.h"
 
@@ -11,16 +14,16 @@ int main(int argc, char *argv[]) {
   }
 
   const enum platform p = platform_get();
-
-  printf("Platform: %s\n", platform_to_string(p));
-
   struct config config = {};
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, p, getenv);
   config_builder_build(config_builder, &config);
 
-  printf("Config dir: %s\n", config.config_dir);
-  printf("Data dir: %s\n", config.data_dir);
+  printf("platform: %s\n", platform_to_string(p));
+  printf("config_dir: %s\n", config.config_dir);
+  printf("data_dir: %s\n", config.data_dir);
+  printf("sqlite: %s\n", sqlite3_libversion());
+  printf("mupdf: %s\n", FZ_VERSION);
 
   config_finish(&config);
   return EXIT_SUCCESS;
