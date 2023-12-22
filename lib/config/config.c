@@ -122,10 +122,12 @@ int config_builder_build(struct config_builder *builder, struct config *out) {
   int ret = 0;
   if (builder->maybe_config_dir == NULL) {
     ret = CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR;
+    free((char *)builder->maybe_data_dir);
     goto out_free_builder;
   }
   if (builder->maybe_data_dir == NULL) {
     ret = CONFIG_BUILDER_ERROR_MISSING_DATA_DIR;
+    free((char *)builder->maybe_config_dir);
     goto out_free_builder;
   }
   out->config_dir = builder->maybe_config_dir;

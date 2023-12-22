@@ -130,6 +130,7 @@ void test_config_builder_no_config_dir(void) {
   const int rc = config_builder_build(config_builder, &config);
   TEST(rc == CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR);
   TEST(strcmp(config_builder_error_to_string(rc), "config_dir is NULL") == 0);
+  config_finish(&config);
   END_TEST();
 }
 
@@ -148,6 +149,7 @@ void test_config_builder_no_data_dir(void) {
   const int rc = config_builder_build(config_builder, &config);
   TEST(rc == CONFIG_BUILDER_ERROR_MISSING_DATA_DIR);
   TEST(strcmp(config_builder_error_to_string(rc), "data_dir is NULL") == 0);
+  config_finish(&config);
   END_TEST();
 }
 
