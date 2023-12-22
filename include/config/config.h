@@ -3,8 +3,8 @@
 #include "platform.h"
 
 struct config {
-  char *config_dir;
-  char *data_dir;
+  const char *config_dir;
+  const char *data_dir;
 };
 
 void config_finish(struct config *config);

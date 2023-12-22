@@ -1,23 +1,24 @@
 #include "config.h"
-#include "platform.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "platform.h"
 
 static const char *const MALACHI_DIR = "malachi";
 
 void config_finish(struct config *config) {
   if (config->config_dir != config->data_dir) {
-    free(config->config_dir);
-    free(config->data_dir);
+    free((char *)config->config_dir);
+    free((char *)config->data_dir);
   } else {
-    free(config->config_dir);
+    free((char *)config->config_dir);
   }
 }
 
 struct config_builder {
-  char *maybe_config_dir;
-  char *maybe_data_dir;
+  const char *maybe_config_dir;
+  const char *maybe_data_dir;
 };
 
 struct config_builder *config_builder_create(void) {
@@ -76,46 +77,46 @@ static char *joinpath4(enum platform p, const char *a, const char *b, const char
   return ret;
 }
 
-static char *get_windows_config_dir(getenv_fn getenv) {
-  char *app_data = getenv("APPDATA");
+static const char *get_windows_config_dir(getenv_fn getenv) {
+  const char *app_data = getenv("APPDATA");
   if (app_data == NULL) { return NULL; }
-  char *ret = joinpath2(PLATFORM_WINDOWS, app_data, MALACHI_DIR);
+  const char *ret = joinpath2(PLATFORM_WINDOWS, app_data, MALACHI_DIR);
   return ret;
 }
 
-static char *get_windows_data_dir(getenv_fn getenv) {
-  char *local_app_data = getenv("LOCALAPPDATA");
+static const char *get_windows_data_dir(getenv_fn getenv) {
+  const char *local_app_data = getenv("LOCALAPPDATA");
   if (local_app_data == NULL) { return NULL; }
-  char *ret = joinpath2(PLATFORM_WINDOWS, local_app_data, MALACHI_DIR);
+  const char *ret = joinpath2(PLATFORM_WINDOWS, local_app_data, MALACHI_DIR);
   return ret;
 }
 
-static char *get_macos_support_dir(getenv_fn getenv) {
-  char *home = getenv("HOME");
+static const char *get_macos_support_dir(getenv_fn getenv) {
+  const char *home = getenv("HOME");
   if (home == NULL) { return NULL; }
-  char *ret = joinpath4(PLATFORM_MACOS, home, "Library", "Application Support", MALACHI_DIR);
+  const char *ret = joinpath4(PLATFORM_MACOS, home, "Library", "Application Support", MALACHI_DIR);
   return ret;
 }
 
-static char *get_xdg_config_home(getenv_fn getenv) {
-  char *xdg_config_home = getenv("XDG_CONFIG_HOME");
+static const char *get_xdg_config_home(getenv_fn getenv) {
+  const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
   if (xdg_config_home != NULL) {
-    char *ret = joinpath2(PLATFORM_LINUX, xdg_config_home, MALACHI_DIR);
+    const char *ret = joinpath2(PLATFORM_LINUX, xdg_config_home, MALACHI_DIR);
     return ret;
   }
   char *home = getenv("HOME");
-  char *ret = joinpath3(PLATFORM_LINUX, home, ".config", MALACHI_DIR);
+  const char *ret = joinpath3(PLATFORM_LINUX, home, ".config", MALACHI_DIR);
   return ret;
 }
 
-static char *get_xdg_data_home(getenv_fn getenv) {
-  char *xdg_data_home = getenv("XDG_DATA_HOME");
+static const char *get_xdg_data_home(getenv_fn getenv) {
+  const char *xdg_data_home = getenv("XDG_DATA_HOME");
   if (xdg_data_home != NULL) {
-    char *ret = joinpath2(PLATFORM_LINUX, xdg_data_home, MALACHI_DIR);
+    const char *ret = joinpath2(PLATFORM_LINUX, xdg_data_home, MALACHI_DIR);
     return ret;
   }
-  char *home = getenv("HOME");
-  char *ret = joinpath4(PLATFORM_LINUX, home, ".local", "share", MALACHI_DIR);
+  const char *home = getenv("HOME");
+  const char *ret = joinpath4(PLATFORM_LINUX, home, ".local", "share", MALACHI_DIR);
   return ret;
 }
 
@@ -126,7 +127,7 @@ void config_builder_with_defaults(struct config_builder *builder, enum platform 
     builder->maybe_data_dir = get_windows_data_dir(getenv);
   } break;
   case PLATFORM_MACOS: {
-    char *support_dir = get_macos_support_dir(getenv);
+    const char *support_dir = get_macos_support_dir(getenv);
     builder->maybe_config_dir = support_dir;
     builder->maybe_data_dir = support_dir;
   } break;
