@@ -7,8 +7,12 @@
 static const char *const MALACHI_DIR = "malachi";
 
 void config_finish(struct config *config) {
-  free(config->config_dir);
-  free(config->data_dir);
+  if (config->config_dir != config->data_dir) {
+    free(config->config_dir);
+    free(config->data_dir);
+  } else {
+    free(config->config_dir);
+  }
 }
 
 struct config_builder {
