@@ -13,7 +13,18 @@ struct config_builder;
 
 struct config_builder *config_builder_create(void);
 
-int config_builder_build(struct config_builder *builder, struct config *out);
+struct config_builder_result {
+  enum {
+    CONFIG_BUILDER_RESULT_OK = 0,
+    CONFIG_BUILDER_RESULT_ERR = -1,
+  } tag;
+  union {
+    struct config ok;
+    const char *err;
+  } data;
+};
+
+struct config_builder_result config_builder_build(struct config_builder *builder);
 
 typedef char *getenv_fn(const char *name);
 

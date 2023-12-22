@@ -14,10 +14,15 @@ int main(int argc, char *argv[]) {
   }
 
   const enum platform p = platform_get();
-  struct config config = {};
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, p, getenv);
-  config_builder_build(config_builder, &config);
+  struct config_builder_result result = config_builder_build(config_builder);
+  if (result.tag == CONFIG_BUILDER_RESULT_ERR) {
+    printf("Error: %s\n", result.data.err);
+    return EXIT_FAILURE;
+  }
+
+  struct config config = result.data.ok;
 
   printf("platform: %s\n", platform_to_string(p));
   printf("config_dir: %s\n", config.config_dir);

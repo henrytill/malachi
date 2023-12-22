@@ -28,17 +28,21 @@ struct config_builder *config_builder_create(void) {
   return builder;
 };
 
-int config_builder_build(struct config_builder *builder, struct config *out) {
-  int ret = -1;
+struct config_builder_result config_builder_build(struct config_builder *builder) {
+  struct config_builder_result ret = {0};
   if (builder->maybe_config_dir == NULL) {
+    ret.tag = CONFIG_BUILDER_RESULT_ERR;
+    ret.data.err = "config_dir is NULL";
     goto out_free_builder;
   }
   if (builder->maybe_data_dir == NULL) {
+    ret.tag = CONFIG_BUILDER_RESULT_ERR;
+    ret.data.err = "data_dir is NULL";
     goto out_free_builder;
   }
-  out->config_dir = builder->maybe_config_dir;
-  out->data_dir = builder->maybe_data_dir;
-  ret = 0;
+  ret.tag = CONFIG_BUILDER_RESULT_OK;
+  ret.data.ok.config_dir = builder->maybe_config_dir;
+  ret.data.ok.data_dir = builder->maybe_data_dir;
 out_free_builder:
   free(builder);
   return ret;
