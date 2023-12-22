@@ -8,11 +8,11 @@
 static const char *const MALACHI_DIR = "malachi";
 
 void config_finish(struct config *config) {
-  if (config->config_dir != config->data_dir) {
+  if (config->config_dir == config->data_dir) {
     free((char *)config->config_dir);
-    free((char *)config->data_dir);
   } else {
     free((char *)config->config_dir);
+    free((char *)config->data_dir);
   }
 }
 
@@ -28,33 +28,11 @@ struct config_builder *config_builder_create(void) {
   return builder;
 };
 
-struct config_builder_result config_builder_build(struct config_builder *builder) {
-  struct config_builder_result ret = {0};
-  if (builder->maybe_config_dir == NULL) {
-    ret.tag = CONFIG_BUILDER_RESULT_ERR;
-    ret.data.err = "config_dir is NULL";
-    goto out_free_builder;
-  }
-  if (builder->maybe_data_dir == NULL) {
-    ret.tag = CONFIG_BUILDER_RESULT_ERR;
-    ret.data.err = "data_dir is NULL";
-    goto out_free_builder;
-  }
-  ret.tag = CONFIG_BUILDER_RESULT_OK;
-  ret.data.ok.config_dir = builder->maybe_config_dir;
-  ret.data.ok.data_dir = builder->maybe_data_dir;
-out_free_builder:
-  free(builder);
-  return ret;
-};
-
 static char *joinpath2(enum platform p, const char *a, const char *b) {
   const char sep = (p == PLATFORM_WINDOWS) ? '\\' : '/';
   size_t len = (size_t)snprintf(NULL, 0, "%s%c%s", a, sep, b);
   char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  if (ret == NULL) {
-    return NULL;
-  }
+  if (ret == NULL) { return NULL; }
   (void)snprintf(ret, len, "%s%c%s", a, sep, b);
   return ret;
 }
@@ -63,9 +41,7 @@ static char *joinpath3(enum platform p, const char *a, const char *b, const char
   const char sep = (p == PLATFORM_WINDOWS) ? '\\' : '/';
   size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s", a, sep, b, sep, c);
   char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  if (ret == NULL) {
-    return NULL;
-  }
+  if (ret == NULL) { return NULL; }
   (void)snprintf(ret, len, "%s%c%s%c%s", a, sep, b, sep, c);
   return ret;
 }
@@ -74,9 +50,7 @@ static char *joinpath4(enum platform p, const char *a, const char *b, const char
   const char sep = (p == PLATFORM_WINDOWS) ? '\\' : '/';
   size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s%c%s", a, sep, b, sep, c, sep, d);
   char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  if (ret == NULL) {
-    return NULL;
-  }
+  if (ret == NULL) { return NULL; }
   (void)snprintf(ret, len, "%s%c%s%c%s%c%s", a, sep, b, sep, c, sep, d);
   return ret;
 }
@@ -142,4 +116,33 @@ void config_builder_with_defaults(struct config_builder *builder, enum platform 
     builder->maybe_data_dir = get_xdg_data_home(getenv);
   } break;
   }
+}
+
+int config_builder_build(struct config_builder *builder, struct config *out) {
+  int ret = 0;
+  if (builder->maybe_config_dir == NULL) {
+    ret = CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR;
+    goto out_free_builder;
+  }
+  if (builder->maybe_data_dir == NULL) {
+    ret = CONFIG_BUILDER_ERROR_MISSING_DATA_DIR;
+    goto out_free_builder;
+  }
+  out->config_dir = builder->maybe_config_dir;
+  out->data_dir = builder->maybe_data_dir;
+out_free_builder:
+  free(builder);
+  return ret;
+};
+
+static const char *const CONFIG_BUILDER_ERROR_STRINGS[] = {
+#define X(tag, value, description) [-(CONFIG_BUILDER_ERROR_##tag)] = (description),
+  CONFIG_BUILDER_ERROR_VARIANTS
+#undef X
+};
+
+const char *config_builder_error_to_string(const int rc) {
+  extern const char *const CONFIG_BUILDER_ERROR_STRINGS[];
+  if (rc >= 0 || rc <= CONFIG_BUILDER_ERROR_MIN) { return NULL; }
+  return CONFIG_BUILDER_ERROR_STRINGS[-rc];
 }

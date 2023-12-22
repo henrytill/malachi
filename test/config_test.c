@@ -30,9 +30,9 @@ void test_config_builder_with_windows_defaults(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_WINDOWS, getenv_mock_windows_defaults);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_OK);
-  struct config config = result.data.ok;
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == 0);
   TEST(strcmp(config.config_dir, "C:\\Users\\user\\AppData\\Roaming\\malachi") == 0);
   TEST(strcmp(config.data_dir, "C:\\Users\\user\\AppData\\Local\\malachi") == 0);
   config_finish(&config);
@@ -50,9 +50,9 @@ void test_config_builder_with_macos_defaults(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_MACOS, getenv_mock_macos_defaults);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_OK);
-  struct config config = result.data.ok;
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == 0);
   TEST(strcmp(config.config_dir, "/Users/user/Library/Application Support/malachi") == 0);
   TEST(strcmp(config.data_dir, "/Users/user/Library/Application Support/malachi") == 0);
   config_finish(&config);
@@ -70,9 +70,9 @@ void test_config_builder_with_linux_defaults(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_LINUX, getenv_mock_unix_defaults);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_OK);
-  struct config config = result.data.ok;
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == 0);
   TEST(strcmp(config.config_dir, "/home/user/.config/malachi") == 0);
   TEST(strcmp(config.data_dir, "/home/user/.local/share/malachi") == 0);
   config_finish(&config);
@@ -83,9 +83,9 @@ void test_config_builder_with_unknown_defaults(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_UNKNOWN, getenv_mock_unix_defaults);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_OK);
-  struct config config = result.data.ok;
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == 0);
   TEST(strcmp(config.config_dir, "/home/user/.config/malachi") == 0);
   TEST(strcmp(config.data_dir, "/home/user/.local/share/malachi") == 0);
   config_finish(&config);
@@ -106,9 +106,9 @@ void test_config_builder_with_custom_xdg_dirs(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_LINUX, getenv_mock_custom_xdg_dirs);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_OK);
-  struct config config = result.data.ok;
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == 0);
   TEST(strcmp(config.config_dir, "/tmp/config/malachi") == 0);
   TEST(strcmp(config.data_dir, "/tmp/data/malachi") == 0);
   config_finish(&config);
@@ -126,9 +126,10 @@ void test_config_builder_no_config_dir(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_WINDOWS, getenv_mock_windows_no_appdata);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_ERR);
-  TEST(strcmp(result.data.err, "config_dir is NULL") == 0);
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR);
+  TEST(strcmp(config_builder_error_to_string(rc), "config_dir is NULL") == 0);
   END_TEST();
 }
 
@@ -143,9 +144,10 @@ void test_config_builder_no_data_dir(void) {
   BEGIN_TEST();
   struct config_builder *config_builder = config_builder_create();
   config_builder_with_defaults(config_builder, PLATFORM_WINDOWS, getenv_mock_windows_no_localappdata);
-  struct config_builder_result result = config_builder_build(config_builder);
-  TEST(result.tag == CONFIG_BUILDER_RESULT_ERR);
-  TEST(strcmp(result.data.err, "data_dir is NULL") == 0);
+  struct config config = {0};
+  const int rc = config_builder_build(config_builder, &config);
+  TEST(rc == CONFIG_BUILDER_ERROR_MISSING_DATA_DIR);
+  TEST(strcmp(config_builder_error_to_string(rc), "data_dir is NULL") == 0);
   END_TEST();
 }
 
