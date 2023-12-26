@@ -82,7 +82,7 @@ static const char *get_xdg_config_home(getenv_fn getenv) {
     const char *ret = joinpath2(PLATFORM_LINUX, xdg_config_home, MALACHI_DIR);
     return ret;
   }
-  char *home = getenv("HOME");
+  const char *home = getenv("HOME");
   const char *ret = joinpath3(PLATFORM_LINUX, home, ".config", MALACHI_DIR);
   return ret;
 }
