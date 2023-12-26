@@ -118,16 +118,27 @@ void config_builder_with_defaults(struct config_builder *builder, enum platform 
   }
 }
 
+static void config_builder_finish(struct config_builder *builder) {
+  if (builder->maybe_config_dir != NULL) {
+    free((char *)builder->maybe_config_dir);
+    builder->maybe_config_dir = NULL;
+  }
+  if (builder->maybe_data_dir != NULL) {
+    free((char *)builder->maybe_data_dir);
+    builder->maybe_data_dir = NULL;
+  }
+}
+
 int config_builder_build(struct config_builder *builder, struct config *out) {
   int ret = 0;
   if (builder->maybe_config_dir == NULL) {
     ret = CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR;
-    free((char *)builder->maybe_data_dir);
+    config_builder_finish(builder);
     goto out_free_builder;
   }
   if (builder->maybe_data_dir == NULL) {
     ret = CONFIG_BUILDER_ERROR_MISSING_DATA_DIR;
-    free((char *)builder->maybe_config_dir);
+    config_builder_finish(builder);
     goto out_free_builder;
   }
   out->config_dir = builder->maybe_config_dir;
