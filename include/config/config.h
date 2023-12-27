@@ -26,7 +26,7 @@ struct config_builder *config_builder_create(void);
 
 typedef char *getenv_fn(const char *name);
 
-void config_builder_with_defaults(struct config_builder *builder, enum platform p, getenv_fn getenv);
+void config_builder_with_defaults(struct config_builder *builder, getenv_fn getenv);
 
 int config_builder_build(struct config_builder *builder, struct config *out);
 

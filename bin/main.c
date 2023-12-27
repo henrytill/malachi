@@ -13,9 +13,8 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  const enum platform p = platform_get();
   struct config_builder *config_builder = config_builder_create();
-  config_builder_with_defaults(config_builder, p, getenv);
+  config_builder_with_defaults(config_builder, getenv);
   struct config config = {0};
   const int rc = config_builder_build(config_builder, &config);
   if (rc != 0) {
@@ -23,7 +22,7 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  printf("platform: %s\n", platform_to_string(p));
+  printf("platform: %s\n", platform_to_string());
   printf("config_dir: %s\n", config.config_dir);
   printf("data_dir: %s\n", config.data_dir);
   printf("sqlite: %s\n", sqlite3_libversion());
