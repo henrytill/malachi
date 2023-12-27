@@ -58,44 +58,39 @@ static char *joinpath4(enum platform p, const char *a, const char *b, const char
 static const char *get_windows_config_dir(getenv_fn getenv) {
   const char *app_data = getenv("APPDATA");
   if (app_data == NULL) { return NULL; }
-  const char *ret = joinpath2(PLATFORM_WINDOWS, app_data, MALACHI_DIR);
-  return ret;
+  return joinpath2(PLATFORM_WINDOWS, app_data, MALACHI_DIR);
 }
 
 static const char *get_windows_data_dir(getenv_fn getenv) {
   const char *local_app_data = getenv("LOCALAPPDATA");
   if (local_app_data == NULL) { return NULL; }
-  const char *ret = joinpath2(PLATFORM_WINDOWS, local_app_data, MALACHI_DIR);
-  return ret;
+  return joinpath2(PLATFORM_WINDOWS, local_app_data, MALACHI_DIR);
 }
 
 static const char *get_macos_support_dir(getenv_fn getenv) {
   const char *home = getenv("HOME");
   if (home == NULL) { return NULL; }
-  const char *ret = joinpath4(PLATFORM_MACOS, home, "Library", "Application Support", MALACHI_DIR);
-  return ret;
+  return joinpath4(PLATFORM_MACOS, home, "Library", "Application Support", MALACHI_DIR);
 }
 
 static const char *get_xdg_config_home(getenv_fn getenv) {
   const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
   if (xdg_config_home != NULL) {
-    const char *ret = joinpath2(PLATFORM_LINUX, xdg_config_home, MALACHI_DIR);
-    return ret;
+    return joinpath2(PLATFORM_LINUX, xdg_config_home, MALACHI_DIR);
   }
   const char *home = getenv("HOME");
-  const char *ret = joinpath3(PLATFORM_LINUX, home, ".config", MALACHI_DIR);
-  return ret;
+  if (home == NULL) { return NULL; }
+  return joinpath3(PLATFORM_LINUX, home, ".config", MALACHI_DIR);
 }
 
 static const char *get_xdg_data_home(getenv_fn getenv) {
   const char *xdg_data_home = getenv("XDG_DATA_HOME");
   if (xdg_data_home != NULL) {
-    const char *ret = joinpath2(PLATFORM_LINUX, xdg_data_home, MALACHI_DIR);
-    return ret;
+    return joinpath2(PLATFORM_LINUX, xdg_data_home, MALACHI_DIR);
   }
   const char *home = getenv("HOME");
-  const char *ret = joinpath4(PLATFORM_LINUX, home, ".local", "share", MALACHI_DIR);
-  return ret;
+  if (home == NULL) { return NULL; }
+  return joinpath4(PLATFORM_LINUX, home, ".local", "share", MALACHI_DIR);
 }
 
 void config_builder_with_defaults(struct config_builder *builder, enum platform p, getenv_fn getenv) {
