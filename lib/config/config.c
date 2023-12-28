@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -63,7 +64,7 @@ static char *joinpath4(const char *a, const char *b, const char *c, const char *
 #if defined(PLATFORM_WINDOWS)
 static const char *get_windows_config_dir(getenv_fn getenv) {
   const char *app_data = getenv("APPDATA");
-  if (app_data == NULL) { return NULL; }
+  assert(app_data != NULL);
   return joinpath2(app_data, MALACHI_DIR);
 }
 #endif
@@ -71,7 +72,7 @@ static const char *get_windows_config_dir(getenv_fn getenv) {
 #if defined(PLATFORM_WINDOWS)
 static const char *get_windows_data_dir(getenv_fn getenv) {
   const char *local_app_data = getenv("LOCALAPPDATA");
-  if (local_app_data == NULL) { return NULL; }
+  assert(local_app_data != NULL);
   return joinpath2(local_app_data, MALACHI_DIR);
 }
 #endif
@@ -79,7 +80,7 @@ static const char *get_windows_data_dir(getenv_fn getenv) {
 #if defined(PLATFORM_MACOS)
 static const char *get_macos_support_dir(getenv_fn getenv) {
   const char *home = getenv("HOME");
-  if (home == NULL) { return NULL; }
+  assert(home != NULL);
   return joinpath4(home, "Library", "Application Support", MALACHI_DIR);
 }
 #endif
@@ -91,7 +92,7 @@ static const char *get_xdg_config_home(getenv_fn getenv) {
     return joinpath2(xdg_config_home, MALACHI_DIR);
   }
   const char *home = getenv("HOME");
-  if (home == NULL) { return NULL; }
+  assert(home != NULL);
   return joinpath3(home, ".config", MALACHI_DIR);
 }
 #endif
@@ -103,7 +104,7 @@ static const char *get_xdg_data_home(getenv_fn getenv) {
     return joinpath2(xdg_data_home, MALACHI_DIR);
   }
   const char *home = getenv("HOME");
-  if (home == NULL) { return NULL; }
+  assert(home != NULL);
   return joinpath4(home, ".local", "share", MALACHI_DIR);
 }
 #endif
