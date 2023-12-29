@@ -1,7 +1,5 @@
 #pragma once
 
-#include "platform.h"
-
 #define CONFIG_BUILDER_ERROR_VARIANTS             \
   X(MISSING_CONFIG_DIR, -1, "config_dir is NULL") \
   X(MISSING_DATA_DIR, -2, "data_dir is NULL")     \

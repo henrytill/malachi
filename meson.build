@@ -9,12 +9,34 @@ mupdf_dep = dependency('mupdf', required: true)
 
 sqlite_dep = dependency('sqlite3', required: true)
 
+platform_include_dir = include_directories('include/platform')
+
+platform_dep = declare_dependency(
+    include_directories: platform_include_dir,
+)
+
+path_include_dir = include_directories('include/path')
+
+path = static_library(
+    'path',
+    sources: ['lib/path/path.c'],
+    include_directories: path_include_dir,
+    dependencies: [platform_dep],
+    install: false,
+)
+
+path_dep = declare_dependency(
+    link_with: [path],
+    include_directories: path_include_dir,
+)
+
 config_include_dir = include_directories('include/config')
 
 config = static_library(
     'config',
     sources: ['lib/config/config.c'],
     include_directories: config_include_dir,
+    dependencies: [platform_dep, path_dep],
     install: false,
 )
 
@@ -26,13 +48,13 @@ config_dep = declare_dependency(
 executable(
     'malachi',
     sources: ['bin/main.c'],
-    dependencies: [mupdf_dep, sqlite_dep, config_dep],
+    dependencies: [mupdf_dep, sqlite_dep, config_dep, platform_dep],
 )
 
 config_test = executable(
     'config_test',
     sources: ['test/config_test.c'],
-    dependencies: [config_dep],
+    dependencies: [config_dep, platform_dep],
 )
 
 test('config_test', config_test)

@@ -6,12 +6,6 @@
 
 #include "config.h"
 
-void test_platform_to_string(void) {
-  BEGIN_TEST();
-  TEST(strcmp(platform_to_string(), "Windows") == 0);
-  END_TEST();
-}
-
 char *getenv_mock_defaults(const char *name) {
   if (strcmp(name, "APPDATA") == 0) {
     return "C:\\Users\\user\\AppData\\Roaming";
@@ -74,7 +68,6 @@ void test_config_builder_no_data_dir(void) {
 }
 
 int main(void) {
-  test_platform_to_string();
   test_config_builder_with_defaults();
   test_config_builder_no_config_dir();
   test_config_builder_no_data_dir();

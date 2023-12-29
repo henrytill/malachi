@@ -4,13 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "path.h"
 #include "platform.h"
-
-#if defined(PLATFORM_WINDOWS)
-static const char SEPARATOR = '\\';
-#else
-static const char SEPARATOR = '/';
-#endif
 
 static const char *const MALACHI_DIR = "malachi";
 
@@ -34,32 +29,6 @@ struct config_builder *config_builder_create(void) {
   builder->maybe_data_dir = NULL;
   return builder;
 };
-
-static char *joinpath2(const char *a, const char *b) {
-  extern const char SEPARATOR;
-  size_t len = (size_t)snprintf(NULL, 0, "%s%c%s", a, SEPARATOR, b);
-  char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  (void)snprintf(ret, len, "%s%c%s", a, SEPARATOR, b);
-  return ret;
-}
-
-static char *joinpath3(const char *a, const char *b, const char *c) {
-  extern const char SEPARATOR;
-  size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s", a, SEPARATOR, b, SEPARATOR, c);
-  char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  if (ret == NULL) { return NULL; }
-  (void)snprintf(ret, len, "%s%c%s%c%s", a, SEPARATOR, b, SEPARATOR, c);
-  return ret;
-}
-
-static char *joinpath4(const char *a, const char *b, const char *c, const char *d) {
-  extern const char SEPARATOR;
-  size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s%c%s", a, SEPARATOR, b, SEPARATOR, c, SEPARATOR, d);
-  char *ret = calloc(++len, sizeof(char)); // incr for terminator
-  if (ret == NULL) { return NULL; }
-  (void)snprintf(ret, len, "%s%c%s%c%s%c%s", a, SEPARATOR, b, SEPARATOR, c, SEPARATOR, d);
-  return ret;
-}
 
 #if defined(PLATFORM_WINDOWS)
 static const char *get_windows_config_dir(getenv_fn getenv) {

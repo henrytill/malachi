@@ -6,12 +6,6 @@
 
 #include "config.h"
 
-void test_platform_to_string(void) {
-  BEGIN_TEST();
-  TEST(strcmp(platform_to_string(), "macOS") == 0);
-  END_TEST();
-}
-
 char *getenv_mock_defaults(const char *name) {
   if (strcmp(name, "HOME") == 0) {
     return "/Users/user";
@@ -33,7 +27,6 @@ void test_config_builder_with_defaults(void) {
 }
 
 int main(void) {
-  test_platform_to_string();
   test_config_builder_with_defaults();
   return EXIT_SUCCESS;
 }

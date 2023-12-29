@@ -6,12 +6,6 @@
 
 #include "config.h"
 
-void test_platform_to_string(void) {
-  BEGIN_TEST();
-  TEST(strcmp(platform_to_string(), "Unknown") == 0);
-  END_TEST();
-}
-
 char *getenv_mock_defaults(const char *name) {
   if (strcmp(name, "HOME") == 0) {
     return "/home/user";
@@ -56,7 +50,6 @@ void test_config_builder_with_custom_xdg_dirs(void) {
 }
 
 int main(void) {
-  test_platform_to_string();
   test_config_builder_with_defaults();
   test_config_builder_with_custom_xdg_dirs();
   return EXIT_SUCCESS;
