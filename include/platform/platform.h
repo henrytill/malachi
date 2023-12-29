@@ -12,12 +12,12 @@
 
 static inline const char *platform_to_string(void) {
 #if defined(PLATFORM_WINDOWS)
-  return "Windows";
+    return "Windows";
 #elif defined(PLATFORM_MACOS)
-  return "macOS";
+    return "macOS";
 #elif defined(PLATFORM_LINUX)
-  return "Linux";
+    return "Linux";
 #elif defined(PLATFORM_UNKNOWN)
-  return "Unknown";
+    return "Unknown";
 #endif
 }
