@@ -24,10 +24,8 @@ struct config_builder {
 };
 
 struct config_builder *config_builder_create(void) {
-    struct config_builder *builder = calloc(1, sizeof(*builder));
-    builder->maybe_config_dir = NULL;
-    builder->maybe_data_dir = NULL;
-    return builder;
+    struct config_builder *ret = calloc(1, sizeof(*ret));
+    return ret;
 };
 
 #if defined(PLATFORM_WINDOWS)
