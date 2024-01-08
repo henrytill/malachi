@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
     if (rc != 0) {
-        printf("Failed to build config: %s\n", config_builder_error_to_string(rc));
+        (void)fprintf(stderr, "Failed to build config: %s\n", config_builder_error_to_string(rc));
         return EXIT_FAILURE;
     }
 
