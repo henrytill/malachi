@@ -14,6 +14,10 @@ int main(int argc, char *argv[]) {
     }
 
     struct config_builder *config_builder = config_builder_create();
+    if (config_builder == NULL) {
+        (void)fprintf(stderr, "Failed to create config_builder\n");
+        return EXIT_FAILURE;
+    }
     config_builder_with_defaults(config_builder, getenv);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
