@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "alloc.h"
 #include "path.h"
 #include "platform.h"
 
@@ -24,7 +25,7 @@ struct config_builder {
 };
 
 struct config_builder *config_builder_create(void) {
-    struct config_builder *ret = calloc(1, sizeof(*ret));
+    struct config_builder *ret = ecalloc(1, sizeof(*ret));
     return ret;
 };
 

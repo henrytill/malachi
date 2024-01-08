@@ -15,13 +15,27 @@ platform_dep = declare_dependency(
     include_directories: platform_include_dir,
 )
 
+alloc_include_dir = include_directories('include/alloc')
+
+alloc = static_library(
+    'alloc',
+    sources: ['lib/alloc/alloc.c'],
+    include_directories: alloc_include_dir,
+    install: false,
+)
+
+alloc_dep = declare_dependency(
+    link_with: [alloc],
+    include_directories: alloc_include_dir,
+)
+
 path_include_dir = include_directories('include/path')
 
 path = static_library(
     'path',
     sources: ['lib/path/path.c'],
     include_directories: path_include_dir,
-    dependencies: [platform_dep],
+    dependencies: [alloc_dep, platform_dep],
     install: false,
 )
 
@@ -36,7 +50,11 @@ config = static_library(
     'config',
     sources: ['lib/config/config.c'],
     include_directories: config_include_dir,
-    dependencies: [platform_dep, path_dep],
+    dependencies: [
+        alloc_dep,
+        platform_dep,
+        path_dep,
+    ],
     install: false,
 )
 

@@ -4,6 +4,24 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const alloc_lib = b.addStaticLibrary(.{
+        .name = "liballoc",
+        .target = target,
+        .optimize = optimize,
+    });
+    const alloc_include = "include/alloc";
+    const alloc_lib_sources = &.{
+        "lib/alloc/alloc.c",
+    };
+
+    alloc_lib.linkLibC();
+    alloc_lib.addIncludePath(.{ .path = alloc_include });
+    if (@hasDecl(std.Build.Step.Compile, "AddCSourceFilesOptions")) {
+        alloc_lib.addCSourceFiles(.{ .files = alloc_lib_sources });
+    } else {
+        alloc_lib.addCSourceFiles(alloc_lib_sources, &.{});
+    }
+
     const platform_include = "include/platform";
 
     const path_lib = b.addStaticLibrary(.{
@@ -17,8 +35,10 @@ pub fn build(b: *std.Build) void {
     };
 
     path_lib.linkLibC();
-    path_lib.addIncludePath(.{ .path = platform_include });
+    path_lib.linkLibrary(alloc_lib);
     path_lib.addIncludePath(.{ .path = path_lib_include });
+    path_lib.addIncludePath(.{ .path = alloc_include });
+    path_lib.addIncludePath(.{ .path = platform_include });
     if (@hasDecl(std.Build.Step.Compile, "AddCSourceFilesOptions")) {
         path_lib.addCSourceFiles(.{ .files = path_lib_sources });
     } else {
@@ -36,10 +56,12 @@ pub fn build(b: *std.Build) void {
     };
 
     config_lib.linkLibC();
+    config_lib.linkLibrary(alloc_lib);
     config_lib.linkLibrary(path_lib);
-    config_lib.addIncludePath(.{ .path = platform_include });
-    config_lib.addIncludePath(.{ .path = path_lib_include });
     config_lib.addIncludePath(.{ .path = config_lib_include });
+    config_lib.addIncludePath(.{ .path = alloc_include });
+    config_lib.addIncludePath(.{ .path = path_lib_include });
+    config_lib.addIncludePath(.{ .path = platform_include });
     if (@hasDecl(std.Build.Step.Compile, "AddCSourceFilesOptions")) {
         config_lib.addCSourceFiles(.{ .files = config_lib_sources });
     } else {
