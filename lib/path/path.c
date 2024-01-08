@@ -15,6 +15,7 @@ char *joinpath2(const char *a, const char *b) {
     extern const char SEPARATOR;
     size_t len = (size_t)snprintf(NULL, 0, "%s%c%s", a, SEPARATOR, b);
     char *ret = calloc(++len, sizeof(char)); // incr for terminator
+    if (ret == NULL) { return NULL; }
     (void)snprintf(ret, len, "%s%c%s", a, SEPARATOR, b);
     return ret;
 }
