@@ -17,8 +17,8 @@ pub fn build(b: *std.Build) void {
     };
 
     path_lib.linkLibC();
-    path_lib.addIncludePath(.{ .path = platform_include });
     path_lib.addIncludePath(.{ .path = path_lib_include });
+    path_lib.addIncludePath(.{ .path = platform_include });
     if (@hasDecl(std.Build.Step.Compile, "AddCSourceFilesOptions")) {
         path_lib.addCSourceFiles(.{ .files = path_lib_sources });
     } else {
@@ -37,9 +37,9 @@ pub fn build(b: *std.Build) void {
 
     config_lib.linkLibC();
     config_lib.linkLibrary(path_lib);
-    config_lib.addIncludePath(.{ .path = platform_include });
-    config_lib.addIncludePath(.{ .path = path_lib_include });
     config_lib.addIncludePath(.{ .path = config_lib_include });
+    config_lib.addIncludePath(.{ .path = path_lib_include });
+    config_lib.addIncludePath(.{ .path = platform_include });
     if (@hasDecl(std.Build.Step.Compile, "AddCSourceFilesOptions")) {
         config_lib.addCSourceFiles(.{ .files = config_lib_sources });
     } else {
@@ -57,8 +57,8 @@ pub fn build(b: *std.Build) void {
     main_exe.linkSystemLibrary("mupdf");
     main_exe.linkSystemLibrary("sqlite3");
     main_exe.linkLibrary(config_lib);
-    main_exe.addIncludePath(.{ .path = platform_include });
     main_exe.addIncludePath(.{ .path = config_lib_include });
+    main_exe.addIncludePath(.{ .path = platform_include });
     b.installArtifact(main_exe);
 
     const config_test_exe = b.addExecutable(.{
@@ -70,8 +70,8 @@ pub fn build(b: *std.Build) void {
 
     config_test_exe.linkLibC();
     config_test_exe.linkLibrary(config_lib);
-    config_test_exe.addIncludePath(.{ .path = platform_include });
     config_test_exe.addIncludePath(.{ .path = config_lib_include });
+    config_test_exe.addIncludePath(.{ .path = platform_include });
     b.installArtifact(config_test_exe);
 
     const run_config_test = b.addRunArtifact(config_test_exe);
