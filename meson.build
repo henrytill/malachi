@@ -17,7 +17,7 @@ platform_dep = declare_dependency(
 
 path_include_dir = include_directories('include/path')
 
-path = static_library(
+path_lib = static_library(
     'path',
     sources: ['lib/path/path.c'],
     include_directories: path_include_dir,
@@ -26,29 +26,34 @@ path = static_library(
 )
 
 path_dep = declare_dependency(
-    link_with: [path],
+    link_with: [path_lib],
     include_directories: path_include_dir,
 )
 
 config_include_dir = include_directories('include/config')
 
-config = static_library(
+config_lib = static_library(
     'config',
     sources: ['lib/config/config.c'],
     include_directories: config_include_dir,
-    dependencies: [platform_dep, path_dep],
+    dependencies: [path_dep, platform_dep],
     install: false,
 )
 
 config_dep = declare_dependency(
-    link_with: [config],
+    link_with: [config_lib],
     include_directories: config_include_dir,
 )
 
 executable(
     'malachi',
     sources: ['bin/main.c'],
-    dependencies: [mupdf_dep, sqlite_dep, config_dep, platform_dep],
+    dependencies: [
+        config_dep,
+        platform_dep,
+        mupdf_dep,
+        sqlite_dep,
+    ],
 )
 
 config_test = executable(
