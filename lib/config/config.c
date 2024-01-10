@@ -29,7 +29,7 @@ struct config_builder *config_builder_create(void) {
 };
 
 #if defined(PLATFORM_WINDOWS)
-static const char *get_windows_config_dir(getenv_fn getenv) {
+static const char *get_windows_config_dir(config_getenv_fn getenv) {
     const char *app_data = getenv("APPDATA");
     assert(app_data != NULL);
     return joinpath2(app_data, MALACHI_DIR);
@@ -37,7 +37,7 @@ static const char *get_windows_config_dir(getenv_fn getenv) {
 #endif
 
 #if defined(PLATFORM_WINDOWS)
-static const char *get_windows_data_dir(getenv_fn getenv) {
+static const char *get_windows_data_dir(config_getenv_fn getenv) {
     const char *local_app_data = getenv("LOCALAPPDATA");
     assert(local_app_data != NULL);
     return joinpath2(local_app_data, MALACHI_DIR);
@@ -45,7 +45,7 @@ static const char *get_windows_data_dir(getenv_fn getenv) {
 #endif
 
 #if defined(PLATFORM_MACOS)
-static const char *get_macos_support_dir(getenv_fn getenv) {
+static const char *get_macos_support_dir(config_getenv_fn getenv) {
     const char *home = getenv("HOME");
     assert(home != NULL);
     return joinpath4(home, "Library", "Application Support", MALACHI_DIR);
@@ -53,7 +53,7 @@ static const char *get_macos_support_dir(getenv_fn getenv) {
 #endif
 
 #if defined(PLATFORM_LINUX) || defined(PLATFORM_UNKNOWN)
-static const char *get_xdg_config_home(getenv_fn getenv) {
+static const char *get_xdg_config_home(config_getenv_fn getenv) {
     const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
     if (xdg_config_home != NULL) {
         return joinpath2(xdg_config_home, MALACHI_DIR);
@@ -65,7 +65,7 @@ static const char *get_xdg_config_home(getenv_fn getenv) {
 #endif
 
 #if defined(PLATFORM_LINUX) || defined(PLATFORM_UNKNOWN)
-static const char *get_xdg_data_home(getenv_fn getenv) {
+static const char *get_xdg_data_home(config_getenv_fn getenv) {
     const char *xdg_data_home = getenv("XDG_DATA_HOME");
     if (xdg_data_home != NULL) {
         return joinpath2(xdg_data_home, MALACHI_DIR);
@@ -77,18 +77,18 @@ static const char *get_xdg_data_home(getenv_fn getenv) {
 #endif
 
 #if defined(PLATFORM_WINDOWS)
-void config_builder_with_defaults(struct config_builder *builder, getenv_fn getenv) {
+void config_builder_with_defaults(struct config_builder *builder, config_getenv_fn getenv) {
     builder->maybe_config_dir = get_windows_config_dir(getenv);
     builder->maybe_data_dir = get_windows_data_dir(getenv);
 }
 #elif defined(PLATFORM_MACOS)
-void config_builder_with_defaults(struct config_builder *builder, getenv_fn getenv) {
+void config_builder_with_defaults(struct config_builder *builder, config_getenv_fn getenv) {
     const char *support_dir = get_macos_support_dir(getenv);
     builder->maybe_config_dir = support_dir;
     builder->maybe_data_dir = support_dir;
 }
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_UNKNOWN)
-void config_builder_with_defaults(struct config_builder *builder, getenv_fn getenv) {
+void config_builder_with_defaults(struct config_builder *builder, config_getenv_fn getenv) {
     builder->maybe_config_dir = get_xdg_config_home(getenv);
     builder->maybe_data_dir = get_xdg_data_home(getenv);
 }
