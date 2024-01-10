@@ -16,6 +16,7 @@ char *getenv_mock_defaults(const char *name) {
 void test_config_builder_with_defaults(void) {
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
+    TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_mock_defaults);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
@@ -39,6 +40,7 @@ char *getenv_mock_custom_xdg_dirs(const char *name) {
 void test_config_builder_with_custom_xdg_dirs(void) {
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
+    TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_mock_custom_xdg_dirs);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
