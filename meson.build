@@ -2,7 +2,7 @@ project(
     'malachi',
     'c',
     version: '0.1',
-    default_options: ['warning_level=2', 'c_std=gnu17'],
+    default_options: ['warning_level=2', 'c_std=c11'],
 )
 
 mupdf_dep = dependency('mupdf', required: true)
