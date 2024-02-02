@@ -6,36 +6,38 @@
 namespace malachi::config {
 
 enum class Platform : uint8_t {
-  Windows,
-  MacOS,
-  Linux,
-  Unknown,
+    Windows,
+    MacOS,
+    Linux,
+    Unknown,
 };
 
-constexpr auto get_platform() -> Platform {
+constexpr auto get_platform() -> Platform
+{
 #if defined(_WIN32)
-  return Platform::Windows;
+    return Platform::Windows;
 #elif defined(__APPLE__)
-  return Platform::MacOS;
+    return Platform::MacOS;
 #elif defined(__linux__)
-  return Platform::Linux;
+    return Platform::Linux;
 #else
-  return Platform::Unknown;
+    return Platform::Unknown;
 #endif
 }
 
-constexpr auto to_string(Platform p) -> std::string {
-  switch (p) {
-  case Platform::Windows:
-    return "Windows";
-  case Platform::MacOS:
-    return "MacOS";
-  case Platform::Linux:
-    return "Linux";
-  case Platform::Unknown:
-  default:
-    return "Unknown";
-  };
+constexpr auto to_string(Platform p) -> std::string
+{
+    switch (p) {
+    case Platform::Windows:
+        return "Windows";
+    case Platform::MacOS:
+        return "MacOS";
+    case Platform::Linux:
+        return "Linux";
+    case Platform::Unknown:
+    default:
+        return "Unknown";
+    };
 }
 
 } // namespace malachi::config
