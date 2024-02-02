@@ -6,7 +6,8 @@
 
 #include "config.h"
 
-char *getenv_mock_defaults(const char *name) {
+char *getenv_mock_defaults(const char *name)
+{
     if (strcmp(name, "APPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Roaming";
     }
@@ -16,7 +17,8 @@ char *getenv_mock_defaults(const char *name) {
     return NULL;
 }
 
-void test_config_builder_with_defaults(void) {
+void test_config_builder_with_defaults(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -30,14 +32,16 @@ void test_config_builder_with_defaults(void) {
     END_TEST();
 }
 
-char *getenv_mock_windows_no_appdata(const char *name) {
+char *getenv_mock_windows_no_appdata(const char *name)
+{
     if (strcmp(name, "LOCALAPPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Local";
     }
     return NULL;
 }
 
-void test_config_builder_no_config_dir(void) {
+void test_config_builder_no_config_dir(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -50,14 +54,16 @@ void test_config_builder_no_config_dir(void) {
     END_TEST();
 }
 
-char *getenv_mock_windows_no_localappdata(const char *name) {
+char *getenv_mock_windows_no_localappdata(const char *name)
+{
     if (strcmp(name, "APPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Roaming";
     }
     return NULL;
 }
 
-void test_config_builder_no_data_dir(void) {
+void test_config_builder_no_data_dir(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -70,7 +76,8 @@ void test_config_builder_no_data_dir(void) {
     END_TEST();
 }
 
-int main(void) {
+int main(void)
+{
     test_config_builder_with_defaults();
     test_config_builder_no_config_dir();
     test_config_builder_no_data_dir();

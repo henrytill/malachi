@@ -10,7 +10,8 @@
 #define PLATFORM_UNKNOWN
 #endif
 
-static inline const char *platform_to_string(void) {
+static inline const char *platform_to_string(void)
+{
 #if defined(PLATFORM_WINDOWS)
     return "Windows";
 #elif defined(PLATFORM_MACOS)

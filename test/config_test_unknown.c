@@ -6,14 +6,16 @@
 
 #include "config.h"
 
-char *getenv_mock_defaults(const char *name) {
+char *getenv_mock_defaults(const char *name)
+{
     if (strcmp(name, "HOME") == 0) {
         return "/home/user";
     }
     return NULL;
 }
 
-void test_config_builder_with_defaults(void) {
+void test_config_builder_with_defaults(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -27,7 +29,8 @@ void test_config_builder_with_defaults(void) {
     END_TEST();
 }
 
-char *getenv_mock_custom_xdg_dirs(const char *name) {
+char *getenv_mock_custom_xdg_dirs(const char *name)
+{
     if (strcmp(name, "XDG_CONFIG_HOME") == 0) {
         return "/tmp/config";
     }
@@ -37,7 +40,8 @@ char *getenv_mock_custom_xdg_dirs(const char *name) {
     return NULL;
 }
 
-void test_config_builder_with_custom_xdg_dirs(void) {
+void test_config_builder_with_custom_xdg_dirs(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -51,7 +55,8 @@ void test_config_builder_with_custom_xdg_dirs(void) {
     END_TEST();
 }
 
-int main(void) {
+int main(void)
+{
     test_config_builder_with_defaults();
     test_config_builder_with_custom_xdg_dirs();
     return EXIT_SUCCESS;

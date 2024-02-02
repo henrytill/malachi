@@ -7,7 +7,8 @@
 #include "config.h"
 #include "platform.h"
 
-static int configure(struct config *config) {
+static int configure(struct config *config)
+{
     struct config_builder *config_builder = config_builder_create();
     if (config_builder == NULL) {
         (void)fprintf(stderr, "Failed to create config_builder\n");
@@ -22,7 +23,8 @@ static int configure(struct config *config) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     if (argc != 2) {
         printf("Usage: %s <filename>\n", argv[0]);
         return EXIT_FAILURE;

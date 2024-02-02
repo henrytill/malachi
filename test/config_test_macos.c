@@ -6,14 +6,16 @@
 
 #include "config.h"
 
-char *getenv_mock_defaults(const char *name) {
+char *getenv_mock_defaults(const char *name)
+{
     if (strcmp(name, "HOME") == 0) {
         return "/Users/user";
     }
     return NULL;
 }
 
-void test_config_builder_with_defaults(void) {
+void test_config_builder_with_defaults(void)
+{
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
@@ -27,7 +29,8 @@ void test_config_builder_with_defaults(void) {
     END_TEST();
 }
 
-int main(void) {
+int main(void)
+{
     test_config_builder_with_defaults();
     return EXIT_SUCCESS;
 }
