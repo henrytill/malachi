@@ -21,7 +21,7 @@ auto main(int argc, char *argv[]) -> int
         return EXIT_FAILURE;
     }
 
-    auto platform = config::get_platform();
+    const auto platform = config::get_platform();
 
     std::cout << std::format("Platform: {}\n", to_string(platform));
 
