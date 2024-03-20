@@ -12,7 +12,7 @@ struct Config {
     std::filesystem::path data_dir;
 };
 
-using GetEnv = char *(*)(const char *) noexcept;
+using GetEnv = char *(const char *) noexcept;
 
 class ConfigBuilder {
 public:
