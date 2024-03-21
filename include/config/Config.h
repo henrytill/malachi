@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 
@@ -16,7 +17,7 @@ using GetEnv = char *(const char *) noexcept;
 
 class ConfigBuilder {
 public:
-    enum class Result {
+    enum class Result : int8_t {
         Success = 0,
         MissingConfigDir = -1,
         MissingDataDir = -2,
