@@ -9,88 +9,82 @@ using std::filesystem::path;
 
 namespace malachi::config {
 
-std::optional<path> get_windows_config_dir(GetEnv getenv)
+template <Platform p>
+std::optional<path> get_config_dir(GetEnv getenv, const path name)
 {
-    auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
-    if (app_data == nullptr) {
-        return std::nullopt;
-    }
-    const auto config_dir = path{app_data.release()};
-    return std::optional<path>{config_dir / "malachi"};
-}
+    assert(name.empty() == false);
 
-std::optional<path> get_windows_data_dir(GetEnv getenv)
-{
-    auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
-    if (local_app_data == nullptr) {
-        return std::nullopt;
-    }
-    const auto data_dir = path{local_app_data.release()};
-    return std::optional<path>{data_dir / "malachi"};
-}
-
-std::optional<path> get_macos_support_dir(GetEnv getenv)
-{
-    auto home = std::unique_ptr<char>{getenv("HOME")};
-    if (home == nullptr) {
-        return std::nullopt;
-    }
-    const auto home_dir = path{home.release()};
-    return std::optional<path>{home_dir / "Library" / "Application Support" / "malachi"};
-}
-
-std::optional<path> get_xdg_config_home(GetEnv getenv)
-{
-    auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
-    if (xdg_config_home == nullptr) {
+    if constexpr (p == Platform::Windows) {
+        auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
+        if (app_data == nullptr) {
+            return std::nullopt;
+        }
+        const auto config_dir = path{app_data.release()};
+        return std::optional<path>{config_dir / name};
+    } else if constexpr (p == Platform::MacOS) {
         auto home = std::unique_ptr<char>{getenv("HOME")};
         if (home == nullptr) {
             return std::nullopt;
         }
-        auto home_dir = path{home.release()};
-        return std::optional<path>{home_dir / ".config" / "malachi"};
+        const auto home_dir = path{home.release()};
+        return std::optional<path>{home_dir / "Library" / "Application Support" / name};
+    } else {
+        // Linux and other Unixen
+        auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
+        if (xdg_config_home == nullptr) {
+            auto home = std::unique_ptr<char>{getenv("HOME")};
+            if (home == nullptr) {
+                return std::nullopt;
+            }
+            auto home_dir = path{home.release()};
+            return std::optional<path>{home_dir / ".config" / name};
+        }
+        const auto config_dir = path{xdg_config_home.release()};
+        return std::optional<path>{config_dir / name};
     }
-    const auto config_dir = path{xdg_config_home.release()};
-    return std::optional<path>{config_dir / "malachi"};
 }
 
-std::optional<path> get_xdg_data_home(GetEnv getenv)
+template <Platform p>
+std::optional<path> get_data_dir(GetEnv getenv, const path name)
 {
-    auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
-    if (xdg_data_home == nullptr) {
+    assert(name.empty() == false);
+
+    if constexpr (p == Platform::Windows) {
+        auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
+        if (local_app_data == nullptr) {
+            return std::nullopt;
+        }
+        const auto data_dir = path{local_app_data.release()};
+        return std::optional<path>{data_dir / name};
+    } else if constexpr (p == Platform::MacOS) {
         auto home = std::unique_ptr<char>{getenv("HOME")};
         if (home == nullptr) {
             return std::nullopt;
         }
-        auto home_dir = path{home.release()};
-        return std::optional<path>{home_dir / ".local" / "share" / "malachi"};
+        const auto home_dir = path{home.release()};
+        return std::optional<path>{home_dir / "Library" / "Application Support" / name};
+    } else {
+        // Linux and other Unixen
+        auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
+        if (xdg_data_home == nullptr) {
+            auto home = std::unique_ptr<char>{getenv("HOME")};
+            if (home == nullptr) {
+                return std::nullopt;
+            }
+            auto home_dir = path{home.release()};
+            return std::optional<path>{home_dir / ".local" / "share" / name};
+        }
+        const auto data_dir = path{xdg_data_home.release()};
+        return std::optional<path>{data_dir / name};
     }
-    const auto data_dir = path{xdg_data_home.release()};
-    return std::optional<path>{data_dir / "malachi"};
 }
 
-ConfigBuilder &ConfigBuilder::with_defaults(Platform platform, GetEnv getenv)
+ConfigBuilder &ConfigBuilder::with_defaults(GetEnv getenv)
 {
-    switch (platform) {
-    case Platform::Windows: {
-        maybe_config_dir_ = get_windows_config_dir(getenv);
-        maybe_data_dir_ = get_windows_data_dir(getenv);
-        break;
-    }
-    case Platform::MacOS: {
-        const auto support_dir = get_macos_support_dir(getenv);
-        maybe_config_dir_ = support_dir;
-        maybe_data_dir_ = support_dir;
-        break;
-    }
-    case Platform::Linux:
-    case Platform::Unknown:
-    default: {
-        maybe_config_dir_ = get_xdg_config_home(getenv);
-        maybe_data_dir_ = get_xdg_data_home(getenv);
-        break;
-    }
-    }
+    constexpr Platform platform = get_platform();
+    const auto name = path{"malachi"};
+    maybe_config_dir_ = get_config_dir<platform>(getenv, name);
+    maybe_data_dir_ = get_data_dir<platform>(getenv, name);
     return *this;
 }
 
@@ -107,7 +101,7 @@ ConfigBuilder::Result ConfigBuilder::build(Config &cfg)
     return Result::Success;
 }
 
-std::string to_string(ConfigBuilder::Result result)
+std::string to_string(const ConfigBuilder::Result result)
 {
     switch (result) {
     case ConfigBuilder::Result::Success:

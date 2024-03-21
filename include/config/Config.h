@@ -4,8 +4,6 @@
 #include <filesystem>
 #include <optional>
 
-#include "Platform.h"
-
 namespace malachi::config {
 
 struct Config {
@@ -32,7 +30,7 @@ public:
     ConfigBuilder &operator=(const ConfigBuilder &) = delete;
     ConfigBuilder &operator=(ConfigBuilder &&) = delete;
 
-    ConfigBuilder &with_defaults(Platform platform, GetEnv getenv);
+    ConfigBuilder &with_defaults(GetEnv getenv);
 
     Result build(Config &cfg);
 

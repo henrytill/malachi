@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    const auto platform = config::get_platform();
+    constexpr auto platform = config::get_platform();
 
     std::cout << std::format("Platform: {}\n", to_string(platform));
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     auto config_builder = ConfigBuilder{};
 
-    auto result = config_builder.with_defaults(platform, std::getenv).build(config);
+    auto result = config_builder.with_defaults(std::getenv).build(config);
 
     if (result != ConfigBuilder::Result::Success) {
         std::cerr << std::format("Error: {}\n", to_string(result));

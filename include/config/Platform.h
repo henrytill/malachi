@@ -25,7 +25,7 @@ constexpr Platform get_platform()
 #endif
 }
 
-constexpr std::string to_string(Platform p)
+constexpr std::string to_string(const Platform p)
 {
     switch (p) {
     case Platform::Windows:
