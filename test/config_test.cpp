@@ -15,6 +15,8 @@ using config::Config;
 using config::ConfigBuilder;
 using config::Platform;
 
+path get_root_directory() { return std::filesystem::current_path().root_directory(); }
+
 // NOLINTBEGIN(misc-use-anonymous-namespace, cppcoreguidelines-avoid-do-while)
 
 TEST_CASE("to_string returns the correct string for each platform", "[Platform]")
@@ -35,12 +37,15 @@ TEST_CASE("ConfigBuilder builds a Config with the correct config and data direct
         return nullptr;
     };
 
+    const auto root_dir = get_root_directory();
+    const auto home_dir = path{root_dir / "home"};
+
     auto config = Config{};
     auto config_builder = ConfigBuilder{};
     auto result = config_builder.with_defaults(Platform::Linux, getenv).build(config);
     REQUIRE(result == ConfigBuilder::Result::Success);
-    REQUIRE(config.config_dir == path{"/home/user/.config/malachi"});
-    REQUIRE(config.data_dir == path{"/home/user/.local/share/malachi"});
+    REQUIRE(config.config_dir == path{home_dir / "user" / ".config" / "malachi"});
+    REQUIRE(config.data_dir == path{home_dir / "user" / ".local" / "share" / "malachi"});
 }
 
 // NOLINTEND(misc-use-anonymous-namespace, cppcoreguidelines-avoid-do-while)
