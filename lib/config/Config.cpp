@@ -75,18 +75,21 @@ auto ConfigBuilder::with_defaults(Platform platform, GetEnv getenv) -> ConfigBui
     case Platform::Windows: {
         maybe_config_dir_ = get_windows_config_dir(getenv);
         maybe_data_dir_ = get_windows_data_dir(getenv);
-    } break;
+        break;
+    }
     case Platform::MacOS: {
         const auto support_dir = get_macos_support_dir(getenv);
         maybe_config_dir_ = support_dir;
         maybe_data_dir_ = support_dir;
-    } break;
-    case Platform::Unknown:
+        break;
+    }
     case Platform::Linux:
+    case Platform::Unknown:
     default: {
         maybe_config_dir_ = get_xdg_config_home(getenv);
         maybe_data_dir_ = get_xdg_data_home(getenv);
-    } break;
+        break;
+    }
     }
     return *this;
 }
