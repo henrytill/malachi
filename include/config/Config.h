@@ -40,6 +40,6 @@ private:
     std::optional<std::filesystem::path> maybe_data_dir_;
 };
 
-const char *to_string(ConfigBuilder::Result result);
+std::string to_string(ConfigBuilder::Result result);
 
 } // namespace malachi::config

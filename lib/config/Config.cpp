@@ -107,7 +107,7 @@ ConfigBuilder::Result ConfigBuilder::build(Config &cfg)
     return Result::Success;
 }
 
-const char *to_string(ConfigBuilder::Result result)
+std::string to_string(ConfigBuilder::Result result)
 {
     switch (result) {
     case ConfigBuilder::Result::Success:
