@@ -28,18 +28,18 @@ public:
     ConfigBuilder(const ConfigBuilder &) = delete;
     ConfigBuilder(ConfigBuilder &&) = delete;
 
-    auto operator=(const ConfigBuilder &) -> ConfigBuilder & = delete;
-    auto operator=(ConfigBuilder &&) -> ConfigBuilder & = delete;
+    ConfigBuilder &operator=(const ConfigBuilder &) = delete;
+    ConfigBuilder &operator=(ConfigBuilder &&) = delete;
 
-    auto with_defaults(Platform platform, GetEnv getenv) -> ConfigBuilder &;
+    ConfigBuilder &with_defaults(Platform platform, GetEnv getenv);
 
-    auto build(Config &cfg) -> Result;
+    Result build(Config &cfg);
 
 private:
     std::optional<std::filesystem::path> maybe_config_dir_;
     std::optional<std::filesystem::path> maybe_data_dir_;
 };
 
-auto to_string(ConfigBuilder::Result result) -> const char *;
+const char *to_string(ConfigBuilder::Result result);
 
 } // namespace malachi::config

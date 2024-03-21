@@ -45,7 +45,7 @@ TEST_CASE("ConfigBuilder builds a Config with the correct config and data direct
 
 // NOLINTEND(misc-use-anonymous-namespace, cppcoreguidelines-avoid-do-while)
 
-auto main(int argc, char *argv[]) -> int
+int main(int argc, char *argv[])
 {
     const int result = Catch::Session().run(argc, argv);
     return result;

@@ -9,7 +9,7 @@ using std::filesystem::path;
 
 namespace malachi::config {
 
-auto get_windows_config_dir(GetEnv getenv) -> std::optional<path>
+std::optional<path> get_windows_config_dir(GetEnv getenv)
 {
     auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
     if (app_data == nullptr) {
@@ -19,7 +19,7 @@ auto get_windows_config_dir(GetEnv getenv) -> std::optional<path>
     return std::optional<path>{config_dir / "malachi"};
 }
 
-auto get_windows_data_dir(GetEnv getenv) -> std::optional<path>
+std::optional<path> get_windows_data_dir(GetEnv getenv)
 {
     auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
     if (local_app_data == nullptr) {
@@ -29,7 +29,7 @@ auto get_windows_data_dir(GetEnv getenv) -> std::optional<path>
     return std::optional<path>{data_dir / "malachi"};
 }
 
-auto get_macos_support_dir(GetEnv getenv) -> std::optional<path>
+std::optional<path> get_macos_support_dir(GetEnv getenv)
 {
     auto home = std::unique_ptr<char>{getenv("HOME")};
     if (home == nullptr) {
@@ -39,7 +39,7 @@ auto get_macos_support_dir(GetEnv getenv) -> std::optional<path>
     return std::optional<path>{home_dir / "Library" / "Application Support" / "malachi"};
 }
 
-auto get_xdg_config_home(GetEnv getenv) -> std::optional<path>
+std::optional<path> get_xdg_config_home(GetEnv getenv)
 {
     auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
     if (xdg_config_home == nullptr) {
@@ -54,7 +54,7 @@ auto get_xdg_config_home(GetEnv getenv) -> std::optional<path>
     return std::optional<path>{config_dir / "malachi"};
 }
 
-auto get_xdg_data_home(GetEnv getenv) -> std::optional<path>
+std::optional<path> get_xdg_data_home(GetEnv getenv)
 {
     auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
     if (xdg_data_home == nullptr) {
@@ -69,7 +69,7 @@ auto get_xdg_data_home(GetEnv getenv) -> std::optional<path>
     return std::optional<path>{data_dir / "malachi"};
 }
 
-auto ConfigBuilder::with_defaults(Platform platform, GetEnv getenv) -> ConfigBuilder &
+ConfigBuilder &ConfigBuilder::with_defaults(Platform platform, GetEnv getenv)
 {
     switch (platform) {
     case Platform::Windows: {
@@ -94,7 +94,7 @@ auto ConfigBuilder::with_defaults(Platform platform, GetEnv getenv) -> ConfigBui
     return *this;
 }
 
-auto ConfigBuilder::build(Config &cfg) -> Result
+ConfigBuilder::Result ConfigBuilder::build(Config &cfg)
 {
     if (!maybe_config_dir_.has_value()) {
         return Result::MissingConfigDir;
@@ -107,7 +107,7 @@ auto ConfigBuilder::build(Config &cfg) -> Result
     return Result::Success;
 }
 
-auto to_string(ConfigBuilder::Result result) -> const char *
+const char *to_string(ConfigBuilder::Result result)
 {
     switch (result) {
     case ConfigBuilder::Result::Success:

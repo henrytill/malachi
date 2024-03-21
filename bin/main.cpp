@@ -12,7 +12,7 @@ namespace config = malachi::config;
 using config::Config;
 using config::ConfigBuilder;
 
-auto main(int argc, char *argv[]) -> int
+int main(int argc, char *argv[])
 {
     const std::vector<std::string> args(argv, argv + argc);
 

@@ -5,6 +5,7 @@ Checks: >
   modernize-*,
   misc-*,
   readability-*,
+  -modernize-use-trailing-return-type,
   -readability-identifier-length,
 
 CheckOptions:

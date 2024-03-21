@@ -12,7 +12,7 @@ enum class Platform : uint8_t {
     Unknown,
 };
 
-constexpr auto get_platform() -> Platform
+constexpr Platform get_platform()
 {
 #if defined(_WIN32)
     return Platform::Windows;
@@ -25,7 +25,7 @@ constexpr auto get_platform() -> Platform
 #endif
 }
 
-constexpr auto to_string(Platform p) -> std::string
+constexpr std::string to_string(Platform p)
 {
     switch (p) {
     case Platform::Windows:
