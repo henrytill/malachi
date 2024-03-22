@@ -12,61 +12,61 @@ namespace malachi::config {
 inline std::optional<path> get_config_dir_windows(GetEnv getenv, const path name)
 {
     auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
-    if (app_data == nullptr) {
-        return std::nullopt;
+    if (app_data != nullptr) {
+        const auto config_dir = path{app_data.release()};
+        return std::optional<path>{config_dir / name};
     }
-    const auto config_dir = path{app_data.release()};
-    return std::optional<path>{config_dir / name};
+    return std::nullopt;
 }
 
 inline std::optional<path> get_data_dir_windows(GetEnv getenv, const path name)
 {
     auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
-    if (local_app_data == nullptr) {
-        return std::nullopt;
+    if (local_app_data != nullptr) {
+        const auto data_dir = path{local_app_data.release()};
+        return std::optional<path>{data_dir / name};
     }
-    const auto data_dir = path{local_app_data.release()};
-    return std::optional<path>{data_dir / name};
+    return std::nullopt;
 }
 
 inline std::optional<path> get_support_dir_macos(GetEnv getenv, const path name)
 {
     auto home = std::unique_ptr<char>{getenv("HOME")};
-    if (home == nullptr) {
-        return std::nullopt;
+    if (home != nullptr) {
+        const auto home_dir = path{home.release()};
+        return std::optional<path>{home_dir / "Library" / "Application Support" / name};
     }
-    const auto home_dir = path{home.release()};
-    return std::optional<path>{home_dir / "Library" / "Application Support" / name};
+    return std::nullopt;
 }
 
 inline std::optional<path> get_config_dir_unixen(GetEnv getenv, const path name)
 {
     auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
-    if (xdg_config_home == nullptr) {
-        auto home = std::unique_ptr<char>{getenv("HOME")};
-        if (home == nullptr) {
-            return std::nullopt;
-        }
-        auto home_dir = path{home.release()};
+    if (xdg_config_home != nullptr) {
+        const auto config_dir = path{xdg_config_home.release()};
+        return std::optional<path>{config_dir / name};
+    }
+    auto home = std::unique_ptr<char>{getenv("HOME")};
+    if (home != nullptr) {
+        const auto home_dir = path{home.release()};
         return std::optional<path>{home_dir / ".config" / name};
     }
-    const auto config_dir = path{xdg_config_home.release()};
-    return std::optional<path>{config_dir / name};
+    return std::nullopt;
 }
 
 inline std::optional<path> get_data_dir_unixen(GetEnv getenv, const path name)
 {
     auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
-    if (xdg_data_home == nullptr) {
-        auto home = std::unique_ptr<char>{getenv("HOME")};
-        if (home == nullptr) {
-            return std::nullopt;
-        }
-        auto home_dir = path{home.release()};
+    if (xdg_data_home != nullptr) {
+        const auto data_dir = path{xdg_data_home.release()};
+        return std::optional<path>{data_dir / name};
+    }
+    auto home = std::unique_ptr<char>{getenv("HOME")};
+    if (home != nullptr) {
+        const auto home_dir = path{home.release()};
         return std::optional<path>{home_dir / ".local" / "share" / name};
     }
-    const auto data_dir = path{xdg_data_home.release()};
-    return std::optional<path>{data_dir / name};
+    return std::nullopt;
 }
 
 template <Platform p>
