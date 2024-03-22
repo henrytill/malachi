@@ -11,10 +11,9 @@ namespace malachi::config {
 
 ConfigBuilder &ConfigBuilder::with_defaults(GetEnv getenv)
 {
-    constexpr auto platform = platform::get_platform();
     const auto name = path{"malachi"};
-    maybe_config_dir_ = platform::get_config_dir<platform>(getenv, name);
-    maybe_data_dir_ = platform::get_data_dir<platform>(getenv, name);
+    maybe_config_dir_ = platform::get_config_dir(getenv, name);
+    maybe_data_dir_ = platform::get_data_dir(getenv, name);
     return *this;
 }
 

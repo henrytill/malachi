@@ -107,7 +107,7 @@ inline std::optional<path> get_data_dir_unixen(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-template <Platform p>
+template <Platform p = get_platform()>
 std::optional<path> get_config_dir(GetEnv getenv, const path name)
 {
     assert(name.empty() == false);
@@ -121,7 +121,7 @@ std::optional<path> get_config_dir(GetEnv getenv, const path name)
     }
 }
 
-template <Platform p>
+template <Platform p = get_platform()>
 std::optional<path> get_data_dir(GetEnv getenv, const path name)
 {
     assert(name.empty() == false);
