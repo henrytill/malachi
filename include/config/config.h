@@ -4,14 +4,16 @@
 #include <filesystem>
 #include <optional>
 
+#include "platform.h"
+
+using platform::GetEnv;
+
 namespace malachi::config {
 
 struct Config {
     std::filesystem::path config_dir;
     std::filesystem::path data_dir;
 };
-
-using GetEnv = char *(const char *) noexcept;
 
 class ConfigBuilder {
 public:

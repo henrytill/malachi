@@ -1,13 +1,51 @@
-#include "Config.h"
+#pragma once
 
 #include <cassert>
-#include <memory>
-
-#include "Platform.h"
+#include <cstdint>
+#include <filesystem>
+#include <optional>
+#include <string>
 
 using std::filesystem::path;
 
-namespace malachi::config {
+namespace platform {
+
+enum class Platform : uint8_t {
+    Windows,
+    MacOS,
+    Linux,
+    Unknown,
+};
+
+constexpr Platform get_platform()
+{
+#if defined(_WIN32)
+    return Platform::Windows;
+#elif defined(__APPLE__)
+    return Platform::MacOS;
+#elif defined(__linux__)
+    return Platform::Linux;
+#else
+    return Platform::Unknown;
+#endif
+}
+
+constexpr std::string to_string(const Platform p)
+{
+    switch (p) {
+    case Platform::Windows:
+        return "Windows";
+    case Platform::MacOS:
+        return "MacOS";
+    case Platform::Linux:
+        return "Linux";
+    case Platform::Unknown:
+    default:
+        return "Unknown";
+    };
+}
+
+using GetEnv = char *(const char *) noexcept;
 
 inline std::optional<path> get_config_dir_windows(GetEnv getenv, const path name)
 {
@@ -97,39 +135,4 @@ std::optional<path> get_data_dir(GetEnv getenv, const path name)
     }
 }
 
-ConfigBuilder &ConfigBuilder::with_defaults(GetEnv getenv)
-{
-    constexpr Platform platform = get_platform();
-    const auto name = path{"malachi"};
-    maybe_config_dir_ = get_config_dir<platform>(getenv, name);
-    maybe_data_dir_ = get_data_dir<platform>(getenv, name);
-    return *this;
-}
-
-ConfigBuilder::Result ConfigBuilder::build(Config &cfg)
-{
-    if (!maybe_config_dir_.has_value()) {
-        return Result::MissingConfigDir;
-    }
-    if (!maybe_data_dir_.has_value()) {
-        return Result::MissingDataDir;
-    }
-    cfg.config_dir = maybe_config_dir_.value();
-    cfg.data_dir = maybe_data_dir_.value();
-    return Result::Success;
-}
-
-std::string to_string(const ConfigBuilder::Result result)
-{
-    switch (result) {
-    case ConfigBuilder::Result::Success:
-        return "Success";
-    case ConfigBuilder::Result::MissingConfigDir:
-        return "Missing config directory";
-    case ConfigBuilder::Result::MissingDataDir:
-        return "Missing data directory";
-    }
-    assert(false);
-}
-
-} // namespace malachi::config
+} // namespace platform

@@ -13,18 +13,26 @@ poppler_dep = dependency('poppler', required: true)
 
 sqlite_dep = dependency('sqlite3', required: true)
 
+platform_include_dir = include_directories('include/platform')
+
+platform_dep = declare_dependency(
+  include_directories: platform_include_dir,
+)
+
 config_include_dir = include_directories('include/config')
 
 config = static_library(
     'config',
-    sources: ['lib/config/Config.cpp'],
+    sources: ['lib/config/config.cpp'],
     include_directories: config_include_dir,
+    dependencies: [platform_dep],
     install: false,
 )
 
 config_dep = declare_dependency(
     link_with: [config],
     include_directories: config_include_dir,
+    dependencies: [platform_dep],
 )
 
 executable(

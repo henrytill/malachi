@@ -4,13 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "Config.h"
-#include "Platform.h"
+#include "config.h"
+#include "platform.h"
 
-namespace config = malachi::config;
-
-using config::Config;
-using config::ConfigBuilder;
+using malachi::config::Config;
+using malachi::config::ConfigBuilder;
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +19,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    constexpr auto platform = config::get_platform();
+    constexpr auto platform = platform::get_platform();
 
     std::cout << std::format("Platform: {}\n", to_string(platform));
 

@@ -4,8 +4,8 @@
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "Config.h"
-#include "Platform.h"
+#include "config.h"
+#include "platform.h"
 
 namespace config = malachi::config;
 
@@ -13,7 +13,7 @@ using std::filesystem::path;
 
 using config::Config;
 using config::ConfigBuilder;
-using config::Platform;
+using platform::Platform;
 
 path get_root_directory() { return std::filesystem::current_path().root_directory(); }
 
@@ -21,10 +21,10 @@ path get_root_directory() { return std::filesystem::current_path().root_director
 
 TEST_CASE("to_string returns the correct string for each platform", "[Platform]")
 {
-    REQUIRE(config::to_string(Platform::Windows) == "Windows");
-    REQUIRE(config::to_string(Platform::MacOS) == "MacOS");
-    REQUIRE(config::to_string(Platform::Linux) == "Linux");
-    REQUIRE(config::to_string(Platform::Unknown) == "Unknown");
+    REQUIRE(platform::to_string(Platform::Windows) == "Windows");
+    REQUIRE(platform::to_string(Platform::MacOS) == "MacOS");
+    REQUIRE(platform::to_string(Platform::Linux) == "Linux");
+    REQUIRE(platform::to_string(Platform::Unknown) == "Unknown");
 }
 
 template <Platform p>
@@ -57,7 +57,7 @@ char *getenv_mock(const char *name) noexcept
 
 TEST_CASE("ConfigBuilder builds a Config with the correct config and data directories", "[ConfigBuilder]")
 {
-    constexpr Platform platform = config::get_platform();
+    constexpr Platform platform = platform::get_platform();
 
     auto config = Config{};
     auto config_builder = ConfigBuilder{};
