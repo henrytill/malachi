@@ -47,7 +47,7 @@ constexpr std::string to_string(const Platform p)
     };
 }
 
-namespace internal::windows {
+namespace windows {
 
 inline std::optional<path> get_app_data(GetEnv getenv, const path name)
 {
@@ -69,9 +69,9 @@ inline std::optional<path> get_local_app_data(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-} // namespace internal::windows
+} // namespace windows
 
-namespace internal::mac_os {
+namespace mac_os {
 
 inline std::optional<path> get_application_support(GetEnv getenv, const path name)
 {
@@ -83,9 +83,9 @@ inline std::optional<path> get_application_support(GetEnv getenv, const path nam
     return std::nullopt;
 }
 
-} // namespace internal::mac_os
+} // namespace mac_os
 
-namespace internal::xdg {
+namespace xdg {
 
 inline std::optional<path> get_config_home(GetEnv getenv, const path name)
 {
@@ -117,7 +117,7 @@ inline std::optional<path> get_data_home(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-} // namespace internal::xdg
+} // namespace xdg
 
 template <Platform p = get_platform()>
 std::optional<path> get_config_dir(GetEnv getenv, const path name)
@@ -125,11 +125,11 @@ std::optional<path> get_config_dir(GetEnv getenv, const path name)
     assert(name.empty() == false);
 
     if constexpr (p == Platform::Windows) {
-        return internal::windows::get_app_data(getenv, name);
+        return windows::get_app_data(getenv, name);
     } else if constexpr (p == Platform::MacOS) {
-        return internal::mac_os::get_application_support(getenv, name);
+        return mac_os::get_application_support(getenv, name);
     } else {
-        return internal::xdg::get_config_home(getenv, name);
+        return xdg::get_config_home(getenv, name);
     }
 }
 
@@ -139,11 +139,11 @@ std::optional<path> get_data_dir(GetEnv getenv, const path name)
     assert(name.empty() == false);
 
     if constexpr (p == Platform::Windows) {
-        return internal::windows::get_local_app_data(getenv, name);
+        return windows::get_local_app_data(getenv, name);
     } else if constexpr (p == Platform::MacOS) {
-        return internal::mac_os::get_application_support(getenv, name);
+        return mac_os::get_application_support(getenv, name);
     } else {
-        return internal::xdg::get_data_home(getenv, name);
+        return xdg::get_data_home(getenv, name);
     }
 }
 
