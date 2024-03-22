@@ -9,7 +9,7 @@ catch2 = subproject('catch2', default_options: 'tests=false')
 
 catch2_dep = catch2.get_variable('catch2_dep')
 
-mupdf_dep = dependency('mupdf', required: true)
+poppler_dep = dependency('poppler', required: true)
 
 sqlite_dep = dependency('sqlite3', required: true)
 
@@ -30,7 +30,7 @@ config_dep = declare_dependency(
 executable(
     'malachi',
     sources: ['bin/main.cpp'],
-    dependencies: [mupdf_dep, sqlite_dep, config_dep],
+    dependencies: [poppler_dep, sqlite_dep, config_dep],
 )
 
 config_test = executable(
