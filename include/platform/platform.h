@@ -47,7 +47,9 @@ constexpr std::string to_string(const Platform p)
 
 using GetEnv = char *(const char *) noexcept;
 
-inline std::optional<path> get_config_dir_windows(GetEnv getenv, const path name)
+namespace internal::windows {
+
+inline std::optional<path> get_config_dir(GetEnv getenv, const path name)
 {
     auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
     if (app_data != nullptr) {
@@ -57,7 +59,7 @@ inline std::optional<path> get_config_dir_windows(GetEnv getenv, const path name
     return std::nullopt;
 }
 
-inline std::optional<path> get_data_dir_windows(GetEnv getenv, const path name)
+inline std::optional<path> get_data_dir(GetEnv getenv, const path name)
 {
     auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
     if (local_app_data != nullptr) {
@@ -67,7 +69,11 @@ inline std::optional<path> get_data_dir_windows(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-inline std::optional<path> get_support_dir_macos(GetEnv getenv, const path name)
+} // namespace internal::windows
+
+namespace internal::macos {
+
+inline std::optional<path> get_support_dir(GetEnv getenv, const path name)
 {
     auto home = std::unique_ptr<char>{getenv("HOME")};
     if (home != nullptr) {
@@ -77,7 +83,11 @@ inline std::optional<path> get_support_dir_macos(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-inline std::optional<path> get_config_dir_unixen(GetEnv getenv, const path name)
+} // namespace internal::macos
+
+namespace internal::unixen {
+
+inline std::optional<path> get_config_dir(GetEnv getenv, const path name)
 {
     auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
     if (xdg_config_home != nullptr) {
@@ -92,7 +102,7 @@ inline std::optional<path> get_config_dir_unixen(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-inline std::optional<path> get_data_dir_unixen(GetEnv getenv, const path name)
+inline std::optional<path> get_data_dir(GetEnv getenv, const path name)
 {
     auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
     if (xdg_data_home != nullptr) {
@@ -107,17 +117,19 @@ inline std::optional<path> get_data_dir_unixen(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
+} // namespace internal::unixen
+
 template <Platform p = get_platform()>
 std::optional<path> get_config_dir(GetEnv getenv, const path name)
 {
     assert(name.empty() == false);
 
     if constexpr (p == Platform::Windows) {
-        return get_config_dir_windows(getenv, name);
+        return internal::windows::get_config_dir(getenv, name);
     } else if constexpr (p == Platform::MacOS) {
-        return get_support_dir_macos(getenv, name);
+        return internal::macos::get_support_dir(getenv, name);
     } else {
-        return get_config_dir_unixen(getenv, name);
+        return internal::unixen::get_config_dir(getenv, name);
     }
 }
 
@@ -127,11 +139,11 @@ std::optional<path> get_data_dir(GetEnv getenv, const path name)
     assert(name.empty() == false);
 
     if constexpr (p == Platform::Windows) {
-        return get_data_dir_windows(getenv, name);
+        return internal::windows::get_data_dir(getenv, name);
     } else if constexpr (p == Platform::MacOS) {
-        return get_support_dir_macos(getenv, name);
+        return internal::macos::get_support_dir(getenv, name);
     } else {
-        return get_data_dir_unixen(getenv, name);
+        return internal::unixen::get_data_dir(getenv, name);
     }
 }
 
