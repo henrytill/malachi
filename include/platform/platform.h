@@ -11,7 +11,7 @@ namespace platform {
 
 using std::filesystem::path;
 
-using GetEnv = std::function<char *(const char *)>;
+using GetEnvFn = std::function<char *(const char *)>;
 
 enum class Platform : uint8_t {
     Windows,
@@ -50,7 +50,7 @@ constexpr std::string to_string(const Platform p)
 
 namespace windows {
 
-inline std::optional<path> get_app_data(GetEnv getenv, const path name)
+inline std::optional<path> get_app_data(GetEnvFn getenv, const path name)
 {
     auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
     if (app_data != nullptr) {
@@ -60,7 +60,7 @@ inline std::optional<path> get_app_data(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-inline std::optional<path> get_local_app_data(GetEnv getenv, const path name)
+inline std::optional<path> get_local_app_data(GetEnvFn getenv, const path name)
 {
     auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
     if (local_app_data != nullptr) {
@@ -74,7 +74,7 @@ inline std::optional<path> get_local_app_data(GetEnv getenv, const path name)
 
 namespace mac_os {
 
-inline std::optional<path> get_application_support(GetEnv getenv, const path name)
+inline std::optional<path> get_application_support(GetEnvFn getenv, const path name)
 {
     auto home = std::unique_ptr<char>{getenv("HOME")};
     if (home != nullptr) {
@@ -88,7 +88,7 @@ inline std::optional<path> get_application_support(GetEnv getenv, const path nam
 
 namespace xdg {
 
-inline std::optional<path> get_config_home(GetEnv getenv, const path name)
+inline std::optional<path> get_config_home(GetEnvFn getenv, const path name)
 {
     auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
     if (xdg_config_home != nullptr) {
@@ -103,7 +103,7 @@ inline std::optional<path> get_config_home(GetEnv getenv, const path name)
     return std::nullopt;
 }
 
-inline std::optional<path> get_data_home(GetEnv getenv, const path name)
+inline std::optional<path> get_data_home(GetEnvFn getenv, const path name)
 {
     auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
     if (xdg_data_home != nullptr) {
@@ -121,7 +121,7 @@ inline std::optional<path> get_data_home(GetEnv getenv, const path name)
 } // namespace xdg
 
 template <Platform p = get_platform()>
-std::optional<path> get_config_dir(GetEnv getenv, const path name)
+std::optional<path> get_config_dir(GetEnvFn getenv, const path name)
 {
     assert(name.empty() == false);
 
@@ -135,7 +135,7 @@ std::optional<path> get_config_dir(GetEnv getenv, const path name)
 }
 
 template <Platform p = get_platform()>
-std::optional<path> get_data_dir(GetEnv getenv, const path name)
+std::optional<path> get_data_dir(GetEnvFn getenv, const path name)
 {
     assert(name.empty() == false);
 

@@ -6,7 +6,7 @@
 
 #include "platform.h"
 
-using platform::GetEnv;
+using platform::GetEnvFn;
 
 namespace malachi::config {
 
@@ -32,7 +32,7 @@ public:
     ConfigBuilder &operator=(const ConfigBuilder &) = delete;
     ConfigBuilder &operator=(ConfigBuilder &&) = delete;
 
-    ConfigBuilder &with_defaults(GetEnv getenv);
+    ConfigBuilder &with_defaults(GetEnvFn getenv);
 
     Result build(Config &cfg);
 
