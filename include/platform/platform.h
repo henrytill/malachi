@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
 
@@ -10,7 +11,7 @@ namespace platform {
 
 using std::filesystem::path;
 
-using GetEnv = char *(const char *) noexcept;
+using GetEnv = std::function<char *(const char *)>;
 
 enum class Platform : uint8_t {
     Windows,

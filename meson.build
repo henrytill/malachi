@@ -47,4 +47,12 @@ config_test = executable(
     dependencies: [catch2_dep, config_dep],
 )
 
+platform_test = executable(
+    'platform_test',
+    sources: ['test/platform_test.cpp'],
+    dependencies: [catch2_dep, platform_dep],
+)
+
 test('config_test', config_test)
+
+test('platform_test', platform_test)

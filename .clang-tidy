@@ -5,7 +5,10 @@ Checks: >
   modernize-*,
   misc-*,
   readability-*,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-pro-type-const-cast,
   -modernize-use-trailing-return-type,
+  -readability-function-cognitive-complexity,
   -readability-identifier-length,
 
 CheckOptions:
