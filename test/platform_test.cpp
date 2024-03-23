@@ -107,6 +107,36 @@ TEST_CASE("get_data_dir returns the correct path for each plaform", "[get_data_d
     }
 }
 
+TEST_CASE("get_config_dir returns the correct path when XDG_CONFIG_HOME is set", "[get_config_dir]")
+{
+    using std::filesystem::path;
+    constexpr auto p = platform::get_platform();
+    if constexpr (p == Platform::Linux || p == Platform::Unknown) {
+        auto getenv = [](const char *name) { return getenv_mock<p>(true, name); };
+        const auto name = path{"foo"};
+        std::optional<path> config_dir = platform::get_config_dir(getenv, name);
+        const auto root_dir = get_root_directory();
+        REQUIRE(config_dir == path{root_dir / "tmp" / "config" / name});
+    } else {
+        SKIP("only runnable on Linux and other Unixen");
+    }
+}
+
+TEST_CASE("get_data_dir returns the correct path when XDG_DATA_HOME is set", "[get_data_dir]")
+{
+    using std::filesystem::path;
+    constexpr auto p = platform::get_platform();
+    if constexpr (p == Platform::Linux || p == Platform::Unknown) {
+        auto getenv = [](const char *name) { return getenv_mock<p>(true, name); };
+        const auto name = path{"foo"};
+        std::optional<path> config_dir = platform::get_data_dir(getenv, name);
+        const auto root_dir = get_root_directory();
+        REQUIRE(config_dir == path{root_dir / "tmp" / "data" / name});
+    } else {
+        SKIP("only runnable on Linux and other Unixen");
+    }
+}
+
 } // namespace
 
 int main(int argc, char *argv[])
