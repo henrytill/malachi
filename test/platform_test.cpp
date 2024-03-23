@@ -55,7 +55,7 @@ char *getenv_mock(bool use_xdg, const char *name)
     }
 }
 
-TEST_CASE("get_config_dir returns the correct path for each plaform", "[platform]")
+TEST_CASE("get_config_dir returns the correct path for each plaform", "[get_config_dir]")
 {
     using std::filesystem::path;
 
@@ -65,22 +65,44 @@ TEST_CASE("get_config_dir returns the correct path for each plaform", "[platform
 
     const auto name = path{"foo"};
     std::optional<path> config_dir = platform::get_config_dir(getenv, name);
-    std::optional<path> data_dir = platform::get_data_dir(getenv, name);
 
     if constexpr (p == Platform::Windows) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(config_dir == path{home_dir / "test" / "AppData" / "Roaming" / name});
-        REQUIRE(data_dir == path{home_dir / "test" / "AppData" / "Local" / name});
     } else if constexpr (p == Platform::MacOS) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(config_dir == path{home_dir / "test" / "Library" / "Application Support" / name});
-        REQUIRE(data_dir == path{home_dir / "test" / "Library" / "Application Support" / name});
     } else {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "home"};
         REQUIRE(config_dir == path{home_dir / "test" / ".config" / name});
+    }
+}
+
+TEST_CASE("get_data_dir returns the correct path for each plaform", "[get_data_dir]")
+{
+    using std::filesystem::path;
+
+    constexpr auto p = platform::get_platform();
+
+    auto getenv = [](const char *name) { return getenv_mock<p>(false, name); };
+
+    const auto name = path{"foo"};
+    std::optional<path> data_dir = platform::get_data_dir(getenv, name);
+
+    if constexpr (p == Platform::Windows) {
+        const auto root_dir = get_root_directory();
+        const auto home_dir = path{root_dir / "Users"};
+        REQUIRE(data_dir == path{home_dir / "test" / "AppData" / "Local" / name});
+    } else if constexpr (p == Platform::MacOS) {
+        const auto root_dir = get_root_directory();
+        const auto home_dir = path{root_dir / "Users"};
+        REQUIRE(data_dir == path{home_dir / "test" / "Library" / "Application Support" / name});
+    } else {
+        const auto root_dir = get_root_directory();
+        const auto home_dir = path{root_dir / "home"};
         REQUIRE(data_dir == path{home_dir / "test" / ".local" / "share" / name});
     }
 }
