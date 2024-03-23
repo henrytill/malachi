@@ -9,7 +9,11 @@ using platform::Platform;
 
 namespace {
 
-std::filesystem::path get_root_directory() { return std::filesystem::current_path().root_directory(); }
+using std::filesystem::path;
+
+constexpr auto current_platform = platform::get_platform();
+
+path get_root_directory() { return std::filesystem::current_path().root_directory(); }
 
 TEST_CASE("to_string returns the correct string for each platform", "[platform]")
 {
@@ -57,20 +61,15 @@ char *getenv_mock(bool use_xdg, const char *name)
 
 TEST_CASE("get_config_dir returns the correct path for each plaform", "[get_config_dir]")
 {
-    using std::filesystem::path;
-
-    constexpr auto p = platform::get_platform();
-
-    auto getenv = [](const char *name) { return getenv_mock<p>(false, name); };
-
+    auto getenv = [](const char *name) { return getenv_mock<current_platform>(false, name); };
     const auto name = path{"foo"};
     std::optional<path> config_dir = platform::get_config_dir(getenv, name);
 
-    if constexpr (p == Platform::Windows) {
+    if constexpr (current_platform == Platform::Windows) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(config_dir == path{home_dir / "test" / "AppData" / "Roaming" / name});
-    } else if constexpr (p == Platform::MacOS) {
+    } else if constexpr (current_platform == Platform::MacOS) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(config_dir == path{home_dir / "test" / "Library" / "Application Support" / name});
@@ -83,20 +82,15 @@ TEST_CASE("get_config_dir returns the correct path for each plaform", "[get_conf
 
 TEST_CASE("get_data_dir returns the correct path for each plaform", "[get_data_dir]")
 {
-    using std::filesystem::path;
-
-    constexpr auto p = platform::get_platform();
-
-    auto getenv = [](const char *name) { return getenv_mock<p>(false, name); };
-
+    auto getenv = [](const char *name) { return getenv_mock<current_platform>(false, name); };
     const auto name = path{"foo"};
     std::optional<path> data_dir = platform::get_data_dir(getenv, name);
 
-    if constexpr (p == Platform::Windows) {
+    if constexpr (current_platform == Platform::Windows) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(data_dir == path{home_dir / "test" / "AppData" / "Local" / name});
-    } else if constexpr (p == Platform::MacOS) {
+    } else if constexpr (current_platform == Platform::MacOS) {
         const auto root_dir = get_root_directory();
         const auto home_dir = path{root_dir / "Users"};
         REQUIRE(data_dir == path{home_dir / "test" / "Library" / "Application Support" / name});
@@ -109,10 +103,8 @@ TEST_CASE("get_data_dir returns the correct path for each plaform", "[get_data_d
 
 TEST_CASE("get_config_dir returns the correct path when XDG_CONFIG_HOME is set", "[get_config_dir]")
 {
-    using std::filesystem::path;
-    constexpr auto p = platform::get_platform();
-    if constexpr (p == Platform::Linux || p == Platform::Unknown) {
-        auto getenv = [](const char *name) { return getenv_mock<p>(true, name); };
+    if constexpr (current_platform == Platform::Linux || current_platform == Platform::Unknown) {
+        auto getenv = [](const char *name) { return getenv_mock<current_platform>(true, name); };
         const auto name = path{"foo"};
         std::optional<path> config_dir = platform::get_config_dir(getenv, name);
         const auto root_dir = get_root_directory();
@@ -124,10 +116,8 @@ TEST_CASE("get_config_dir returns the correct path when XDG_CONFIG_HOME is set",
 
 TEST_CASE("get_data_dir returns the correct path when XDG_DATA_HOME is set", "[get_data_dir]")
 {
-    using std::filesystem::path;
-    constexpr auto p = platform::get_platform();
-    if constexpr (p == Platform::Linux || p == Platform::Unknown) {
-        auto getenv = [](const char *name) { return getenv_mock<p>(true, name); };
+    if constexpr (current_platform == Platform::Linux || current_platform == Platform::Unknown) {
+        auto getenv = [](const char *name) { return getenv_mock<current_platform>(true, name); };
         const auto name = path{"foo"};
         std::optional<path> config_dir = platform::get_data_dir(getenv, name);
         const auto root_dir = get_root_directory();
