@@ -39,11 +39,11 @@ char *getenv_mock(bool use_xdg, const char *name)
         }
         return nullptr;
     } else {
-        if (strcmp(name, "XDG_CONFIG_HOME") == 0 && use_xdg) {
+        if (use_xdg && (strcmp(name, "XDG_CONFIG_HOME") == 0)) {
             constexpr auto ret = "/tmp/config";
             return const_cast<char *>(ret);
         }
-        if (strcmp(name, "XDG_DATA_HOME") == 0 && use_xdg) {
+        if (use_xdg && (strcmp(name, "XDG_DATA_HOME") == 0)) {
             constexpr auto ret = "/tmp/data";
             return const_cast<char *>(ret);
         }
