@@ -13,10 +13,10 @@ std::filesystem::path get_root_directory() { return std::filesystem::current_pat
 
 TEST_CASE("to_string returns the correct string for each platform", "[platform]")
 {
-    REQUIRE(platform::to_string(Platform::Windows) == "Windows");
-    REQUIRE(platform::to_string(Platform::MacOS) == "MacOS");
-    REQUIRE(platform::to_string(Platform::Linux) == "Linux");
-    REQUIRE(platform::to_string(Platform::Unknown) == "Unknown");
+    REQUIRE(platform::to_string_view(Platform::Windows) == "Windows");
+    REQUIRE(platform::to_string_view(Platform::MacOS) == "MacOS");
+    REQUIRE(platform::to_string_view(Platform::Linux) == "Linux");
+    REQUIRE(platform::to_string_view(Platform::Unknown) == "Unknown");
 }
 
 template <Platform p>

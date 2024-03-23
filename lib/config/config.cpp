@@ -30,7 +30,7 @@ ConfigBuilder::Result ConfigBuilder::build(Config &cfg)
     return Result::Success;
 }
 
-std::string to_string(const ConfigBuilder::Result result)
+std::string_view to_string_view(const ConfigBuilder::Result result)
 {
     switch (result) {
     case ConfigBuilder::Result::Success:

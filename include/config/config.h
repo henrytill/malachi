@@ -41,6 +41,6 @@ private:
     std::optional<std::filesystem::path> maybe_data_dir_;
 };
 
-std::string to_string(ConfigBuilder::Result result);
+std::string_view to_string_view(ConfigBuilder::Result result);
 
 } // namespace malachi::config
