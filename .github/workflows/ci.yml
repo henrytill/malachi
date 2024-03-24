@@ -20,6 +20,7 @@ jobs:
           sudo apt install -yyq --no-install-recommends \
             libmupdf-dev
       - run: make CC=${{ matrix.compiler }}
+      - run: _bin/malachi -info
       - run: make CC=${{ matrix.compiler }} check
   macos:
     runs-on: macos-latest
@@ -29,6 +30,7 @@ jobs:
         run: |
           brew install mupdf
       - run: make
+      - run: _bin/malachi -info
       - run: make check
   windows:
     runs-on: windows-latest
@@ -54,4 +56,5 @@ jobs:
       - name: Check MSYSTEM
         run: echo $MSYSTEM
       - run: mingw32-make
+      - run: _bin/malachi -info
       - run: mingw32-make check
