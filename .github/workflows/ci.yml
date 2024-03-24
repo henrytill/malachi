@@ -30,6 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install mupdf
+      - run: cc --version
       - run: make
       - run: _bin/malachi -info
       - run: nm _bin/malachi
@@ -57,6 +58,7 @@ jobs:
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
       - name: Check MSYSTEM
         run: echo $MSYSTEM
+      - run: cc --version
       - run: mingw32-make
       - run: _bin/malachi -info
       - run: nm _bin/malachi.exe
