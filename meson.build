@@ -9,7 +9,7 @@ catch2 = subproject('catch2', default_options: 'tests=false')
 
 catch2_dep = catch2.get_variable('catch2_dep')
 
-poppler_dep = dependency('poppler', required: true)
+poppler_dep = dependency('poppler-cpp', required: true)
 
 sqlite_dep = dependency('sqlite3', required: true)
 
