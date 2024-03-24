@@ -7,9 +7,11 @@
 #include "config.h"
 #include "platform.h"
 
+static const char *const NAME = "malachi";
+
 static int configure(struct config *config)
 {
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(NAME);
     if (config_builder == NULL) {
         (void)fprintf(stderr, "Failed to create config_builder\n");
         return -1;
