@@ -21,17 +21,3 @@ jobs:
             libmupdf-dev
       - run: make CC=${{ matrix.compiler }}
       - run: make CC=${{ matrix.compiler }} check
-  zig:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: goto-bus-stop/setup-zig@v2
-        with:
-          version: 0.11.0
-      - uses: Hanaasagi/zig-action-cache@v1.1.5
-      - name: Install dependencies
-        run: |
-          sudo apt install -yyq --no-install-recommends \
-            libmupdf-dev
-      - run: zig build --summary all
-      - run: zig build test --summary all
