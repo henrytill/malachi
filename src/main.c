@@ -1,5 +1,5 @@
+#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <mupdf/fitz.h>
 #include <sqlite3.h>
