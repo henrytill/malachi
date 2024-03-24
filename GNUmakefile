@@ -21,14 +21,13 @@ all: $(BINOUT)/malachi $(BINOUT)/config_test
 
 $(OBJECTS): $(HEADERS)
 
-$(BINOUT):
-	mkdir -p -- $(BINOUT)
-
 $(BINOUT)/malachi: LDLIBS += -lsqlite3 -lmupdf
-$(BINOUT)/malachi: $(OBJECTS) $(BINOUT)
+$(BINOUT)/malachi: $(OBJECTS)
+	@mkdir -p -- $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
-$(BINOUT)/config_test: $(TEST_OBJECTS) $(BINOUT)
+$(BINOUT)/config_test: $(TEST_OBJECTS)
+	@mkdir -p -- $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
 
 .PHONY: check
