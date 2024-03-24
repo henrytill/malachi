@@ -1,5 +1,4 @@
 CFLAGS = -g -std=c11 -Iinclude -Wall -Wextra -Wconversion -Wsign-conversion
-LDLIBS = -lsqlite3 -lmupdf
 BINOUT = _bin
 
 HEADERS =
@@ -25,6 +24,7 @@ $(OBJECTS): $(HEADERS)
 $(BINOUT):
 	mkdir -p -- $(BINOUT)
 
+$(BINOUT)/malachi: LDLIBS += -lsqlite3 -lmupdf
 $(BINOUT)/malachi: $(OBJECTS) $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
