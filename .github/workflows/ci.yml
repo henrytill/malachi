@@ -25,6 +25,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          brew install mupdf
+      - run: make
       - run: make check
   windows:
     runs-on: windows-latest
