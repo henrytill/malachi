@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     }
 
     auto config = Config{};
-    auto config_builder = ConfigBuilder{};
+    auto config_builder = ConfigBuilder("malachi");
     auto result = config_builder.with_defaults(std::getenv).build(config);
     if (result != ConfigBuilder::Result::Success) {
         std::cerr << std::format("Error: {}\n", to_string_view(result));

@@ -5,13 +5,10 @@
 
 #include "platform.h"
 
-using std::filesystem::path;
-
 namespace malachi::config {
 
 ConfigBuilder &ConfigBuilder::with_defaults(GetEnvFn getenv)
 {
-    const auto name = path{"malachi"};
     maybe_config_dir_ = platform::get_config_dir(getenv, name);
     maybe_data_dir_ = platform::get_data_dir(getenv, name);
     return *this;

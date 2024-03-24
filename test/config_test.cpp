@@ -11,7 +11,7 @@ namespace {
 TEST_CASE("ConfigBuilder builds a Config", "[ConfigBuilder]")
 {
     auto config = Config{};
-    auto config_builder = ConfigBuilder{};
+    auto config_builder = ConfigBuilder("test");
     auto result = config_builder.with_defaults(std::getenv).build(config);
     REQUIRE(result == ConfigBuilder::Result::Success);
 }

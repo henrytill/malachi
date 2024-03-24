@@ -23,7 +23,7 @@ public:
         MissingDataDir = -2,
     };
 
-    ConfigBuilder() = default;
+    ConfigBuilder(std::string_view name) : name{name} {};
     ~ConfigBuilder() = default;
 
     ConfigBuilder(const ConfigBuilder &) = delete;
@@ -37,6 +37,7 @@ public:
     Result build(Config &cfg);
 
 private:
+    std::string_view name;
     std::optional<std::filesystem::path> maybe_config_dir_;
     std::optional<std::filesystem::path> maybe_data_dir_;
 };
