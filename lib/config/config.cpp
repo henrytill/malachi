@@ -9,8 +9,8 @@ namespace malachi::config {
 
 ConfigBuilder &ConfigBuilder::with_defaults(GetEnvFn getenv)
 {
-    maybe_config_dir_ = platform::get_config_dir(getenv, name);
-    maybe_data_dir_ = platform::get_data_dir(getenv, name);
+    maybe_config_dir_ = platform::get_config_dir(getenv, name_);
+    maybe_data_dir_ = platform::get_data_dir(getenv, name_);
     return *this;
 }
 
