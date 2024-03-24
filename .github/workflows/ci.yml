@@ -26,3 +26,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make check
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64 }
+          - { sys: clang64, env: clang-x86_64 }
+          - { sys: ucrt64, env: ucrt-x86_64 }
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          install: >-
+            mingw-w64-${{matrix.env}}-toolchain
+            mingw-w64-${{matrix.env}}-make
+      - name: Check MSYSTEM
+        run: echo $MSYSTEM
+      - run: mingw32-make check

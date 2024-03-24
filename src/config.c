@@ -36,7 +36,9 @@ static const char *get_windows_config_dir(config_getenv_fn getenv, const char *n
 {
     assert(name != NULL);
     const char *app_data = getenv("APPDATA");
-    assert(app_data != NULL);
+    if (app_data == NULL) {
+        return NULL;
+    }
     return joinpath2(app_data, name);
 }
 #endif
@@ -46,7 +48,9 @@ static const char *get_windows_data_dir(config_getenv_fn getenv, const char *nam
 {
     assert(name != NULL);
     const char *local_app_data = getenv("LOCALAPPDATA");
-    assert(local_app_data != NULL);
+    if (local_app_data == NULL) {
+        return NULL;
+    }
     return joinpath2(local_app_data, name);
 }
 #endif
