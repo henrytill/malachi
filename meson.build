@@ -16,7 +16,7 @@ sqlite_dep = dependency('sqlite3', required: true)
 platform_include_dir = include_directories('include/platform')
 
 platform_dep = declare_dependency(
-  include_directories: platform_include_dir,
+    include_directories: platform_include_dir,
 )
 
 config_include_dir = include_directories('include/config')
