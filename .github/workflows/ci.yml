@@ -45,6 +45,9 @@ jobs:
           install: >-
             mingw-w64-${{matrix.env}}-toolchain
             mingw-w64-${{matrix.env}}-make
+            mingw-w64-${{matrix.env}}-sqlite3
+            mingw-w64-${{matrix.env}}-mupdf-libmupdf
       - name: Check MSYSTEM
         run: echo $MSYSTEM
+      - run: mingw32-make
       - run: mingw32-make check
