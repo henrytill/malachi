@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MALACHI_INCLUDE_PLATFORM_H
+#define MALACHI_INCLUDE_PLATFORM_H
 
 #include <assert.h>
 #include <stddef.h>
@@ -103,3 +104,5 @@ static inline const char *platform_get_data_dir(platform_getenv_fn getenv, const
     return platform_xdg_get_data_home(getenv, name);
 #endif
 }
+
+#endif // MALACHI_INCLUDE_PLATFORM_H

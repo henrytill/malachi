@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MALACHI_INCLUDE_CONFIG_H
+#define MALACHI_INCLUDE_CONFIG_H
 
 #define CONFIG_BUILDER_ERROR_VARIANTS               \
     X(MISSING_CONFIG_DIR, -1, "config_dir is NULL") \
@@ -29,3 +30,5 @@ void config_builder_with_defaults(struct config_builder *builder, platform_geten
 int config_builder_build(struct config_builder *builder, struct config *out);
 
 const char *config_builder_error_to_string(int rc);
+
+#endif // MALACHI_INCLUDE_CONFIG_H
