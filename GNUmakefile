@@ -14,9 +14,8 @@ OBJECTS += src/path.o
 TEST_OBJECTS =
 TEST_OBJECTS += src/config.o
 TEST_OBJECTS += src/path.o
-TEST_OBJECTS += test/config_test.o
 
--include config.mk
+include config.mk
 
 .PHONY: all
 all: $(BINOUT)/malachi $(BINOUT)/config_test
