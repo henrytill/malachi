@@ -34,6 +34,10 @@ $(BINOUT)/config_test: $(TEST_OBJECTS)
 check: $(BINOUT)/config_test
 	$(BINOUT)/config_test
 
+.PHONY: lint
+lint:
+	clang-tidy --quiet -p compile_commands.json src/*.c
+
 .PHONY: clean
 clean:
 	rm -rf -- $(BINOUT) $(OBJECTS) $(TEST_OBJECTS)
