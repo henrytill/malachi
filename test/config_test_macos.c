@@ -8,7 +8,7 @@
 
 static const char *const NAME = "malachi";
 
-char *getenv_mock_defaults(const char *name)
+char *getenv_defaults(const char *name)
 {
     if (strcmp(name, "HOME") == 0) {
         return "/Users/user";
@@ -21,7 +21,7 @@ void test_config_builder_with_defaults(void)
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create(NAME);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_mock_defaults);
+    config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
     TEST(rc == 0);

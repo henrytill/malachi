@@ -8,7 +8,7 @@
 
 static const char *const NAME = "malachi";
 
-char *getenv_mock_defaults(const char *name)
+char *getenv_defaults(const char *name)
 {
     if (strcmp(name, "APPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Roaming";
@@ -24,7 +24,7 @@ void test_config_builder_with_defaults(void)
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create(NAME);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_mock_defaults);
+    config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
     TEST(rc == 0);
@@ -34,7 +34,7 @@ void test_config_builder_with_defaults(void)
     END_TEST();
 }
 
-char *getenv_mock_windows_no_appdata(const char *name)
+char *getenv_windows_local_app_data(const char *name)
 {
     if (strcmp(name, "LOCALAPPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Local";
@@ -47,7 +47,7 @@ void test_config_builder_no_config_dir(void)
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create(NAME);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_mock_windows_no_appdata);
+    config_builder_with_defaults(config_builder, getenv_windows_local_app_data);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
     TEST(rc == CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR);
@@ -56,7 +56,7 @@ void test_config_builder_no_config_dir(void)
     END_TEST();
 }
 
-char *getenv_mock_windows_no_localappdata(const char *name)
+char *getenv_windows_app_data(const char *name)
 {
     if (strcmp(name, "APPDATA") == 0) {
         return "C:\\Users\\user\\AppData\\Roaming";
@@ -69,7 +69,7 @@ void test_config_builder_no_data_dir(void)
     BEGIN_TEST();
     struct config_builder *config_builder = config_builder_create(NAME);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_mock_windows_no_localappdata);
+    config_builder_with_defaults(config_builder, getenv_windows_app_data);
     struct config config = {0};
     const int rc = config_builder_build(config_builder, &config);
     TEST(rc == CONFIG_BUILDER_ERROR_MISSING_DATA_DIR);
