@@ -57,9 +57,55 @@ void test_config_builder_with_custom_xdg_dirs(void)
     END_TEST();
 }
 
+char *getenv_custom_xdg_data_home(const char *name)
+{
+    if (strcmp(name, "XDG_DATA_HOME") == 0) {
+        return "/tmp/data";
+    }
+    return NULL;
+}
+
+void test_config_builder_with_missing_config_dir(void)
+{
+    BEGIN_TEST();
+    struct config_builder *config_builder = config_builder_create(NAME);
+    TEST(config_builder != NULL);
+    config_builder_with_defaults(config_builder, getenv_custom_xdg_data_home);
+    struct config config = {0};
+    const int rc = config_builder_build(config_builder, &config);
+    TEST(rc == -1);
+    TEST(strcmp(config_builder_error_to_string(rc), "config_dir is NULL") == 0);
+    config_finish(&config);
+    END_TEST();
+}
+
+char *getenv_custom_xdg_config_home(const char *name)
+{
+    if (strcmp(name, "XDG_CONFIG_HOME") == 0) {
+        return "/tmp/config";
+    }
+    return NULL;
+}
+
+void test_config_builder_with_missing_data_dir(void)
+{
+    BEGIN_TEST();
+    struct config_builder *config_builder = config_builder_create(NAME);
+    TEST(config_builder != NULL);
+    config_builder_with_defaults(config_builder, getenv_custom_xdg_config_home);
+    struct config config = {0};
+    const int rc = config_builder_build(config_builder, &config);
+    TEST(rc == -2);
+    TEST(strcmp(config_builder_error_to_string(rc), "data_dir is NULL") == 0);
+    config_finish(&config);
+    END_TEST();
+}
+
 int main(void)
 {
     test_config_builder_with_defaults();
     test_config_builder_with_custom_xdg_dirs();
+    test_config_builder_with_missing_config_dir();
+    test_config_builder_with_missing_data_dir();
     return EXIT_SUCCESS;
 }

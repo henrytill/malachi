@@ -67,8 +67,10 @@ static inline const char *platform_xdg_get_config_home(platform_getenv_fn getenv
         return joinpath2(xdg_config_home, name);
     }
     const char *home = getenv("HOME");
-    assert(home != NULL);
-    return joinpath3(home, ".config", name);
+    if (home != NULL) {
+        return joinpath3(home, ".config", name);
+    }
+    return NULL;
 }
 
 static inline const char *platform_xdg_get_data_home(platform_getenv_fn getenv, const char *name)
@@ -79,8 +81,10 @@ static inline const char *platform_xdg_get_data_home(platform_getenv_fn getenv, 
         return joinpath2(xdg_data_home, name);
     }
     const char *home = getenv("HOME");
-    assert(home != NULL);
-    return joinpath4(home, ".local", "share", name);
+    if (home != NULL) {
+        return joinpath4(home, ".local", "share", name);
+    }
+    return NULL;
 }
 
 static inline const char *platform_get_config_dir(platform_getenv_fn getenv, const char *name)
