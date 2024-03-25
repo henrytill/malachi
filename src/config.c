@@ -25,7 +25,7 @@ struct config_builder *config_builder_create(const char *name)
 {
     assert(name != NULL);
     struct config_builder *ret = calloc(1, sizeof(*ret));
-    ret->name = name;
+    if (ret != NULL) { ret->name = name; }
     return ret;
 };
 
