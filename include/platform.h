@@ -35,28 +35,30 @@ static inline const char *platform_windows_get_app_data(platform_getenv_fn geten
 {
     assert(name != NULL);
     const char *app_data = getenv("APPDATA");
-    if (app_data == NULL) {
-        return NULL;
+    if (app_data != NULL) {
+        return joinpath2(app_data, name);
     }
-    return joinpath2(app_data, name);
+    return NULL;
 }
 
 static inline const char *platform_windows_get_local_app_data(platform_getenv_fn getenv, const char *name)
 {
     assert(name != NULL);
     const char *local_app_data = getenv("LOCALAPPDATA");
-    if (local_app_data == NULL) {
-        return NULL;
+    if (local_app_data != NULL) {
+        return joinpath2(local_app_data, name);
     }
-    return joinpath2(local_app_data, name);
+    return NULL;
 }
 
 static inline const char *platform_macos_get_support_dir(platform_getenv_fn getenv, const char *name)
 {
     assert(name != NULL);
     const char *home = getenv("HOME");
-    assert(home != NULL);
-    return joinpath4(home, "Library", "Application Support", name);
+    if (home != NULL) {
+        return joinpath4(home, "Library", "Application Support", name);
+    }
+    return NULL;
 }
 
 static inline const char *platform_xdg_get_config_home(platform_getenv_fn getenv, const char *name)
