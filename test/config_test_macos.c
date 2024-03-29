@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
 #include "test.h"
 
 #include "config.h"
@@ -23,8 +24,11 @@ void test_config_builder_with_defaults(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
     TEST(rc == 0);
+    TEST(error.rc == rc);
+    TEST(error.msg == NULL);
     TEST(strcmp(config.config_dir, "/Users/user/Library/Application Support/malachi") == 0);
     TEST(strcmp(config.data_dir, "/Users/user/Library/Application Support/malachi") == 0);
     config_finish(&config);

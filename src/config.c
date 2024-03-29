@@ -3,7 +3,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "error.h"
 #include "platform.h"
+
+#define MISSING_CONFIG_DIR_MSG "maybe_config_dir is NULL"
+#define MISSING_DATA_DIR_MSG   "maybe_data_dir is NULL"
 
 void config_finish(struct config *config)
 {
@@ -47,16 +51,20 @@ static void config_builder_finish(struct config_builder *builder)
     }
 }
 
-int config_builder_build(struct config_builder *builder, struct config *out)
+int config_builder_build(struct config_builder *builder, struct config *out, struct error *err)
 {
     int ret = 0;
     if (builder->maybe_config_dir == NULL) {
-        ret = CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR;
+        ret = -CONFIG_ERROR_MISSING_DIR;
+        err->rc = ret;
+        err->msg = MISSING_CONFIG_DIR_MSG;
         config_builder_finish(builder);
         goto out_free_builder;
     }
     if (builder->maybe_data_dir == NULL) {
-        ret = CONFIG_BUILDER_ERROR_MISSING_DATA_DIR;
+        ret = -CONFIG_ERROR_MISSING_DIR;
+        err->rc = ret;
+        err->msg = MISSING_DATA_DIR_MSG;
         config_builder_finish(builder);
         goto out_free_builder;
     }
@@ -66,16 +74,3 @@ out_free_builder:
     free(builder);
     return ret;
 };
-
-static const char *const CONFIG_BUILDER_ERROR_STRINGS[] = {
-#define X(tag, value, description) [-(CONFIG_BUILDER_ERROR_##tag)] = (description),
-    CONFIG_BUILDER_ERROR_VARIANTS
-#undef X
-};
-
-const char *config_builder_error_to_string(const int rc)
-{
-    extern const char *const CONFIG_BUILDER_ERROR_STRINGS[];
-    if (rc >= 0 || rc <= CONFIG_BUILDER_ERROR_MIN) { return NULL; }
-    return CONFIG_BUILDER_ERROR_STRINGS[-rc];
-}

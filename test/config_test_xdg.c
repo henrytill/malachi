@@ -5,6 +5,7 @@
 #include "test.h"
 
 #include "config.h"
+#include "error.h"
 
 static const char *const NAME = "malachi";
 
@@ -23,8 +24,11 @@ void test_config_builder_with_defaults(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
     TEST(rc == 0);
+    TEST(error.rc == rc);
+    TEST(error.msg == NULL);
     TEST(strcmp(config.config_dir, "/home/user/.config/malachi") == 0);
     TEST(strcmp(config.data_dir, "/home/user/.local/share/malachi") == 0);
     config_finish(&config);
@@ -49,8 +53,11 @@ void test_config_builder_with_custom_xdg_dirs(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_dirs);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
     TEST(rc == 0);
+    TEST(error.rc == rc);
+    TEST(error.msg == NULL);
     TEST(strcmp(config.config_dir, "/tmp/config/malachi") == 0);
     TEST(strcmp(config.data_dir, "/tmp/data/malachi") == 0);
     config_finish(&config);
@@ -72,9 +79,11 @@ void test_config_builder_with_missing_config_dir(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_data_home);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
     TEST(rc == -1);
-    TEST(strcmp(config_builder_error_to_string(rc), "maybe_config_dir is NULL") == 0);
+    TEST(error.rc == rc);
+    TEST(strcmp(error.msg, "maybe_config_dir is NULL") == 0);
     config_finish(&config);
     END_TEST();
 }
@@ -94,9 +103,11 @@ void test_config_builder_with_missing_data_dir(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_config_home);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
-    TEST(rc == -2);
-    TEST(strcmp(config_builder_error_to_string(rc), "maybe_data_dir is NULL") == 0);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
+    TEST(rc == -1);
+    TEST(error.rc == rc);
+    TEST(strcmp(error.msg, "maybe_data_dir is NULL") == 0);
     config_finish(&config);
     END_TEST();
 }

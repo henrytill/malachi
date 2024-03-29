@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
 #include "test.h"
 
 #include "config.h"
@@ -26,8 +27,11 @@ void test_config_builder_with_defaults(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
     TEST(rc == 0);
+    TEST(error.rc == rc);
+    TEST(error.msg == NULL);
     TEST(strcmp(config.config_dir, "C:\\Users\\user\\AppData\\Roaming\\malachi") == 0);
     TEST(strcmp(config.data_dir, "C:\\Users\\user\\AppData\\Local\\malachi") == 0);
     config_finish(&config);
@@ -49,9 +53,11 @@ void test_config_builder_no_config_dir(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_windows_local_app_data);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
-    TEST(rc == CONFIG_BUILDER_ERROR_MISSING_CONFIG_DIR);
-    TEST(strcmp(config_builder_error_to_string(rc), "maybe_config_dir is NULL") == 0);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
+    TEST(rc == -CONFIG_ERROR_MISSING_DIR);
+    TEST(error.rc == -CONFIG_ERROR_MISSING_DIR);
+    TEST(strcmp(error.msg, "maybe_config_dir is NULL") == 0);
     config_finish(&config);
     END_TEST();
 }
@@ -71,9 +77,11 @@ void test_config_builder_no_data_dir(void)
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_windows_app_data);
     struct config config = {0};
-    const int rc = config_builder_build(config_builder, &config);
-    TEST(rc == CONFIG_BUILDER_ERROR_MISSING_DATA_DIR);
-    TEST(strcmp(config_builder_error_to_string(rc), "maybe_data_dir is NULL") == 0);
+    struct error error = {0};
+    const int rc = config_builder_build(config_builder, &config, &error);
+    TEST(rc == -CONFIG_ERROR_MISSING_DIR);
+    TEST(error.rc == -CONFIG_ERROR_MISSING_DIR);
+    TEST(strcmp(error.msg, "maybe_data_dir is NULL") == 0);
     config_finish(&config);
     END_TEST();
 }

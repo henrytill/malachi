@@ -3,6 +3,7 @@ BINOUT = _bin
 
 HEADERS =
 HEADERS += include/config.h
+HEADERS += include/error.h
 HEADERS += include/path.h
 HEADERS += include/platform.h
 
