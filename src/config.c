@@ -31,7 +31,7 @@ struct config_builder *config_builder_create(const char *name)
     struct config_builder *ret = calloc(1, sizeof(*ret));
     if (ret != NULL) { ret->name = name; }
     return ret;
-};
+}
 
 void config_builder_with_defaults(struct config_builder *builder, platform_getenv_fn getenv)
 {
@@ -73,4 +73,4 @@ int config_builder_build(struct config_builder *builder, struct config *out, str
 out_free_builder:
     free(builder);
     return ret;
-};
+}
