@@ -6,6 +6,8 @@
 #include "error.h"
 #include "platform.h"
 
+#define NAME "malachi"
+
 #define MISSING_CONFIG_DIR_MSG "maybe_config_dir is NULL"
 #define MISSING_DATA_DIR_MSG   "maybe_data_dir is NULL"
 
@@ -20,23 +22,20 @@ void config_finish(struct config *config)
 }
 
 struct config_builder {
-    const char *name;
     const char *maybe_config_dir;
     const char *maybe_data_dir;
 };
 
-struct config_builder *config_builder_create(const char *name)
+struct config_builder *config_builder_create(void)
 {
-    assert(name != NULL);
     struct config_builder *ret = calloc(1, sizeof(*ret));
-    if (ret != NULL) { ret->name = name; }
     return ret;
 }
 
 void config_builder_with_defaults(struct config_builder *builder, platform_getenv_fn getenv)
 {
-    builder->maybe_config_dir = platform_get_config_dir(getenv, builder->name);
-    builder->maybe_data_dir = platform_get_data_dir(getenv, builder->name);
+    builder->maybe_config_dir = platform_get_config_dir(getenv, NAME);
+    builder->maybe_data_dir = platform_get_data_dir(getenv, NAME);
 }
 
 static void config_builder_finish(struct config_builder *builder)

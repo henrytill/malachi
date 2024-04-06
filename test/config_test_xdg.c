@@ -7,8 +7,6 @@
 #include "config.h"
 #include "error.h"
 
-static const char *const NAME = "malachi";
-
 char *getenv_defaults(const char *name)
 {
     if (strcmp(name, "HOME") == 0) {
@@ -20,7 +18,7 @@ char *getenv_defaults(const char *name)
 void test_config_builder_with_defaults(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create(NAME);
+    struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_defaults);
     struct config config = {0};
@@ -49,7 +47,7 @@ char *getenv_custom_xdg_dirs(const char *name)
 void test_config_builder_with_custom_xdg_dirs(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create(NAME);
+    struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_dirs);
     struct config config = {0};
@@ -75,7 +73,7 @@ char *getenv_custom_xdg_data_home(const char *name)
 void test_config_builder_with_missing_config_dir(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create(NAME);
+    struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_data_home);
     struct config config = {0};
@@ -99,7 +97,7 @@ char *getenv_custom_xdg_config_home(const char *name)
 void test_config_builder_with_missing_data_dir(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create(NAME);
+    struct config_builder *config_builder = config_builder_create();
     TEST(config_builder != NULL);
     config_builder_with_defaults(config_builder, getenv_custom_xdg_config_home);
     struct config config = {0};

@@ -16,7 +16,7 @@ void config_finish(struct config *config);
 
 struct config_builder;
 
-struct config_builder *config_builder_create(const char *name);
+struct config_builder *config_builder_create(void);
 
 typedef char *platform_getenv_fn(const char *name);
 
