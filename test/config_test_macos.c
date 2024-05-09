@@ -18,9 +18,9 @@ char *getenv_defaults(const char *name)
 void test_config_builder_with_defaults(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv_defaults);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_defaults);
+    config_builder_with_defaults(config_builder);
     struct config config = {0};
     struct error error = {0};
     const int rc = config_builder_build(config_builder, &config, &error);

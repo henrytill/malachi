@@ -16,11 +16,11 @@ void config_finish(struct config *config);
 
 struct config_builder;
 
-struct config_builder *config_builder_create(void);
-
 typedef char *platform_getenv_fn(const char *name);
 
-void config_builder_with_defaults(struct config_builder *builder, platform_getenv_fn getenv);
+struct config_builder *config_builder_create(platform_getenv_fn getenv);
+
+void config_builder_with_defaults(struct config_builder *builder);
 
 int config_builder_build(struct config_builder *builder, struct config *out, struct error *err);
 

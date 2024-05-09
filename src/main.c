@@ -11,12 +11,12 @@
 static int configure(struct config *config)
 {
     struct error error = {0};
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv);
     if (config_builder == NULL) {
         (void)fprintf(stderr, "Failed to create config_builder\n");
         return -1;
     }
-    config_builder_with_defaults(config_builder, getenv);
+    config_builder_with_defaults(config_builder);
     const int rc = config_builder_build(config_builder, config, &error);
     if (rc != 0) {
         (void)fprintf(stderr, "Failed to build config: %s\n", error.msg);

@@ -18,9 +18,9 @@ char *getenv_defaults(const char *name)
 void test_config_builder_with_defaults(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv_defaults);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_defaults);
+    config_builder_with_defaults(config_builder);
     struct config config = {0};
     struct error error = {0};
     const int rc = config_builder_build(config_builder, &config, &error);
@@ -47,9 +47,9 @@ char *getenv_custom_xdg_dirs(const char *name)
 void test_config_builder_with_custom_xdg_dirs(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_dirs);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_custom_xdg_dirs);
+    config_builder_with_defaults(config_builder);
     struct config config = {0};
     struct error error = {0};
     const int rc = config_builder_build(config_builder, &config, &error);
@@ -73,9 +73,9 @@ char *getenv_custom_xdg_data_home(const char *name)
 void test_config_builder_with_missing_config_dir(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_data_home);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_custom_xdg_data_home);
+    config_builder_with_defaults(config_builder);
     struct config config = {0};
     struct error error = {0};
     const int rc = config_builder_build(config_builder, &config, &error);
@@ -97,9 +97,9 @@ char *getenv_custom_xdg_config_home(const char *name)
 void test_config_builder_with_missing_data_dir(void)
 {
     BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create();
+    struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_config_home);
     TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder, getenv_custom_xdg_config_home);
+    config_builder_with_defaults(config_builder);
     struct config config = {0};
     struct error error = {0};
     const int rc = config_builder_build(config_builder, &config, &error);

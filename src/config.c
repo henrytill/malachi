@@ -22,20 +22,25 @@ void config_finish(struct config *config)
 }
 
 struct config_builder {
+    platform_getenv_fn *getenv;
     const char *maybe_config_dir;
     const char *maybe_data_dir;
 };
 
-struct config_builder *config_builder_create(void)
+struct config_builder *config_builder_create(platform_getenv_fn getenv)
 {
     struct config_builder *ret = calloc(1, sizeof(*ret));
+    if (ret == NULL) {
+        return NULL;
+    }
+    ret->getenv = getenv;
     return ret;
 }
 
-void config_builder_with_defaults(struct config_builder *builder, platform_getenv_fn getenv)
+void config_builder_with_defaults(struct config_builder *builder)
 {
-    builder->maybe_config_dir = platform_get_config_dir(getenv, NAME);
-    builder->maybe_data_dir = platform_get_data_dir(getenv, NAME);
+    builder->maybe_config_dir = platform_get_config_dir(builder->getenv, NAME);
+    builder->maybe_data_dir = platform_get_data_dir(builder->getenv, NAME);
 }
 
 static void config_builder_finish(struct config_builder *builder)
