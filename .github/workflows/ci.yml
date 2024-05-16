@@ -36,6 +36,8 @@ jobs:
       - run: uname -s
       - run: cc --version
       - run: ./configure
+      - run: echo 'CFLAGS += -I/opt/homebrew/include' >> config.mk
+      - run: echo 'LDFLAGS += -L/opt/homebrew/lib' >> config.mk
       - run: cat config.mk
       - run: make
       - run: _bin/malachi -info
