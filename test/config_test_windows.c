@@ -10,10 +10,10 @@
 char *getenv_defaults(const char *name)
 {
     if (strcmp(name, "APPDATA") == 0) {
-        return "C:\\Users\\user\\AppData\\Roaming";
+        return "C:/Users/user/AppData/Roaming";
     }
     if (strcmp(name, "LOCALAPPDATA") == 0) {
-        return "C:\\Users\\user\\AppData\\Local";
+        return "C:/Users/user/AppData/Local";
     }
     return NULL;
 }
@@ -30,8 +30,8 @@ void test_config_builder_with_defaults(void)
     TEST(rc == 0);
     TEST(error.rc == rc);
     TEST(error.msg == NULL);
-    TEST(strcmp(config.config_dir, "C:\\Users\\user\\AppData\\Roaming\\malachi") == 0);
-    TEST(strcmp(config.data_dir, "C:\\Users\\user\\AppData\\Local\\malachi") == 0);
+    TEST(strcmp(config.config_dir, "C:/Users/user/AppData/Roaming/malachi") == 0);
+    TEST(strcmp(config.data_dir, "C:/Users/user/AppData/Local/malachi") == 0);
     config_finish(&config);
     END_TEST();
 }
@@ -39,7 +39,7 @@ void test_config_builder_with_defaults(void)
 char *getenv_windows_local_app_data(const char *name)
 {
     if (strcmp(name, "LOCALAPPDATA") == 0) {
-        return "C:\\Users\\user\\AppData\\Local";
+        return "C:/Users/user/AppData/Local";
     }
     return NULL;
 }
@@ -63,7 +63,7 @@ void test_config_builder_no_config_dir(void)
 char *getenv_windows_app_data(const char *name)
 {
     if (strcmp(name, "APPDATA") == 0) {
-        return "C:\\Users\\user\\AppData\\Roaming";
+        return "C:/Users/user/AppData/Roaming";
     }
     return NULL;
 }
