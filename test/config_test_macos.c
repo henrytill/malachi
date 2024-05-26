@@ -7,34 +7,31 @@
 
 #include "config.h"
 
-char *getenv_defaults(const char *name)
-{
-    if (strcmp(name, "HOME") == 0) {
-        return "/Users/user";
-    }
-    return NULL;
+char *getenv_defaults(const char *name) {
+  if (strcmp(name, "HOME") == 0) {
+    return "/Users/user";
+  }
+  return NULL;
 }
 
-void test_config_builder_with_defaults(void)
-{
-    BEGIN_TEST();
-    struct config_builder *config_builder = config_builder_create(getenv_defaults);
-    TEST(config_builder != NULL);
-    config_builder_with_defaults(config_builder);
-    struct config config = {0};
-    struct error error = {0};
-    const int rc = config_builder_build(config_builder, &config, &error);
-    TEST(rc == 0);
-    TEST(error.rc == rc);
-    TEST(error.msg == NULL);
-    TEST(strcmp(config.config_dir, "/Users/user/Library/Application Support/malachi") == 0);
-    TEST(strcmp(config.data_dir, "/Users/user/Library/Application Support/malachi") == 0);
-    config_finish(&config);
-    END_TEST();
+void test_config_builder_with_defaults(void) {
+  BEGIN_TEST();
+  struct config_builder *config_builder = config_builder_create(getenv_defaults);
+  TEST(config_builder != NULL);
+  config_builder_with_defaults(config_builder);
+  struct config config = {0};
+  struct error error = {0};
+  const int rc = config_builder_build(config_builder, &config, &error);
+  TEST(rc == 0);
+  TEST(error.rc == rc);
+  TEST(error.msg == NULL);
+  TEST(strcmp(config.config_dir, "/Users/user/Library/Application Support/malachi") == 0);
+  TEST(strcmp(config.data_dir, "/Users/user/Library/Application Support/malachi") == 0);
+  config_finish(&config);
+  END_TEST();
 }
 
-int main(void)
-{
-    test_config_builder_with_defaults();
-    return EXIT_SUCCESS;
+int main(void) {
+  test_config_builder_with_defaults();
+  return EXIT_SUCCESS;
 }

@@ -2,8 +2,8 @@
 #define MALACHI_INCLUDE_ERROR_H
 
 struct error {
-    int rc;
-    const char *msg;
+  int rc;
+  const char *msg;
 };
 
 #endif // MALACHI_INCLUDE_ERROR_H
