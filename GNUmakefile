@@ -40,6 +40,11 @@ check: $(BINOUT)/config_test
 lint:
 	clang-tidy --quiet -p compile_commands.json src/*.c
 
+.PHONY: install
+install:
+	mkdir -p $(DESTDIR)/bin
+	cp $(BINOUT)/* $(DESTDIR)/bin
+
 .PHONY: clean
 clean:
 	rm -rf -- $(BINOUT) $(OBJECTS) $(TEST_OBJECTS)

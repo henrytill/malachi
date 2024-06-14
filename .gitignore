@@ -1,4 +1,5 @@
 /_bin/
+/result*
 /zig-*/
 *.o
 config.mk

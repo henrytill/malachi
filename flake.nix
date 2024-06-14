@@ -1,0 +1,41 @@
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
+    let
+      makeMalachi =
+        pkgs:
+        pkgs.stdenv.mkDerivation {
+          name = "malachi";
+          src = builtins.path {
+            path = ./.;
+            name = "malachi-src";
+          };
+          buildInputs = with pkgs; [
+            mupdf
+            sqlite
+          ];
+          doCheck = true;
+          installFlags = [ "DESTDIR=$(out)" ];
+        };
+    in
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        packages.malachi = makeMalachi pkgs;
+        packages.default = self.packages.${system}.malachi;
+      }
+    );
+}
