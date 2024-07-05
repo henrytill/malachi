@@ -43,8 +43,12 @@ jobs:
       - run: uname -s
       - run: cc --version
       - run: ./configure
-      - run: echo 'CFLAGS += -I/opt/homebrew/include' >> config.mk
-      - run: echo 'LDFLAGS += -L/opt/homebrew/lib' >> config.mk
+      - name: Add Homebrew paths to config.mk
+        run: |
+          cat <<EOF >>config.mk
+          CFLAGS += -I/opt/homebrew/include
+          LDFLAGS += -L/opt/homebrew/lib
+          EOF
       - run: cat config.mk
       - run: make
       - run: _bin/malachi -info
