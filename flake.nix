@@ -25,7 +25,7 @@
             sqlite
           ];
           doCheck = true;
-          installFlags = [ "DESTDIR=$(out)" ];
+          installFlags = [ "DESTDIR=${placeholder "out"}" ];
         };
     in
     flake-utils.lib.eachDefaultSystem (
