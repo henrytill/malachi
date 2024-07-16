@@ -5,15 +5,15 @@ set -e
 CONFIG_TEST=
 
 case "$(uname -s)" in
-    Darwin)
-        CONFIG_TEST=config_test_macos.o
-        ;;
-    MINGW64_NT*)
-        CONFIG_TEST=config_test_windows.o
-        ;;
-    *)
-        CONFIG_TEST=config_test_xdg.o
-        ;;
+  Darwin)
+    CONFIG_TEST=config_test_macos.o
+    ;;
+  MINGW64_NT*)
+    CONFIG_TEST=config_test_windows.o
+    ;;
+  *)
+    CONFIG_TEST=config_test_xdg.o
+    ;;
 esac
 
 cat <<EOF >config.mk
