@@ -1,4 +1,6 @@
-CFLAGS = -g -std=c11 -Iinclude -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion
+CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion
+ALL_CFLAGS = -std=c11 -Iinclude $(CFLAGS)
+
 BINOUT = _bin
 
 HEADERS =
@@ -31,6 +33,9 @@ $(BINOUT)/malachi: $(OBJECTS)
 $(BINOUT)/config_test: $(TEST_OBJECTS)
 	@mkdir -p -- $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
+
+.c.o:
+	$(CC) $(ALL_CFLAGS) -o $@ -c $<
 
 .PHONY: check
 check: $(BINOUT)/config_test
