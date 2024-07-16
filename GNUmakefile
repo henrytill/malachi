@@ -1,6 +1,14 @@
 CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion
 ALL_CFLAGS = -std=c11 -Iinclude $(CFLAGS)
 
+INSTALL = install
+INSTALL_PROGRAM = $(INSTALL)
+INSTALL_DATA = $(INSTALL) -m 644
+
+bindir = /bin
+prefix = /usr/local
+DESTDIR = $(prefix)
+
 BINOUT = _bin
 
 HEADERS =
@@ -47,8 +55,8 @@ lint:
 
 .PHONY: install
 install:
-	mkdir -p $(DESTDIR)/bin
-	cp $(BINOUT)/* $(DESTDIR)/bin
+	mkdir -p $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) $(BINOUT)/malachi $(DESTDIR)$(bindir)/malachi
 
 .PHONY: clean
 clean:
