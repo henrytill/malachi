@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <mupdf/fitz.h>
 #include <sqlite3.h>
@@ -42,6 +43,10 @@ int main(int argc, char *argv[]) {
   printf("sqlite: %s\n", sqlite3_libversion());
   printf("mupdf: %s\n", FZ_VERSION);
 
+  char *cwd = getcwd(NULL, 0);
+  printf("cwd: %s\n", cwd);
+
+  free(cwd);
   config_finish(&config);
   return EXIT_SUCCESS;
 }
