@@ -8,8 +8,8 @@ enum config_error {
 };
 
 struct config {
-  const char *config_dir;
-  const char *data_dir;
+  char *config_dir;
+  char *data_dir;
 };
 
 void config_finish(struct config *config);

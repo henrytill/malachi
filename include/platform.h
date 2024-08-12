@@ -30,7 +30,7 @@ static inline const char *platform_to_string(void) {
 #endif
 }
 
-static inline const char *platform_windows_get_app_data(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_windows_get_app_data(platform_getenv_fn getenv, const char *name) {
   assert(name != NULL);
   const char *app_data = getenv("APPDATA");
   if (app_data != NULL) {
@@ -39,7 +39,7 @@ static inline const char *platform_windows_get_app_data(platform_getenv_fn geten
   return NULL;
 }
 
-static inline const char *platform_windows_get_local_app_data(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_windows_get_local_app_data(platform_getenv_fn getenv, const char *name) {
   assert(name != NULL);
   const char *local_app_data = getenv("LOCALAPPDATA");
   if (local_app_data != NULL) {
@@ -48,7 +48,7 @@ static inline const char *platform_windows_get_local_app_data(platform_getenv_fn
   return NULL;
 }
 
-static inline const char *platform_macos_get_support_dir(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_macos_get_support_dir(platform_getenv_fn getenv, const char *name) {
   assert(name != NULL);
   const char *home = getenv("HOME");
   if (home != NULL) {
@@ -57,7 +57,7 @@ static inline const char *platform_macos_get_support_dir(platform_getenv_fn gete
   return NULL;
 }
 
-static inline const char *platform_xdg_get_config_home(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_xdg_get_config_home(platform_getenv_fn getenv, const char *name) {
   assert(name != NULL);
   const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
   if (xdg_config_home != NULL) {
@@ -70,7 +70,7 @@ static inline const char *platform_xdg_get_config_home(platform_getenv_fn getenv
   return NULL;
 }
 
-static inline const char *platform_xdg_get_data_home(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_xdg_get_data_home(platform_getenv_fn getenv, const char *name) {
   assert(name != NULL);
   const char *xdg_data_home = getenv("XDG_DATA_HOME");
   if (xdg_data_home != NULL) {
@@ -83,7 +83,7 @@ static inline const char *platform_xdg_get_data_home(platform_getenv_fn getenv, 
   return NULL;
 }
 
-static inline const char *platform_get_config_dir(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_get_config_dir(platform_getenv_fn getenv, const char *name) {
 #if defined(PLATFORM_WINDOWS)
   return platform_windows_get_app_data(getenv, name);
 #elif defined(PLATFORM_MACOS)
@@ -93,7 +93,7 @@ static inline const char *platform_get_config_dir(platform_getenv_fn getenv, con
 #endif
 }
 
-static inline const char *platform_get_data_dir(platform_getenv_fn getenv, const char *name) {
+static inline char *platform_get_data_dir(platform_getenv_fn getenv, const char *name) {
 #if defined(PLATFORM_WINDOWS)
   return platform_windows_get_local_app_data(getenv, name);
 #elif defined(PLATFORM_MACOS)

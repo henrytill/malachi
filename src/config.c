@@ -13,17 +13,17 @@
 
 void config_finish(struct config *config) {
   if (config->config_dir == config->data_dir) {
-    free((char *)config->config_dir);
+    free(config->config_dir);
   } else {
-    free((char *)config->config_dir);
-    free((char *)config->data_dir);
+    free(config->config_dir);
+    free(config->data_dir);
   }
 }
 
 struct config_builder {
   platform_getenv_fn *getenv;
-  const char *maybe_config_dir;
-  const char *maybe_data_dir;
+  char *maybe_config_dir;
+  char *maybe_data_dir;
 };
 
 struct config_builder *config_builder_create(platform_getenv_fn getenv) {
@@ -42,11 +42,11 @@ void config_builder_with_defaults(struct config_builder *builder) {
 
 static void config_builder_finish(struct config_builder *builder) {
   if (builder->maybe_config_dir != NULL) {
-    free((char *)builder->maybe_config_dir);
+    free(builder->maybe_config_dir);
     builder->maybe_config_dir = NULL;
   }
   if (builder->maybe_data_dir != NULL) {
-    free((char *)builder->maybe_data_dir);
+    free(builder->maybe_data_dir);
     builder->maybe_data_dir = NULL;
   }
 }
