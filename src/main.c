@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <git2/common.h>
 #include <mupdf/fitz.h>
 #include <sqlite3.h>
 
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
   }
 
   struct config config = {0};
-  const int rc = configure(&config);
+  int rc = configure(&config);
   if (rc != 0) {
     return EXIT_FAILURE;
   }
@@ -44,6 +45,18 @@ int main(int argc, char *argv[]) {
   printf("data_dir: %s\n", config.data_dir);
   printf("sqlite: %s\n", sqlite3_libversion());
   printf("mupdf: %s\n", FZ_VERSION);
+
+  struct {
+    int major;
+    int minor;
+    int rev;
+  } git2v = {0};
+  rc = git_libgit2_version(&git2v.major, &git2v.minor, &git2v.rev);
+  if (rc != 0) {
+    eprintf("Failed to get libgit2 version\n");
+    return EXIT_FAILURE;
+  }
+  printf("libgit2: %d.%d.%d\n", git2v.major, git2v.minor, git2v.rev);
 
   char *cwd = getcwd(NULL, 0);
   printf("cwd: %s\n", cwd);

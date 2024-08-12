@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -yyq --no-install-recommends \
-            libmupdf-dev
+            libmupdf-dev libgit2-dev
       - run: uname -s
       - run: ./configure
       - run: cat config.mk
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          brew install mupdf
+          brew install mupdf libgit2
       - run: uname -s
       - run: cc --version
       - run: ./configure
@@ -74,6 +74,7 @@ jobs:
             mingw-w64-${{matrix.env}}-toolchain
             mingw-w64-${{matrix.env}}-sqlite3
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
+            mingw-w64-${{matrix.env}}-libgit2
       - name: Check MSYSTEM
         run: echo $MSYSTEM
       - run: uname -s

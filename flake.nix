@@ -21,6 +21,7 @@
             name = "malachi-src";
           };
           buildInputs = with pkgs; [
+            libgit2
             mupdf
             sqlite
           ];
