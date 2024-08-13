@@ -46,17 +46,18 @@ int main(int argc, char *argv[]) {
   printf("sqlite: %s\n", sqlite3_libversion());
   printf("mupdf: %s\n", FZ_VERSION);
 
-  struct {
-    int major;
-    int minor;
-    int rev;
-  } git2v = {0};
-  rc = git_libgit2_version(&git2v.major, &git2v.minor, &git2v.rev);
-  if (rc != 0) {
-    eprintf("Failed to get libgit2 version\n");
-    return EXIT_FAILURE;
+  // libgit2 version
+  {
+    int major = 0;
+    int minor = 0;
+    int rev = 0;
+    rc = git_libgit2_version(&major, &minor, &rev);
+    if (rc != 0) {
+      eprintf("Failed to get libgit2 version\n");
+      return EXIT_FAILURE;
+    }
+    printf("libgit2: %d.%d.%d\n", major, minor, rev);
   }
-  printf("libgit2: %d.%d.%d\n", git2v.major, git2v.minor, git2v.rev);
 
   char *cwd = getcwd(NULL, 0);
   printf("cwd: %s\n", cwd);
