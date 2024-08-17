@@ -24,6 +24,7 @@
           name = "malachi";
           pyproject = true;
           build-system = with pkgs.python3Packages; [ setuptools ];
+          dependencies = with pkgs.python3Packages; [ platformdirs ];
           nativeCheckInputs = with pkgs.python3Packages; [ mypy ];
           src = builtins.path {
             path = ./.;
