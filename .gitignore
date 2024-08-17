@@ -1,0 +1,11 @@
+malachi/version.py
+/*env/
+/*.egg-info/
+/build/
+/dist/
+/.mypy_cache/
+/.pytest_cache/
+__pycache__/
+.coverage
+coverage.xml
+result*
