@@ -10,7 +10,7 @@ authors = [{ name = "Henry Till", email = "henrytill@gmail.com" }]
 license = { file = "COPYING" }
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["platformdirs>=4.2.2"]
+dependencies = ["platformdirs>=4.2.2", "pygit2>=1.15.0"]
 
 [project.optional-dependencies]
 dev = [
@@ -20,6 +20,7 @@ dev = [
     "mypy>=1.8.0",
     "pylint>=2.16.2",
 ]
+types = ["types-pygit2>=1.15.0"]
 test = []
 
 [project.scripts]

@@ -46,7 +46,7 @@ create_env() {
   activate
   which $PYTHON
   $PYTHON -m pip install --upgrade pip
-  $PYTHON -m pip install -e .[test,dev]
+  $PYTHON -m pip install -e .[types,test,dev]
 }
 
 check() {
