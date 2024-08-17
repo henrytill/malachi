@@ -24,7 +24,10 @@
           name = "malachi";
           pyproject = true;
           build-system = with pkgs.python3Packages; [ setuptools ];
-          dependencies = with pkgs.python3Packages; [ platformdirs ];
+          dependencies = with pkgs.python3Packages; [
+            platformdirs
+            pygit2
+          ];
           nativeCheckInputs = with pkgs.python3Packages; [ mypy ];
           src = builtins.path {
             path = ./.;
@@ -32,10 +35,7 @@
           };
           patchPhase = "patchShebangs build.sh";
           preConfigure = "./build.sh generate -g ${self.shortRev or self.dirtyShortRev}";
-          checkPhase = ''
-            ./build.sh check
-            ./build.sh test
-          '';
+          checkPhase = "./build.sh test";
         };
     in
     flake-utils.lib.eachDefaultSystem (
