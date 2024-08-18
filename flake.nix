@@ -2,7 +2,7 @@
   description = "The librarian";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/staging";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -27,6 +27,7 @@
           dependencies = with pkgs.python3Packages; [
             platformdirs
             pygit2
+            pymupdf
           ];
           nativeCheckInputs = with pkgs.python3Packages; [ mypy ];
           src = builtins.path {

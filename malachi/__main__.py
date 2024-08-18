@@ -5,6 +5,7 @@ from typing import Sequence
 
 import platformdirs
 import pygit2
+import pymupdf  # type: ignore
 
 from . import version
 
@@ -27,6 +28,7 @@ def main(args: Sequence[str] = sys.argv[1:]) -> int:
     print(f"config_dir: {config_dir}")
     print(f"data_dir: {data_dir}")
     print(f"libgit2: {pygit2.LIBGIT2_VERSION}")  # pylint: disable=no-member
+    print(f"pymupdf: {pymupdf.pymupdf_version}")
     return 0
 
 
