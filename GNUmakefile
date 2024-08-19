@@ -33,13 +33,14 @@ all: $(BINOUT)/malachi $(BINOUT)/config_test
 
 $(OBJECTS): $(HEADERS)
 
+$(BINOUT):
+	mkdir -p $@
+
 $(BINOUT)/malachi: LDLIBS += -lsqlite3 -lmupdf -lgit2
-$(BINOUT)/malachi: $(OBJECTS)
-	@mkdir -p -- $(BINOUT)
+$(BINOUT)/malachi: $(OBJECTS) | $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
-$(BINOUT)/config_test: $(TEST_OBJECTS)
-	@mkdir -p -- $(BINOUT)
+$(BINOUT)/config_test: $(TEST_OBJECTS) | $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
 
 .c.o:
