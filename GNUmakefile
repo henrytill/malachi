@@ -60,7 +60,7 @@ check: $(BINOUT)/config_test
 
 .PHONY: lint
 lint:
-	clang-tidy --quiet -p compile_commands.json src/*.c
+	clang-tidy --quiet -p compile_commands.json src/*.c test/*.c
 
 .PHONY: install
 install:
