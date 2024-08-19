@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -yyq --no-install-recommends \
-            libmupdf-dev libgit2-dev
+            libmupdf-dev libgit2-dev liblua5.1-0-dev
       - run: uname -s
       - run: ./configure
       - run: cat config.mk
@@ -38,8 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          HOMEBREW_NO_INSTALL_FROM_API: 1
         run: |
           brew install mupdf libgit2
+          curl -sL -o lua@5.1.rb https://raw.githubusercontent.com/Homebrew/homebrew-core/e25f7dc88983bab94057697c31057c75ad602b9a/Formula/l/lua@5.1.rb
+          brew install -s lua@5.1.rb
       - run: uname -s
       - run: cc --version
       - run: ./configure
@@ -75,6 +79,7 @@ jobs:
             mingw-w64-${{matrix.env}}-sqlite3
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
             mingw-w64-${{matrix.env}}-libgit2
+            mingw-w64-${{matrix.env}}-lua51
       - name: Check MSYSTEM
         run: echo $MSYSTEM
       - run: uname -s

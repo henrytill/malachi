@@ -3,6 +3,9 @@
 #include <unistd.h>
 
 #include <git2/common.h>
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
 #include <mupdf/fitz.h>
 #include <sqlite3.h>
 
@@ -57,6 +60,21 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     printf("libgit2: %d.%d.%d\n", major, minor, rev);
+  }
+
+  // lua version
+  {
+    const char *lua_version = NULL;
+    lua_State *state = luaL_newstate();
+    if (state == NULL) {
+      eprintf("Failed to create lua state\n");
+      return EXIT_FAILURE;
+    }
+    luaL_openlibs(state);
+    lua_getglobal(state, "_VERSION");
+    lua_version = lua_tostring(state, -1);
+    printf("lua: %s\n", lua_version);
+    lua_close(state);
   }
 
   char *cwd = getcwd(NULL, 0);

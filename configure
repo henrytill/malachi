@@ -26,9 +26,14 @@ case "$(uname -s)" in
     ;;
 esac
 
+LUA_CFLAGS="$(pkg-config --cflags lua5.1)"
+LUA_LIBS="$(pkg-config --libs lua5.1)"
+
 cat <<EOF >config.mk
 LIBGIT2_CFLAGS = $LIBGIT2_CFLAGS
 LIBGIT2_LIBS = $LIBGIT2_LIBS
+LUA_CFLAGS = $LUA_CFLAGS
+LUA_LIBS = $LUA_LIBS
 MUPDF_CFLAGS = $MUPDF_CFLAGS
 MUPDF_LIBS = $MUPDF_LIBS
 SQLITE3_CFLAGS = $SQLITE3_CFLAGS
