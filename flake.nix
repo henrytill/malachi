@@ -20,6 +20,7 @@
             path = ./.;
             name = "malachi-src";
           };
+          nativeBuildInputs = with pkgs; [ pkg-config ];
           buildInputs = with pkgs; [
             libgit2
             mupdf

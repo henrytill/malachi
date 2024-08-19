@@ -2,20 +2,36 @@
 
 set -e
 
-CONFIG_TEST=
-
 case "$(uname -s)" in
   Darwin)
+    LIBGIT2_LIBS="-lgit2"
+    MUPDF_LIBS="-lmupdf"
+    SQLITE3_LIBS="-lsqlite3"
     CONFIG_TEST=config_test_macos.o
     ;;
   MINGW64_NT*)
+    LIBGIT2_LIBS="-lgit2"
+    MUPDF_LIBS="-lmupdf"
+    SQLITE3_LIBS="-lsqlite3"
     CONFIG_TEST=config_test_windows.o
     ;;
   *)
+    LIBGIT2_CFLAGS="$(pkg-config --cflags libgit2)"
+    LIBGIT2_LIBS="$(pkg-config --libs libgit2)"
+    MUPDF_CFLAGS="$(pkg-config --cflags mupdf)"
+    MUPDF_LIBS="$(pkg-config --libs mupdf)"
+    SQLITE3_CFLAGS="$(pkg-config --cflags sqlite3)"
+    SQLITE3_LIBS="$(pkg-config --libs sqlite3)"
     CONFIG_TEST=config_test_xdg.o
     ;;
 esac
 
 cat <<EOF >config.mk
-TEST_OBJECTS += test/${CONFIG_TEST}
+LIBGIT2_CFLAGS = $LIBGIT2_CFLAGS
+LIBGIT2_LIBS = $LIBGIT2_LIBS
+MUPDF_CFLAGS = $MUPDF_CFLAGS
+MUPDF_LIBS = $MUPDF_LIBS
+SQLITE3_CFLAGS = $SQLITE3_CFLAGS
+SQLITE3_LIBS = $SQLITE3_LIBS
+TEST_OBJECTS += test/$CONFIG_TEST
 EOF

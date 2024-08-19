@@ -17,28 +17,36 @@ HEADERS += include/error.h
 HEADERS += include/path.h
 HEADERS += include/platform.h
 
-OBJECTS =
-OBJECTS += src/config.o
-OBJECTS += src/main.o
-OBJECTS += src/path.o
+MAIN_OBJECTS =
+MAIN_OBJECTS += src/config.o
+MAIN_OBJECTS += src/main.o
+MAIN_OBJECTS += src/path.o
 
 TEST_OBJECTS =
 TEST_OBJECTS += src/config.o
 TEST_OBJECTS += src/path.o
+
+MAIN_CFLAGS = $(LIBGIT2_CFLAGS) $(MUPDF_CFLAGS) $(SQLITE3_CFLAGS)
+MAIN_LIBS = $(LIBGIT2_LIBS) $(MUPDF_LIBS) $(SQLITE3_LIBS)
 
 include config.mk
 
 .PHONY: all
 all: $(BINOUT)/malachi $(BINOUT)/config_test
 
-$(OBJECTS): $(HEADERS)
+src/main.o: ALL_CFLAGS += $(MAIN_CFLAGS)
+src/main.o: src/main.c include/config.h include/error.h include/platform.h
+
+src/config.o: src/config.c include/config.h include/error.h include/path.h include/platform.h
+
+src/path.o: src/path.c include/path.h
 
 $(BINOUT):
 	mkdir -p $@
 
-$(BINOUT)/malachi: LDLIBS += -lsqlite3 -lmupdf -lgit2
-$(BINOUT)/malachi: $(OBJECTS) | $(BINOUT)
-	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+$(BINOUT)/malachi: LDLIBS += $(MAIN_LIBS)
+$(BINOUT)/malachi: $(MAIN_OBJECTS) | $(BINOUT)
+	$(CC) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
 $(BINOUT)/config_test: $(TEST_OBJECTS) | $(BINOUT)
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
@@ -61,4 +69,4 @@ install:
 
 .PHONY: clean
 clean:
-	rm -rf -- $(BINOUT) $(OBJECTS) $(TEST_OBJECTS)
+	rm -rf -- $(BINOUT) $(MAIN_OBJECTS) $(TEST_OBJECTS)
