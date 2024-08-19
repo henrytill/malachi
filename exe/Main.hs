@@ -1,8 +1,17 @@
 module Main where
 
-import qualified MuPDF (version)
+import qualified MuPDF
+import qualified System.Environment as Environment
+import qualified System.Exit as Exit
+import qualified Version
 
 main :: IO ()
 main = do
-  mupdfVersion <- MuPDF.version
-  putStrLn ("mupdf: " ++ mupdfVersion)
+  args <- Environment.getArgs
+  if any (`elem` args) ["-v", "--version"]
+    then do
+      putStrLn Version.version
+    else do
+      mupdfVersion <- MuPDF.version
+      putStrLn ("mupdf: " ++ mupdfVersion)
+  Exit.exitSuccess

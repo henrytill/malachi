@@ -19,6 +19,9 @@ common warnings
 library
     import:            warnings
     exposed-modules:   MuPDF
+                       Version
+    autogen-modules:   Paths_malachi
+    other-modules:     Paths_malachi
     -- other-modules:
     -- other-extensions:
     build-depends:     base ^>=4.17.2.1
