@@ -23,7 +23,6 @@
           nativeBuildInputs = with pkgs; [ pkg-config ];
           buildInputs = with pkgs; [
             libgit2
-            lua51Packages.lua
             mupdf
             sqlite
           ];
