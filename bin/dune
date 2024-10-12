@@ -1,4 +1,4 @@
 (executable
  (public_name malachi)
  (name main)
- (libraries malachi))
+ (libraries poppler))
