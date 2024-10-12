@@ -7,13 +7,13 @@ case "$(uname -s)" in
     LIBGIT2_LIBS="-lgit2"
     MUPDF_LIBS="-lmupdf"
     SQLITE3_LIBS="-lsqlite3"
-    CONFIG_TEST=config_test_macos.o
+    TEST_OBJECTS="test/config_test_macos.o"
     ;;
   MINGW64_NT*)
     LIBGIT2_LIBS="-lgit2"
     MUPDF_LIBS="-lmupdf"
     SQLITE3_LIBS="-lsqlite3"
-    CONFIG_TEST=config_test_windows.o
+    TEST_OBJECTS="test/config_test_windows.o"
     ;;
   *)
     LIBGIT2_CFLAGS="$(pkg-config --cflags libgit2)"
@@ -22,7 +22,7 @@ case "$(uname -s)" in
     MUPDF_LIBS="$(pkg-config --libs mupdf)"
     SQLITE3_CFLAGS="$(pkg-config --cflags sqlite3)"
     SQLITE3_LIBS="$(pkg-config --libs sqlite3)"
-    CONFIG_TEST=config_test_xdg.o
+    TEST_OBJECTS="test/config_test_xdg.o"
     ;;
 esac
 
@@ -33,5 +33,5 @@ MUPDF_CFLAGS = $MUPDF_CFLAGS
 MUPDF_LIBS = $MUPDF_LIBS
 SQLITE3_CFLAGS = $SQLITE3_CFLAGS
 SQLITE3_LIBS = $SQLITE3_LIBS
-TEST_OBJECTS += test/$CONFIG_TEST
+TEST_OBJECTS += $TEST_OBJECTS
 EOF
