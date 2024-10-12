@@ -1,6 +1,6 @@
 #include <caml/alloc.h>
 #include <caml/memory.h>
-#include <poppler/cpp/poppler-version.h>
+#include <poppler-version.h>
 #include <string>
 
 extern "C" CAMLprim value caml_poppler_version_string(value unit);
