@@ -4,12 +4,12 @@
 struct error;
 
 enum config_error {
-  CONFIG_ERROR_MISSING_DIR = 1,
+    CONFIG_ERROR_MISSING_DIR = 1,
 };
 
 struct config {
-  char *config_dir;
-  char *data_dir;
+    char *config_dir;
+    char *data_dir;
 };
 
 void config_finish(struct config *config);

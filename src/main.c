@@ -14,135 +14,140 @@
 #define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
 
 static struct malachi_opts {
-  int version;
-  int config;
+    int version;
+    int config;
 } opts = {
-  .version = 0,
-  .config = 0,
+    .version = 0,
+    .config = 0,
 };
 
-static void usage(char *argv[]) {
-  eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
+static void usage(char *argv[])
+{
+    eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
 }
 
-static int print_versions(void) {
-  {
-    int major = 0;
-    int minor = 0;
-    int rev = 0;
-    const int rc = git_libgit2_version(&major, &minor, &rev);
+static int print_versions(void)
+{
+    {
+        int major = 0;
+        int minor = 0;
+        int rev = 0;
+        const int rc = git_libgit2_version(&major, &minor, &rev);
+        if (rc != 0) {
+            eprintf("Failed to get libgit2 version\n");
+            return -1;
+        }
+        printf("libgit2: %d.%d.%d\n", major, minor, rev);
+    }
+    printf("mupdf: %s\n", FZ_VERSION);
+    printf("sqlite: %s\n", sqlite3_libversion());
+    return 0;
+}
+
+static int configure(struct config *config)
+{
+    struct error error = {0};
+    struct config_builder *config_builder = config_builder_create(getenv);
+    if (config_builder == NULL) {
+        eprintf("Failed to create config_builder\n");
+        return -1;
+    }
+    config_builder_with_defaults(config_builder);
+    const int rc = config_builder_build(config_builder, config, &error);
     if (rc != 0) {
-      eprintf("Failed to get libgit2 version\n");
-      return -1;
+        eprintf("Failed to build config: %s\n", error.msg);
+        return -1;
     }
-    printf("libgit2: %d.%d.%d\n", major, minor, rev);
-  }
-  printf("mupdf: %s\n", FZ_VERSION);
-  printf("sqlite: %s\n", sqlite3_libversion());
-  return 0;
+    return 0;
 }
 
-static int configure(struct config *config) {
-  struct error error = {0};
-  struct config_builder *config_builder = config_builder_create(getenv);
-  if (config_builder == NULL) {
-    eprintf("Failed to create config_builder\n");
-    return -1;
-  }
-  config_builder_with_defaults(config_builder);
-  const int rc = config_builder_build(config_builder, config, &error);
-  if (rc != 0) {
-    eprintf("Failed to build config: %s\n", error.msg);
-    return -1;
-  }
-  return 0;
+static void print_config(const struct config *config)
+{
+    printf("platform: %s\n", platform_to_string());
+    printf("config_dir: %s\n", config->config_dir);
+    printf("data_dir: %s\n", config->data_dir);
 }
 
-static void print_config(const struct config *config) {
-  printf("platform: %s\n", platform_to_string());
-  printf("config_dir: %s\n", config->config_dir);
-  printf("data_dir: %s\n", config->data_dir);
-}
+int main(int argc, char *argv[])
+{
+    extern struct malachi_opts opts;
+    extern int optind;
 
-int main(int argc, char *argv[]) {
-  extern struct malachi_opts opts;
-  extern int optind;
+    {
+        int c = 0;
+        int option_index = 0;
 
-  {
-    int c = 0;
-    int option_index = 0;
+        struct option long_options[] = {
+            {"version", no_argument, &opts.version, 1},
+            {"config", no_argument, &opts.config, 1},
+            {0, 0, 0, 0},
+        };
 
-    struct option long_options[] = {
-      {"version", no_argument, &opts.version, 1},
-      {"config", no_argument, &opts.config, 1},
-      {0, 0, 0, 0},
-    };
+        for (;;) {
+            option_index = 0;
 
-    for (;;) {
-      option_index = 0;
+            c = getopt_long(argc, argv, "vc", long_options, &option_index);
+            if (c == -1) {
+                break;
+            }
 
-      c = getopt_long(argc, argv, "vc", long_options, &option_index);
-      if (c == -1) {
-        break;
-      }
+            switch (c) {
+            case 'v':
+                opts.version = 1;
+                break;
+            case 'c':
+                opts.config = 1;
+                break;
+            case '?':
+                usage(argv);
+                return EXIT_FAILURE;
+            default:
+                break;
+            }
+        }
 
-      switch (c) {
-        case 'v':
-          opts.version = 1;
-          break;
-        case 'c':
-          opts.config = 1;
-          break;
-        case '?':
-          usage(argv);
-          return EXIT_FAILURE;
-        default:
-          break;
-      }
-    }
-
-    if (argc == 1) {
-      usage(argv);
-      return EXIT_FAILURE;
-    }
-  }
-
-  {
-    int rc = -1;
-    struct config config = {0};
-
-    if (opts.version) {
-      rc = print_versions();
-      return rc ? EXIT_FAILURE : EXIT_SUCCESS;
-    }
-
-    rc = configure(&config);
-    if (rc != 0) {
-      return EXIT_FAILURE;
-    }
-
-    if (opts.config) {
-      print_config(&config);
-      config_finish(&config);
-      return EXIT_SUCCESS;
-    }
-
-    if (optind < argc) {
-      printf("non-option argv elements: ");
-      while (optind < argc) {
-        printf("%s ", argv[optind++]);
-      }
-      printf("\n");
+        if (argc == 1) {
+            usage(argv);
+            return EXIT_FAILURE;
+        }
     }
 
     {
-      char *cwd = getcwd(NULL, 0);
-      printf("cwd: %s\n", cwd);
-      free(cwd);
+        int rc = -1;
+        struct config config = {0};
+
+        if (opts.version) {
+            rc = print_versions();
+            return rc ? EXIT_FAILURE : EXIT_SUCCESS;
+        }
+
+        rc = configure(&config);
+        if (rc != 0) {
+            return EXIT_FAILURE;
+        }
+
+        if (opts.config) {
+            print_config(&config);
+            config_finish(&config);
+            return EXIT_SUCCESS;
+        }
+
+        if (optind < argc) {
+            printf("non-option argv elements: ");
+            while (optind < argc) {
+                printf("%s ", argv[optind++]);
+            }
+            printf("\n");
+        }
+
+        {
+            char *cwd = getcwd(NULL, 0);
+            printf("cwd: %s\n", cwd);
+            free(cwd);
+        }
+
+        config_finish(&config);
     }
 
-    config_finish(&config);
-  }
-
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
