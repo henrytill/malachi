@@ -1,3 +1,4 @@
+#include <getopt.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -11,6 +12,14 @@
 #include "platform.h"
 
 #define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
+
+static struct malachi_opts {
+  int version;
+  int config;
+} opts = {
+  .version = 0,
+  .config = 0,
+};
 
 static int configure(struct config *config) {
   struct error error = {0};
@@ -28,41 +37,112 @@ static int configure(struct config *config) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    printf("Usage: %s <filename>\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  struct config config = {0};
-  int rc = configure(&config);
-  if (rc != 0) {
-    return EXIT_FAILURE;
-  }
-
+static void print_config(const struct config *config) {
   printf("platform: %s\n", platform_to_string());
-  printf("config_dir: %s\n", config.config_dir);
-  printf("data_dir: %s\n", config.data_dir);
-  printf("sqlite: %s\n", sqlite3_libversion());
-  printf("mupdf: %s\n", FZ_VERSION);
+  printf("config_dir: %s\n", config->config_dir);
+  printf("data_dir: %s\n", config->data_dir);
+}
 
-  // libgit2 version
+static int print_versions(void) {
   {
     int major = 0;
     int minor = 0;
     int rev = 0;
-    rc = git_libgit2_version(&major, &minor, &rev);
+    const int rc = git_libgit2_version(&major, &minor, &rev);
     if (rc != 0) {
       eprintf("Failed to get libgit2 version\n");
-      return EXIT_FAILURE;
+      return -1;
     }
     printf("libgit2: %d.%d.%d\n", major, minor, rev);
   }
+  printf("mupdf: %s\n", FZ_VERSION);
+  printf("sqlite: %s\n", sqlite3_libversion());
+  return 0;
+}
 
-  char *cwd = getcwd(NULL, 0);
-  printf("cwd: %s\n", cwd);
+static void usage(char *argv[]) {
+  eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
+}
 
-  free(cwd);
-  config_finish(&config);
+int main(int argc, char *argv[]) {
+  extern struct malachi_opts opts;
+  extern int optind;
+
+  {
+    int c = 0;
+    int option_index = 0;
+
+    struct option long_options[] = {
+      {"version", no_argument, &opts.version, 1},
+      {"config", no_argument, &opts.config, 1},
+      {0, 0, 0, 0},
+    };
+
+    for (;;) {
+      option_index = 0;
+
+      c = getopt_long(argc, argv, "vc", long_options, &option_index);
+      if (c == -1) {
+        break;
+      }
+
+      switch (c) {
+        case 'v':
+          opts.version = 1;
+          break;
+        case 'c':
+          opts.config = 1;
+          break;
+        case '?':
+          usage(argv);
+          return EXIT_FAILURE;
+        default:
+          break;
+      }
+    }
+
+    if (argc == 1) {
+      usage(argv);
+      return EXIT_FAILURE;
+    }
+  }
+
+  {
+    int rc = -1;
+    struct config config = {0};
+
+    if (opts.version) {
+      rc = print_versions();
+      return rc ? EXIT_FAILURE : EXIT_SUCCESS;
+    }
+
+    rc = configure(&config);
+    if (rc != 0) {
+      return EXIT_FAILURE;
+    }
+
+    if (opts.config) {
+      print_config(&config);
+      config_finish(&config);
+      return EXIT_SUCCESS;
+    }
+
+    if (optind < argc) {
+      printf("non-option argv elements: ");
+      while (optind < argc) {
+        printf("%s ", argv[optind++]);
+      }
+      printf("\n");
+    }
+
+    {
+      char *cwd = getcwd(NULL, 0);
+      printf("cwd: %s\n", cwd);
+      free(cwd);
+    }
+
+    config_finish(&config);
+  }
+
   return EXIT_SUCCESS;
 }
