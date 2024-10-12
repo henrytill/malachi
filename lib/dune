@@ -1,18 +1,18 @@
 (library
- (name poppler)
- (modules poppler)
+ (name mupdf)
+ (modules mupdf)
  (wrapped false)
  (foreign_stubs
-  (language cxx)
-  (names poppler_stubs)
+  (language c)
+  (names mupdf_stubs)
   (flags
    (:standard)
-   (:include cflags.sexp)))
+   (:include mupdf_cflags.sexp)))
  (c_library_flags
   (:standard)
-  (:include libs.sexp)))
+  (:include mupdf_libs.sexp)))
 
 (rule
- (targets cflags.sexp libs.sexp)
+ (targets mupdf_cflags.sexp mupdf_libs.sexp)
  (action
   (run ../config/discover.exe)))
