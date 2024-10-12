@@ -21,6 +21,27 @@ static struct malachi_opts {
   .config = 0,
 };
 
+static void usage(char *argv[]) {
+  eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
+}
+
+static int print_versions(void) {
+  {
+    int major = 0;
+    int minor = 0;
+    int rev = 0;
+    const int rc = git_libgit2_version(&major, &minor, &rev);
+    if (rc != 0) {
+      eprintf("Failed to get libgit2 version\n");
+      return -1;
+    }
+    printf("libgit2: %d.%d.%d\n", major, minor, rev);
+  }
+  printf("mupdf: %s\n", FZ_VERSION);
+  printf("sqlite: %s\n", sqlite3_libversion());
+  return 0;
+}
+
 static int configure(struct config *config) {
   struct error error = {0};
   struct config_builder *config_builder = config_builder_create(getenv);
@@ -41,27 +62,6 @@ static void print_config(const struct config *config) {
   printf("platform: %s\n", platform_to_string());
   printf("config_dir: %s\n", config->config_dir);
   printf("data_dir: %s\n", config->data_dir);
-}
-
-static int print_versions(void) {
-  {
-    int major = 0;
-    int minor = 0;
-    int rev = 0;
-    const int rc = git_libgit2_version(&major, &minor, &rev);
-    if (rc != 0) {
-      eprintf("Failed to get libgit2 version\n");
-      return -1;
-    }
-    printf("libgit2: %d.%d.%d\n", major, minor, rev);
-  }
-  printf("mupdf: %s\n", FZ_VERSION);
-  printf("sqlite: %s\n", sqlite3_libversion());
-  return 0;
-}
-
-static void usage(char *argv[]) {
-  eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
 }
 
 int main(int argc, char *argv[]) {
