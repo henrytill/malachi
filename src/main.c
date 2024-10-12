@@ -67,9 +67,12 @@ static void print_config(const struct config *config)
 
 int main(int argc, char *argv[])
 {
-    extern int optind;
-
     struct malachi_opts opts = {0};
+
+    if (argc == 1) {
+        usage(argv);
+        return EXIT_FAILURE;
+    }
 
     {
         int c = 0;
@@ -103,14 +106,11 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-
-        if (argc == 1) {
-            usage(argv);
-            return EXIT_FAILURE;
-        }
     }
 
     {
+        extern int optind;
+
         int rc = -1;
         struct config config = {0};
 
