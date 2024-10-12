@@ -23,8 +23,8 @@ jobs:
       - run: ./configure
       - run: cat config.mk
       - run: make CC=${{ matrix.compiler }}
-      - run: _bin/malachi -info
-      - run: nm _bin/malachi
+      - run: src/malachi -info
+      - run: nm src/malachi
       - run: make CC=${{ matrix.compiler }} check
   linux-flake:
     runs-on: ubuntu-latest
@@ -51,8 +51,8 @@ jobs:
           EOF
       - run: cat config.mk
       - run: make
-      - run: _bin/malachi -info
-      - run: nm _bin/malachi
+      - run: src/malachi -info
+      - run: nm src/malachi
       - run: make check
   windows:
     runs-on: windows-latest
@@ -82,6 +82,6 @@ jobs:
       - run: ./configure
       - run: cat config.mk
       - run: mingw32-make
-      - run: _bin/malachi -info
-      - run: nm _bin/malachi.exe
+      - run: src/malachi -info
+      - run: nm src/malachi.exe
       - run: mingw32-make check

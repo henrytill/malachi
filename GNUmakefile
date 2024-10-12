@@ -9,8 +9,6 @@ bindir = /bin
 prefix = /usr/local
 DESTDIR = $(prefix)
 
-BINOUT = _bin
-
 HEADERS =
 HEADERS += include/config.h
 HEADERS += include/error.h
@@ -22,9 +20,15 @@ MAIN_OBJECTS += src/config.o
 MAIN_OBJECTS += src/main.o
 MAIN_OBJECTS += src/path.o
 
+MAIN_EXES =
+MAIN_EXES += src/malachi
+
 TEST_OBJECTS =
 TEST_OBJECTS += src/config.o
 TEST_OBJECTS += src/path.o
+
+TEST_EXES =
+TEST_EXES += test/config_test
 
 MAIN_CFLAGS = $(LIBGIT2_CFLAGS) $(MUPDF_CFLAGS) $(SQLITE3_CFLAGS)
 MAIN_LIBS = $(LIBGIT2_LIBS) $(MUPDF_LIBS) $(SQLITE3_LIBS)
@@ -32,7 +36,7 @@ MAIN_LIBS = $(LIBGIT2_LIBS) $(MUPDF_LIBS) $(SQLITE3_LIBS)
 include config.mk
 
 .PHONY: all
-all: $(BINOUT)/malachi $(BINOUT)/config_test
+all: $(MAIN_EXES) $(TEST_EXES)
 
 src/main.o: ALL_CFLAGS += $(MAIN_CFLAGS)
 src/main.o: src/main.c include/config.h include/error.h include/platform.h
@@ -41,22 +45,19 @@ src/config.o: src/config.c include/config.h include/error.h include/path.h inclu
 
 src/path.o: src/path.c include/path.h
 
-$(BINOUT):
-	mkdir -p $@
-
-$(BINOUT)/malachi: LDLIBS += $(MAIN_LIBS)
-$(BINOUT)/malachi: $(MAIN_OBJECTS) | $(BINOUT)
+src/malachi: LDLIBS += $(MAIN_LIBS)
+src/malachi: $(MAIN_OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
-$(BINOUT)/config_test: $(TEST_OBJECTS) | $(BINOUT)
+test/config_test: $(TEST_OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
 
 .c.o:
 	$(CC) $(ALL_CFLAGS) -o $@ -c $<
 
 .PHONY: check
-check: $(BINOUT)/config_test
-	$(BINOUT)/config_test
+check: $(TEST_EXES)
+	test/config_test
 
 .PHONY: lint
 lint:
@@ -65,8 +66,8 @@ lint:
 .PHONY: install
 install:
 	mkdir -p $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) $(BINOUT)/malachi $(DESTDIR)$(bindir)/malachi
+	$(INSTALL_PROGRAM) src/malachi $(DESTDIR)$(bindir)/malachi
 
 .PHONY: clean
 clean:
-	rm -rf -- $(BINOUT) $(MAIN_OBJECTS) $(TEST_OBJECTS)
+	rm -rf -- $(MAIN_OBJECTS) $(TEST_OBJECTS) $(MAIN_EXES) $(TEST_EXES)
