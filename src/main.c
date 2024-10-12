@@ -13,12 +13,9 @@
 
 #define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
 
-static struct malachi_opts {
+struct malachi_opts {
     int version;
     int config;
-} opts = {
-    .version = 0,
-    .config = 0,
 };
 
 static void usage(char *argv[])
@@ -70,8 +67,9 @@ static void print_config(const struct config *config)
 
 int main(int argc, char *argv[])
 {
-    extern struct malachi_opts opts;
     extern int optind;
+
+    struct malachi_opts opts = {0};
 
     {
         int c = 0;
