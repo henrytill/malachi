@@ -4,5 +4,15 @@
  (wrapped false)
  (foreign_stubs
   (language cxx)
-  (names poppler_stubs))
- (c_library_flags :standard -lpoppler-cpp))
+  (names poppler_stubs)
+  (flags
+   (:standard)
+   (:include cflags.sexp)))
+ (c_library_flags
+  (:standard)
+  (:include libs.sexp)))
+
+(rule
+ (targets cflags.sexp libs.sexp)
+ (action
+  (run ../config/discover.exe)))

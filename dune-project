@@ -21,7 +21,7 @@
  (name malachi)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends ocaml dune (dune-configurator :build) conf-pkg-config)
  (tags
   (topics "to describe" your project)))
 
