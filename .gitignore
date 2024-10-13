@@ -1,5 +1,5 @@
 /result*
 *.o
 config.mk
-src/malachi
+src/main
 test/config_test

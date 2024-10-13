@@ -21,7 +21,7 @@ MAIN_OBJECTS += src/main.o
 MAIN_OBJECTS += src/path.o
 
 MAIN_EXES =
-MAIN_EXES += src/malachi
+MAIN_EXES += src/main
 
 TEST_OBJECTS =
 TEST_OBJECTS += src/config.o
@@ -45,8 +45,8 @@ src/config.o: src/config.c include/config.h include/error.h include/path.h inclu
 
 src/path.o: src/path.c include/path.h
 
-src/malachi: LDLIBS += $(MAIN_LIBS)
-src/malachi: $(MAIN_OBJECTS)
+src/main: LDLIBS += $(MAIN_LIBS)
+src/main: $(MAIN_OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
 test/config_test: $(TEST_OBJECTS)
@@ -66,7 +66,7 @@ lint:
 .PHONY: install
 install:
 	mkdir -p $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) src/malachi $(DESTDIR)$(bindir)/malachi
+	$(INSTALL_PROGRAM) src/main $(DESTDIR)$(bindir)/malachi
 
 .PHONY: clean
 clean:
