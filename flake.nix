@@ -34,7 +34,7 @@
         scope = on.buildOpamProject { } package ./. { ocaml-base-compiler = "5.2.0"; };
         overlay = final: prev: {
           ${package} = prev.${package}.overrideAttrs (as: {
-            buildInputs = as.buildInputs ++ (with pkgs; [ (poppler.overrideAttrs { suffix = "cpp"; }) ]);
+            buildInputs = as.buildInputs ++ (with pkgs; [ mupdf ]);
           });
         };
       in
