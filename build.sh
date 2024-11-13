@@ -1,138 +1,172 @@
 #!/usr/bin/env bash
 
+# Exit on error, undefined vars, and pipe failures
 set -o errexit
 set -o nounset
 set -o pipefail
 
-PYTHON=python3
-MYPY=mypy
-VENV=env
+# Configuration variables
+readonly PYTHON=python3
+readonly MYPY=mypy
+readonly VENV=env
+readonly PACKAGE_NAME="malachi"
+readonly TEST_DIR="tests"
 
+# Default values for command line options
 USE_VENV=0
 VERBOSE=0
 
-generate() {
-  local version="0.1.0"
+log() {
+    if [ $VERBOSE -eq 1 ]; then
+        printf "[INFO] %s\n" "$1"
+    fi
+}
 
-  if [ -n "$(command -v git)" -a -z "${1+x}" ]; then
-    local git_ref=$(git rev-parse --short HEAD)
-    version="${version}+${git_ref}"
-  elif [ -n "${1+x}" ]; then
-    version="${version}+${1}"
-  fi
+error() {
+    printf "[ERROR] %s\n" "$1" >&2
+    exit 1
+}
 
-  if [ $VERBOSE -eq 1 ]; then
-    printf "version=%s\n" $version
-  fi
+generate_version() {
+    local base_version="0.1.0"
+    local version="${base_version}"
+    local git_ref="${1:-}"
 
-  cat <<EOF >malachi/version.py
+    if [ -z "$git_ref" ] && command -v git >/dev/null; then
+        git_ref=$(git rev-parse --short HEAD 2>/dev/null || true)
+    fi
+
+    if [ -n "$git_ref" ]; then
+        version="${base_version}+${git_ref}"
+    fi
+
+    log "Generated version: ${version}"
+
+    cat <<EOF >"${PACKAGE_NAME}/version.py"
 """This module contains version information."""
 
 # This file is auto-generated, do not edit by hand
-__version__ = "$version"
+__version__ = "${version}"
 EOF
 }
 
-activate() {
-  if [ $USE_VENV -eq 1 ]; then
-    source "${VENV}/bin/activate"
-  fi
+activate_venv() {
+    local flag=${1:-0}
+    if [ $USE_VENV -eq 1 -o $flag -eq 1 ]; then
+        if [ ! -f "${VENV}/bin/activate" ]; then
+            error "Virtual environment not found. Run './build.sh create-env' first"
+        fi
+        source "${VENV}/bin/activate"
+        log "Activated virtual environment at ${VENV}"
+    fi
 }
 
 create_env() {
-  USE_VENV=1
-  generate
-  $PYTHON -m venv $VENV
-  activate
-  which $PYTHON
-  $PYTHON -m pip install --upgrade pip
-  $PYTHON -m pip install -e .[types,test,dev]
+    if [ -d "$VENV" ]; then
+        error "Environment directory ${VENV} already exists. Remove it first to create a fresh environment."
+    fi
+
+    log "Creating new virtual environment..."
+    generate_version
+    $PYTHON -m venv "$VENV"
+    activate_venv 1
+    log "Using Python: $(which $PYTHON)"
+    $PYTHON -m pip install --upgrade pip
+    $PYTHON -m pip install -e ".[types,test,dev]"
+    log "Environment created successfully"
 }
 
 check() {
-  activate
-  $MYPY --no-color-output malachi
-  $MYPY --no-color-output tests
+    log "Running type checks..."
+    activate_venv
+    $MYPY --no-color-output "$PACKAGE_NAME" "$TEST_DIR"
 }
 
 lint() {
-  activate
-  $PYTHON -m flake8 --config .flake8
-  $PYTHON -m pylint malachi tests
+    log "Running linters..."
+    activate_venv
+    $PYTHON -m flake8 --config .flake8
+    $PYTHON -m pylint "$PACKAGE_NAME" "$TEST_DIR"
 }
 
-fmt() {
-  activate
-  $PYTHON -m isort malachi tests
-  $PYTHON -m black malachi tests
+format() {
+    log "Formatting code..."
+    activate_venv
+    $PYTHON -m isort "$PACKAGE_NAME" "$TEST_DIR"
+    $PYTHON -m black "$PACKAGE_NAME" "$TEST_DIR"
 }
 
-test() {
-  activate
-  $PYTHON -m unittest discover -v -s tests
+run_tests() {
+    log "Running tests..."
+    activate_venv
+    $PYTHON -m unittest discover -v -s "$TEST_DIR"
 }
 
-action() {
-  subcommand=$1
-  shift
+usage() {
+    cat >&2 <<EOF
+Usage: $0 [-e] [-v] <command>
 
-  case $subcommand in
-    default)
-      printf "Hello, world!\n"
-      ;;
-    generate)
-      local git_ref=
-      while getopts "g:" name; do
-        case $name in
-          g)
-            git_ref="$OPTARG"
-            ;;
+Options:
+    -e          Use virtual environment
+    -v          Verbose output
+
+Commands:
+    create-env  Create a new virtual environment
+    generate    Generate version file
+    check       Run type checks
+    lint        Run linters
+    fmt         Format code
+    test        Run tests
+EOF
+    exit 1
+}
+
+main() {
+    # Parse global options
+    while getopts "ev" opt; do
+        case $opt in
+            e) USE_VENV=1 ;;
+            v) VERBOSE=1 ;;
+            *) usage ;;
         esac
-      done
-      generate $git_ref
-      ;;
-    create-env)
-      create_env
-      ;;
-    check)
-      check
-      ;;
-    lint)
-      lint
-      ;;
-    fmt)
-      fmt
-      ;;
-    test)
-      test
-      ;;
-  esac
+    done
+    shift $((OPTIND - 1))
 
-  exit 0
+    [ $# -eq 0 ] && usage
+
+    local command=$1
+    shift
+
+    case $command in
+        generate)
+            local git_ref=""
+            while getopts "g:" opt; do
+                case $opt in
+                    g) git_ref="$OPTARG" ;;
+                    *) usage ;;
+                esac
+            done
+            generate_version "$git_ref"
+            ;;
+        create-env)
+            create_env
+            ;;
+        check)
+            check
+            ;;
+        lint)
+            lint
+            ;;
+        fmt)
+            format
+            ;;
+        test)
+            run_tests
+            ;;
+        *)
+            usage
+            ;;
+    esac
 }
 
-while getopts "ev" name; do
-  case $name in
-    e)
-      USE_VENV=1
-      ;;
-    v)
-      VERBOSE=1
-      ;;
-  esac
-done
-
-shift $(($OPTIND - 1))
-
-unset name
-unset OPTIND
-
-if [ $VERBOSE -eq 1 ]; then
-  printf "USE_VENV=%d\n" $USE_VENV
-fi
-
-if [ $# -eq 0 ]; then
-  action default
-else
-  action $*
-fi
+main "$@"
