@@ -20,6 +20,7 @@ jobs:
       - run: ./build.sh create-env
       - run: ./build.sh -e check
       - run: ./build.sh -e test
+      - run: env/bin/python3 -m malachi
   linux-flake:
     runs-on: ubuntu-latest
     steps:
@@ -27,3 +28,4 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix build -L
+      - run: nix run
