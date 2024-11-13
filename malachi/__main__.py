@@ -3,19 +3,14 @@
 import sys
 from typing import Sequence
 
+import fitz  # type: ignore
 import platformdirs
 import pygit2
-import pymupdf  # type: ignore
 
 from . import version
 
 
-def main(args: Sequence[str] = sys.argv[1:]) -> int:
-    """The main entry point for the command-line interface.
-
-    Returns:
-        An exit code.
-    """
+def _main(args: Sequence[str]) -> int:
     if args in (["--version"], ["-v"]):
         print(f"{version.__version__}")
         return 0
@@ -28,9 +23,18 @@ def main(args: Sequence[str] = sys.argv[1:]) -> int:
     print(f"config_dir: {config_dir}")
     print(f"data_dir: {data_dir}")
     print(f"libgit2: {pygit2.LIBGIT2_VERSION}")  # pylint: disable=no-member
-    print(f"pymupdf: {pymupdf.pymupdf_version}")
+    print(f"fitz: {fitz.version[0]}")  # pyright: ignore
     return 0
 
 
+def main() -> int:
+    """The main entry point for the command-line interface.
+
+    Returns:
+        An exit code.
+    """
+    return _main(sys.argv[1:])
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
