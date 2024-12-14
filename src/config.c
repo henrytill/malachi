@@ -20,19 +20,9 @@ void config_finish(struct config *config) {
   }
 }
 
-struct config_builder {
-  platform_getenv_fn *getenv;
-  char *maybe_config_dir;
-  char *maybe_data_dir;
-};
-
-struct config_builder *config_builder_create(platform_getenv_fn getenv) {
-  struct config_builder *ret = calloc(1, sizeof(*ret));
-  if (ret == NULL) {
-    return NULL;
-  }
-  ret->getenv = getenv;
-  return ret;
+int config_builder_init(struct config_builder *builder, platform_getenv_fn getenv) {
+  builder->getenv = getenv;
+  return 0;
 }
 
 void config_builder_with_defaults(struct config_builder *builder) {
@@ -58,18 +48,16 @@ int config_builder_build(struct config_builder *builder, struct config *out, str
     err->rc = ret;
     err->msg = MISSING_CONFIG_DIR_MSG;
     config_builder_finish(builder);
-    goto out_free_builder;
+    return ret;
   }
   if (builder->maybe_data_dir == NULL) {
     ret = -CONFIG_ERROR_MISSING_DIR;
     err->rc = ret;
     err->msg = MISSING_DATA_DIR_MSG;
     config_builder_finish(builder);
-    goto out_free_builder;
+    return ret;
   }
   out->config_dir = builder->maybe_config_dir;
   out->data_dir = builder->maybe_data_dir;
-out_free_builder:
-  free(builder);
   return ret;
 }

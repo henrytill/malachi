@@ -16,12 +16,13 @@ char *getenv_defaults(const char *name) {
 
 void test_config_builder_with_defaults(void) {
   BEGIN_TEST();
-  struct config_builder *config_builder = config_builder_create(getenv_defaults);
-  TEST(config_builder != NULL);
-  config_builder_with_defaults(config_builder);
+  struct config_builder config_builder = {0};
+  int rc = config_builder_init(&config_builder, getenv_defaults);
+  TEST(rc == 0);
+  config_builder_with_defaults(&config_builder);
   struct config config = {0};
   struct error error = {0};
-  const int rc = config_builder_build(config_builder, &config, &error);
+  rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == 0);
   TEST(error.rc == rc);
   TEST(error.msg == NULL);
@@ -43,12 +44,13 @@ char *getenv_custom_xdg_dirs(const char *name) {
 
 void test_config_builder_with_custom_xdg_dirs(void) {
   BEGIN_TEST();
-  struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_dirs);
-  TEST(config_builder != NULL);
-  config_builder_with_defaults(config_builder);
+  struct config_builder config_builder = {0};
+  int rc = config_builder_init(&config_builder, getenv_custom_xdg_dirs);
+  TEST(rc == 0);
+  config_builder_with_defaults(&config_builder);
   struct config config = {0};
   struct error error = {0};
-  const int rc = config_builder_build(config_builder, &config, &error);
+  rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == 0);
   TEST(error.rc == rc);
   TEST(error.msg == NULL);
@@ -67,12 +69,13 @@ char *getenv_custom_xdg_data_home(const char *name) {
 
 void test_config_builder_with_missing_config_dir(void) {
   BEGIN_TEST();
-  struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_data_home);
-  TEST(config_builder != NULL);
-  config_builder_with_defaults(config_builder);
+  struct config_builder config_builder = {0};
+  int rc = config_builder_init(&config_builder, getenv_custom_xdg_data_home);
+  TEST(rc == 0);
+  config_builder_with_defaults(&config_builder);
   struct config config = {0};
   struct error error = {0};
-  const int rc = config_builder_build(config_builder, &config, &error);
+  rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == -1);
   TEST(error.rc == rc);
   TEST(strcmp(error.msg, "maybe_config_dir is NULL") == 0);
@@ -89,12 +92,13 @@ char *getenv_custom_xdg_config_home(const char *name) {
 
 void test_config_builder_with_missing_data_dir(void) {
   BEGIN_TEST();
-  struct config_builder *config_builder = config_builder_create(getenv_custom_xdg_config_home);
-  TEST(config_builder != NULL);
-  config_builder_with_defaults(config_builder);
+  struct config_builder config_builder = {0};
+  int rc = config_builder_init(&config_builder, getenv_custom_xdg_config_home);
+  TEST(rc == 0);
+  config_builder_with_defaults(&config_builder);
   struct config config = {0};
   struct error error = {0};
-  const int rc = config_builder_build(config_builder, &config, &error);
+  rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == -1);
   TEST(error.rc == rc);
   TEST(strcmp(error.msg, "maybe_data_dir is NULL") == 0);

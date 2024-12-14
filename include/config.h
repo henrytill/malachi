@@ -14,11 +14,15 @@ struct config {
 
 void config_finish(struct config *config);
 
-struct config_builder;
-
 typedef char *platform_getenv_fn(const char *name);
 
-struct config_builder *config_builder_create(platform_getenv_fn getenv);
+struct config_builder {
+  platform_getenv_fn *getenv;
+  char *maybe_config_dir;
+  char *maybe_data_dir;
+};
+
+int config_builder_init(struct config_builder *builder, platform_getenv_fn getenv);
 
 void config_builder_with_defaults(struct config_builder *builder);
 

@@ -41,13 +41,14 @@ static int print_versions(void) {
 
 static int configure(struct config *config) {
   struct error error = {0};
-  struct config_builder *config_builder = config_builder_create(getenv);
-  if (config_builder == NULL) {
+  struct config_builder builder = {0};
+  int rc = config_builder_init(&builder, getenv);
+  if (rc != 0) {
     eprintf("Failed to create config_builder\n");
     return -1;
   }
-  config_builder_with_defaults(config_builder);
-  const int rc = config_builder_build(config_builder, config, &error);
+  config_builder_with_defaults(&builder);
+  rc = config_builder_build(&builder, config, &error);
   if (rc != 0) {
     eprintf("Failed to build config: %s\n", error.msg);
     return -1;
