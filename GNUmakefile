@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion
-ALL_CFLAGS = -std=c11 -Iinclude $(CFLAGS)
+ALL_CFLAGS = -std=c++20 -Iinclude $(CFLAGS)
 
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
@@ -39,21 +39,21 @@ include config.mk
 all: $(MAIN_EXES) $(TEST_EXES)
 
 src/main.o: ALL_CFLAGS += $(MAIN_CFLAGS)
-src/main.o: src/main.c include/config.h include/error.h include/platform.h
+src/main.o: src/main.cpp include/config.h include/error.h include/platform.h
 
-src/config.o: src/config.c include/config.h include/error.h include/path.h include/platform.h
+src/config.o: src/config.cpp include/config.h include/error.h include/path.h include/platform.h
 
-src/path.o: src/path.c include/path.h
+src/path.o: src/path.cpp include/path.h
 
 src/main: LDLIBS += $(MAIN_LIBS)
 src/main: $(MAIN_OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
+	$(CXX) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
 test/config_test: $(TEST_OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
+	$(CXX) $(LDFLAGS) -o $@ $(TEST_OBJECTS) $(LDLIBS)
 
-.c.o:
-	$(CC) $(ALL_CFLAGS) -o $@ -c $<
+.cpp.o:
+	$(CXX) $(ALL_CFLAGS) -o $@ -c $<
 
 .PHONY: check
 check: $(TEST_EXES)
@@ -61,7 +61,7 @@ check: $(TEST_EXES)
 
 .PHONY: lint
 lint:
-	clang-tidy --quiet -p compile_commands.json src/*.c test/*.c
+	clang-tidy --quiet -p compile_commands.json src/*.cpp test/*.cpp
 
 .PHONY: install
 install:

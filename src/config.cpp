@@ -11,6 +11,21 @@
 #define MISSING_CONFIG_DIR_MSG "maybe_config_dir is NULL"
 #define MISSING_DATA_DIR_MSG   "maybe_data_dir is NULL"
 
+namespace {
+
+void config_builder_finish(struct config_builder *builder) {
+  if (builder->maybe_config_dir != NULL) {
+    free(builder->maybe_config_dir);
+    builder->maybe_config_dir = NULL;
+  }
+  if (builder->maybe_data_dir != NULL) {
+    free(builder->maybe_data_dir);
+    builder->maybe_data_dir = NULL;
+  }
+}
+
+} // namespace
+
 void config_finish(struct config *config) {
   if (config->config_dir == config->data_dir) {
     free(config->config_dir);
@@ -28,17 +43,6 @@ int config_builder_init(struct config_builder *builder, platform_getenv_fn geten
 void config_builder_with_defaults(struct config_builder *builder) {
   builder->maybe_config_dir = platform_get_config_dir(builder->getenv, NAME);
   builder->maybe_data_dir = platform_get_data_dir(builder->getenv, NAME);
-}
-
-static void config_builder_finish(struct config_builder *builder) {
-  if (builder->maybe_config_dir != NULL) {
-    free(builder->maybe_config_dir);
-    builder->maybe_config_dir = NULL;
-  }
-  if (builder->maybe_data_dir != NULL) {
-    free(builder->maybe_data_dir);
-    builder->maybe_data_dir = NULL;
-  }
 }
 
 int config_builder_build(struct config_builder *builder, struct config *out, struct error *err) {

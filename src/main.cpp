@@ -13,16 +13,13 @@
 
 #define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
 
-struct malachi_opts {
-  int version;
-  int config;
-};
+namespace {
 
-static void usage(char *argv[]) {
+void usage(char *argv[]) {
   eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
 }
 
-static int print_versions(void) {
+int print_versions() {
   {
     int major = 0;
     int minor = 0;
@@ -39,9 +36,9 @@ static int print_versions(void) {
   return 0;
 }
 
-static int configure(struct config *config) {
-  struct error error = {0};
-  struct config_builder builder = {0};
+int configure(struct config *config) {
+  struct error error = {};
+  struct config_builder builder = {};
   int rc = config_builder_init(&builder, getenv);
   if (rc != 0) {
     eprintf("Failed to create config_builder\n");
@@ -56,14 +53,21 @@ static int configure(struct config *config) {
   return 0;
 }
 
-static void print_config(const struct config *config) {
+void print_config(const struct config *config) {
   printf("platform: %s\n", platform_to_string());
   printf("config_dir: %s\n", config->config_dir);
   printf("data_dir: %s\n", config->data_dir);
 }
 
+} // namespace
+
+struct malachi_opts {
+  int version;
+  int config;
+};
+
 int main(int argc, char *argv[]) {
-  struct malachi_opts opts = {0};
+  struct malachi_opts opts = {};
 
   if (argc == 1) {
     usage(argv);
@@ -108,11 +112,11 @@ int main(int argc, char *argv[]) {
     extern int optind;
 
     int rc = -1;
-    struct config config = {0};
+    struct config config = {};
 
-    if (opts.version) {
+    if (opts.version != 0) {
       rc = print_versions();
-      return rc ? EXIT_FAILURE : EXIT_SUCCESS;
+      return (rc != 0) ? EXIT_FAILURE : EXIT_SUCCESS;
     }
 
     rc = configure(&config);
@@ -120,7 +124,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    if (opts.config) {
+    if (opts.config != 0) {
       print_config(&config);
       config_finish(&config);
       return EXIT_SUCCESS;

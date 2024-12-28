@@ -7,24 +7,26 @@
 
 #include "config.h"
 
+namespace {
+
 char *getenv_defaults(const char *name) {
   if (strcmp(name, "APPDATA") == 0) {
-    return "C:/Users/user/AppData/Roaming";
+    return (char *)"C:/Users/user/AppData/Roaming";
   }
   if (strcmp(name, "LOCALAPPDATA") == 0) {
-    return "C:/Users/user/AppData/Local";
+    return (char *)"C:/Users/user/AppData/Local";
   }
   return NULL;
 }
 
-void test_config_builder_with_defaults(void) {
+void test_config_builder_with_defaults() {
   BEGIN_TEST();
-  struct config_builder config_builder = {0};
+  struct config_builder config_builder = {};
   int rc = config_builder_init(&config_builder, getenv_defaults);
   TEST(rc == 0);
   config_builder_with_defaults(&config_builder);
-  struct config config = {0};
-  struct error error = {0};
+  struct config config = {};
+  struct error error = {};
   rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == 0);
   TEST(error.rc == rc);
@@ -37,19 +39,19 @@ void test_config_builder_with_defaults(void) {
 
 char *getenv_windows_local_app_data(const char *name) {
   if (strcmp(name, "LOCALAPPDATA") == 0) {
-    return "C:/Users/user/AppData/Local";
+    return (char *)"C:/Users/user/AppData/Local";
   }
   return NULL;
 }
 
-void test_config_builder_no_config_dir(void) {
+void test_config_builder_no_config_dir() {
   BEGIN_TEST();
-  struct config_builder config_builder = {0};
+  struct config_builder config_builder = {};
   int rc = config_builder_init(&config_builder, getenv_windows_local_app_data);
   TEST(rc == 0);
   config_builder_with_defaults(&config_builder);
-  struct config config = {0};
-  struct error error = {0};
+  struct config config = {};
+  struct error error = {};
   rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == -CONFIG_ERROR_MISSING_DIR);
   TEST(error.rc == -CONFIG_ERROR_MISSING_DIR);
@@ -60,19 +62,19 @@ void test_config_builder_no_config_dir(void) {
 
 char *getenv_windows_app_data(const char *name) {
   if (strcmp(name, "APPDATA") == 0) {
-    return "C:/Users/user/AppData/Roaming";
+    return (char *)"C:/Users/user/AppData/Roaming";
   }
   return NULL;
 }
 
-void test_config_builder_no_data_dir(void) {
+void test_config_builder_no_data_dir() {
   BEGIN_TEST();
-  struct config_builder config_builder = {0};
+  struct config_builder config_builder = {};
   int rc = config_builder_init(&config_builder, getenv_windows_app_data);
   TEST(rc == 0);
   config_builder_with_defaults(&config_builder);
-  struct config config = {0};
-  struct error error = {0};
+  struct config config = {};
+  struct error error = {};
   rc = config_builder_build(&config_builder, &config, &error);
   TEST(rc == -CONFIG_ERROR_MISSING_DIR);
   TEST(error.rc == -CONFIG_ERROR_MISSING_DIR);
@@ -81,7 +83,9 @@ void test_config_builder_no_data_dir(void) {
   END_TEST();
 }
 
-int main(void) {
+} // namespace
+
+int main() {
   test_config_builder_with_defaults();
   test_config_builder_no_config_dir();
   test_config_builder_no_data_dir();

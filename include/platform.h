@@ -18,7 +18,7 @@
 
 typedef char *platform_getenv_fn(const char *name);
 
-static inline const char *platform_to_string(void) {
+static inline const char *platform_to_string() {
 #if defined(PLATFORM_WINDOWS)
   return "Windows";
 #elif defined(PLATFORM_MACOS)
