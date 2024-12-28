@@ -74,6 +74,7 @@ jobs:
           msystem: ${{matrix.sys}}
           install: >-
             mingw-w64-${{matrix.env}}-toolchain
+            mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-sqlite3
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
             mingw-w64-${{matrix.env}}-libgit2
