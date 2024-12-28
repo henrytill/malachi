@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -yyq --no-install-recommends \
-            libmupdf-dev libgit2-dev
+            libmupdf-dev libgit2-dev libfreetype-dev
       - run: uname -s
       - run: ./configure
       - run: cat config.mk
