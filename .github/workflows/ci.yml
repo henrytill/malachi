@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        compiler: [gcc, clang]
+        compiler: [g++, clang++]
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -22,11 +22,11 @@ jobs:
       - run: uname -s
       - run: ./configure
       - run: cat config.mk
-      - run: make CC=${{ matrix.compiler }}
+      - run: make CXX=${{ matrix.compiler }}
       - run: src/main --version
       - run: src/main --config
-      - run: nm src/main
-      - run: make CC=${{ matrix.compiler }} check
+      - run: nm -C src/main
+      - run: make CXX=${{ matrix.compiler }} check
   macos:
     runs-on: macos-latest
     steps:
@@ -35,19 +35,19 @@ jobs:
         run: |
           brew install mupdf libgit2
       - run: uname -s
-      - run: cc --version
+      - run: c++ --version
       - run: ./configure
       - name: Add Homebrew paths to config.mk
         run: |
           cat <<EOF >>config.mk
-          CFLAGS += -I/opt/homebrew/include
+          CXXFLAGS += -I/opt/homebrew/include
           LDFLAGS += -L/opt/homebrew/lib
           EOF
       - run: cat config.mk
       - run: make
       - run: src/main --version
       - run: src/main --config
-      - run: nm src/main
+      - run: nm -C src/main
       - run: make check
   windows:
     runs-on: windows-latest
@@ -73,11 +73,11 @@ jobs:
       - name: Check MSYSTEM
         run: echo $MSYSTEM
       - run: uname -s
-      - run: cc --version
+      - run: c++ --version
       - run: ./configure
       - run: cat config.mk
-      - run: mingw32-make
+      - run: mingw32-make CXX=c++
       - run: src/main --version
       - run: src/main --config
-      - run: nm src/main.exe
+      - run: nm -C src/main.exe
       - run: mingw32-make check

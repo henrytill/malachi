@@ -1,106 +1,141 @@
-#ifndef MALACHI_INCLUDE_PLATFORM_H
-#define MALACHI_INCLUDE_PLATFORM_H
+#pragma once
 
-#include <assert.h>
-#include <stddef.h>
+#include <cassert>
+#include <cstdint>
+#include <filesystem>
+#include <functional>
+#include <optional>
 
-#include "path.h"
+namespace platform {
 
+using std::filesystem::path;
+
+using GetEnvFn = std::function<char *(const char *)>;
+
+enum class Platform : uint8_t {
+  Windows,
+  MacOS,
+  Linux,
+  Unknown,
+};
+
+constexpr auto get_platform() -> Platform {
 #if defined(_WIN32)
-#  define PLATFORM_WINDOWS
+  return Platform::Windows;
 #elif defined(__APPLE__)
-#  define PLATFORM_MACOS
+  return Platform::MacOS;
 #elif defined(__linux__)
-#  define PLATFORM_LINUX
+  return Platform::Linux;
 #else
-#  define PLATFORM_UNKNOWN
-#endif
-
-typedef char *platform_getenv_fn(const char *name);
-
-static inline const char *platform_to_string(void) {
-#if defined(PLATFORM_WINDOWS)
-  return "Windows";
-#elif defined(PLATFORM_MACOS)
-  return "macOS";
-#elif defined(PLATFORM_LINUX)
-  return "Linux";
-#elif defined(PLATFORM_UNKNOWN)
-  return "Unknown";
+  return Platform::Unknown;
 #endif
 }
 
-static inline char *platform_windows_get_app_data(platform_getenv_fn getenv, const char *name) {
-  assert(name != NULL);
-  const char *app_data = getenv("APPDATA");
-  if (app_data != NULL) {
-    return joinpath2(app_data, name);
-  }
-  return NULL;
+constexpr auto to_string_view(const Platform platform) -> std::string_view {
+  switch (platform) {
+  case Platform::Windows:
+    return "Windows";
+  case Platform::MacOS:
+    return "MacOS";
+  case Platform::Linux:
+    return "Linux";
+  case Platform::Unknown:
+  default:
+    return "Unknown";
+  };
 }
 
-static inline char *platform_windows_get_local_app_data(platform_getenv_fn getenv, const char *name) {
-  assert(name != NULL);
-  const char *local_app_data = getenv("LOCALAPPDATA");
-  if (local_app_data != NULL) {
-    return joinpath2(local_app_data, name);
+namespace windows {
+
+inline auto get_app_data(GetEnvFn getenv, const path name) -> std::optional<path> {
+  auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
+  if (app_data != nullptr) {
+    const auto config_dir = path{app_data.release()};
+    return std::optional<path>{config_dir / name};
   }
-  return NULL;
+  return std::nullopt;
 }
 
-static inline char *platform_macos_get_support_dir(platform_getenv_fn getenv, const char *name) {
-  assert(name != NULL);
-  const char *home = getenv("HOME");
-  if (home != NULL) {
-    return joinpath4(home, "Library", "Application Support", name);
+inline auto get_local_app_data(GetEnvFn getenv, const path name) -> std::optional<path> {
+  auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
+  if (local_app_data != nullptr) {
+    const auto data_dir = path{local_app_data.release()};
+    return std::optional<path>{data_dir / name};
   }
-  return NULL;
+  return std::nullopt;
 }
 
-static inline char *platform_xdg_get_config_home(platform_getenv_fn getenv, const char *name) {
-  assert(name != NULL);
-  const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
-  if (xdg_config_home != NULL) {
-    return joinpath2(xdg_config_home, name);
+} // namespace windows
+
+namespace mac_os {
+
+inline auto get_application_support(GetEnvFn getenv, const path name) -> std::optional<path> {
+  auto home = std::unique_ptr<char>{getenv("HOME")};
+  if (home != nullptr) {
+    const auto home_dir = path{home.release()};
+    return std::optional<path>{home_dir / "Library" / "Application Support" / name};
   }
-  const char *home = getenv("HOME");
-  if (home != NULL) {
-    return joinpath3(home, ".config", name);
-  }
-  return NULL;
+  return std::nullopt;
 }
 
-static inline char *platform_xdg_get_data_home(platform_getenv_fn getenv, const char *name) {
-  assert(name != NULL);
-  const char *xdg_data_home = getenv("XDG_DATA_HOME");
-  if (xdg_data_home != NULL) {
-    return joinpath2(xdg_data_home, name);
+} // namespace mac_os
+
+namespace xdg {
+
+inline auto get_config_home(GetEnvFn getenv, const path name) -> std::optional<path> {
+  auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
+  if (xdg_config_home != nullptr) {
+    const auto config_dir = path{xdg_config_home.release()};
+    return std::optional<path>{config_dir / name};
   }
-  const char *home = getenv("HOME");
-  if (home != NULL) {
-    return joinpath4(home, ".local", "share", name);
+  auto home = std::unique_ptr<char>{getenv("HOME")};
+  if (home != nullptr) {
+    const auto home_dir = path{home.release()};
+    return std::optional<path>{home_dir / ".config" / name};
   }
-  return NULL;
+  return std::nullopt;
 }
 
-static inline char *platform_get_config_dir(platform_getenv_fn getenv, const char *name) {
-#if defined(PLATFORM_WINDOWS)
-  return platform_windows_get_app_data(getenv, name);
-#elif defined(PLATFORM_MACOS)
-  return platform_macos_get_support_dir(getenv, name);
-#else
-  return platform_xdg_get_config_home(getenv, name);
-#endif
+inline auto get_data_home(GetEnvFn getenv, const path name) -> std::optional<path> {
+  auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
+  if (xdg_data_home != nullptr) {
+    const auto data_dir = path{xdg_data_home.release()};
+    return std::optional<path>{data_dir / name};
+  }
+  auto home = std::unique_ptr<char>{getenv("HOME")};
+  if (home != nullptr) {
+    const auto home_dir = path{home.release()};
+    return std::optional<path>{home_dir / ".local" / "share" / name};
+  }
+  return std::nullopt;
 }
 
-static inline char *platform_get_data_dir(platform_getenv_fn getenv, const char *name) {
-#if defined(PLATFORM_WINDOWS)
-  return platform_windows_get_local_app_data(getenv, name);
-#elif defined(PLATFORM_MACOS)
-  return platform_macos_get_support_dir(getenv, name);
-#else
-  return platform_xdg_get_data_home(getenv, name);
-#endif
+} // namespace xdg
+
+template <Platform p = get_platform()>
+auto get_config_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
+  assert(name.empty() == false);
+
+  if constexpr (p == Platform::Windows) {
+    return windows::get_app_data(getenv, name);
+  } else if constexpr (p == Platform::MacOS) {
+    return mac_os::get_application_support(getenv, name);
+  } else {
+    return xdg::get_config_home(getenv, name);
+  }
 }
 
-#endif // MALACHI_INCLUDE_PLATFORM_H
+template <Platform p = get_platform()>
+auto get_data_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
+  assert(name.empty() == false);
+
+  if constexpr (p == Platform::Windows) {
+    return windows::get_local_app_data(getenv, name);
+  } else if constexpr (p == Platform::MacOS) {
+    return mac_os::get_application_support(getenv, name);
+  } else {
+    return xdg::get_data_home(getenv, name);
+  }
+}
+
+} // namespace platform
