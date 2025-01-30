@@ -27,13 +27,6 @@ jobs:
       - run: src/main --config
       - run: nm src/main
       - run: make CC=${{ matrix.compiler }} check
-  linux-flake:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix build -L
   macos:
     runs-on: macos-latest
     steps:
