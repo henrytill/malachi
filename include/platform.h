@@ -17,17 +17,23 @@ enum class Platform : uint8_t {
   Unknown,
 };
 
-[[nodiscard]] constexpr auto get_platform() -> Platform {
 #if defined(_WIN32)
+[[nodiscard]] constexpr auto get_platform() -> Platform {
   return Platform::Windows;
-#elif defined(__APPLE__)
-  return Platform::MacOS;
-#elif defined(__linux__)
-  return Platform::Linux;
-#else
-  return Platform::Unknown;
-#endif
 }
+#elif defined(__APPLE__)
+[[nodiscard]] constexpr auto get_platform() -> Platform {
+  return Platform::MacOS;
+}
+#elif defined(__linux__)
+[[nodiscard]] constexpr auto get_platform() -> Platform {
+  return Platform::Linux;
+}
+#else
+[[nodiscard]] constexpr auto get_platform() -> Platform {
+  return Platform::Unknown;
+}
+#endif
 
 [[nodiscard]] constexpr auto to_string_view(const Platform platform) -> std::string_view {
   switch (platform) {

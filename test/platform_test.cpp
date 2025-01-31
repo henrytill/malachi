@@ -5,19 +5,23 @@
 
 #include "platform.h"
 
-TEST_CASE("Platform detection") {
-  auto platform = platform::get_platform();
-
 #if defined(_WIN32)
-  CHECK(platform == platform::Platform::Windows);
-#elif defined(__APPLE__)
-  CHECK(platform == platform::Platform::MacOS);
-#elif defined(__linux__)
-  CHECK(platform == platform::Platform::Linux);
-#else
-  CHECK(platform == platform::Platform::Unknown);
-#endif
+TEST_CASE("Platform detection: Windows") {
+  CHECK(platform::get_platform() == platform::Platform::Windows);
 }
+#elif defined(__APPLE__)
+TEST_CASE("Platform detection: MacOS") {
+  CHECK(platform::get_platform() == platform::Platform::MacOS);
+}
+#elif defined(__linux__)
+TEST_CASE("Platform detection: Linux") {
+  CHECK(platform::get_platform() == platform::Platform::Linux);
+}
+#else
+TEST_CASE("Platform detection: Unknown") {
+  CHECK(platform::get_platform() == platform::Platform::Unknown);
+}
+#endif
 
 TEST_CASE("Platform string conversion") {
   CHECK(platform::to_string_view(platform::Platform::Windows) == "Windows");
