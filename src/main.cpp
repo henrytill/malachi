@@ -17,7 +17,6 @@ using namespace malachi;
 
 namespace {
 
-constexpr auto kCwdBufLen = size_t{1024};
 constexpr auto kUsageMsg = std::string_view{"Usage: {} [--version] [--config] <query>\n"};
 
 struct Options {
@@ -57,11 +56,13 @@ auto main(int argc, char *argv[]) -> int try {
   Options opts{};
 
   {
-    auto option_index = 0;
-    const auto long_options = std::array<struct option, 3>{
+    constexpr auto long_options_len = size_t{3};
+    constexpr auto long_options = std::array<struct option, long_options_len>{
         {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
          {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
          {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}}};
+
+    auto option_index = 0;
 
     while (true) {
       const int opt = getopt_long(static_cast<int>(args.size()), args.data(),
@@ -116,8 +117,9 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    auto cwd_buf = std::array<char, kCwdBufLen>{};
-    if (auto *cwd = getcwd(cwd_buf.data(), cwd_buf.size())) {
+    constexpr auto buf_len = size_t{1024};
+    auto buf = std::array<char, buf_len>{};
+    if (auto *cwd = getcwd(buf.data(), buf.size())) {
       std::cout << std::format("cwd: {}\n", cwd);
     }
   }
