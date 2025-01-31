@@ -21,21 +21,21 @@ auto Builder::with_defaults() && -> Builder && {
 auto Builder::build() && -> Result {
   if (not maybe_config_dir_.has_value()) {
     return Error{
-      .code = ErrorCode::kMissingDir,
-      .message = std::string{kMissingConfigDirMsg},
+        .code = ErrorCode::kMissingDir,
+        .message = std::string{kMissingConfigDirMsg},
     };
   }
 
   if (not maybe_data_dir_.has_value()) {
     return Error{
-      .code = ErrorCode::kMissingDir,
-      .message = std::string{kMissingDataDirMsg},
+        .code = ErrorCode::kMissingDir,
+        .message = std::string{kMissingDataDirMsg},
     };
   }
 
   return Config{
-    .config_dir = std::move(maybe_config_dir_.value()),
-    .data_dir = std::move(maybe_data_dir_.value()),
+      .config_dir = std::move(maybe_config_dir_.value()),
+      .data_dir = std::move(maybe_data_dir_.value()),
   };
 }
 

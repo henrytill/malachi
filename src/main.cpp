@@ -59,11 +59,11 @@ auto main(int argc, char *argv[]) -> int try {
   {
     int option_index = 0;
     std::array<struct option, 3> long_options{
-      {
-        {.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
-        {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-        {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
-      },
+        {
+            {.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
+            {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
+            {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
+        },
     };
 
     while (true) {
