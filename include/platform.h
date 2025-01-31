@@ -45,7 +45,8 @@ enum class Platform : uint8_t {
 
 namespace windows {
 
-[[nodiscard]] inline auto get_app_data(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] inline auto get_app_data(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
   if (app_data != nullptr) {
     const auto config_dir = std::filesystem::path{app_data.release()};
@@ -54,7 +55,8 @@ namespace windows {
   return std::nullopt;
 }
 
-[[nodiscard]] inline auto get_local_app_data(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] inline auto get_local_app_data(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
   if (local_app_data != nullptr) {
     const auto data_dir = std::filesystem::path{local_app_data.release()};
@@ -67,7 +69,8 @@ namespace windows {
 
 namespace mac_os {
 
-[[nodiscard]] inline auto get_application_support(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] inline auto get_application_support(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   auto home = std::unique_ptr<char>{getenv("HOME")};
   if (home != nullptr) {
     const auto home_dir = std::filesystem::path{home.release()};
@@ -80,7 +83,8 @@ namespace mac_os {
 
 namespace xdg {
 
-[[nodiscard]] inline auto get_config_home(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] inline auto get_config_home(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
   if (xdg_config_home != nullptr) {
     const auto config_dir = std::filesystem::path{xdg_config_home.release()};
@@ -94,7 +98,8 @@ namespace xdg {
   return std::nullopt;
 }
 
-[[nodiscard]] inline auto get_data_home(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] inline auto get_data_home(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
   if (xdg_data_home != nullptr) {
     const auto data_dir = std::filesystem::path{xdg_data_home.release()};
@@ -111,7 +116,8 @@ namespace xdg {
 } // namespace xdg
 
 template <Platform p = get_platform()>
-[[nodiscard]] auto get_config_dir(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] auto get_config_dir(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   if constexpr (p == Platform::Windows) {
     return windows::get_app_data(getenv, name);
   } else if constexpr (p == Platform::MacOS) {
@@ -122,7 +128,8 @@ template <Platform p = get_platform()>
 }
 
 template <Platform p = get_platform()>
-[[nodiscard]] auto get_data_dir(GetEnvFn getenv, const std::filesystem::path name) noexcept -> std::optional<std::filesystem::path> {
+[[nodiscard]] auto get_data_dir(GetEnvFn getenv, const std::filesystem::path name) noexcept
+    -> std::optional<std::filesystem::path> {
   if constexpr (p == Platform::Windows) {
     return windows::get_local_app_data(getenv, name);
   } else if constexpr (p == Platform::MacOS) {
