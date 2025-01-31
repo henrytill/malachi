@@ -117,8 +117,8 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    std::array<char, kCwdBufLen> buf = {};
-    if (auto *cwd = getcwd(buf.data(), buf.size())) {
+    auto cwd_buf = std::array<char, kCwdBufLen>{};
+    if (auto *cwd = getcwd(cwd_buf.data(), cwd_buf.size())) {
       std::cout << std::format("cwd: {}\n", cwd);
     }
   }
