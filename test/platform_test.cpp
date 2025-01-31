@@ -26,7 +26,7 @@ TEST_CASE("Platform string conversion") {
   CHECK(platform::to_string_view(platform::Platform::Unknown) == "Unknown");
 }
 
-TEST_CASE("Config directory resolution") {
+TEST_CASE("Directory resolution") {
   auto env = test::MockEnvironment{};
   const auto name = std::filesystem::path{"test_app"};
 
@@ -73,7 +73,7 @@ TEST_CASE("Config directory resolution") {
   }
 }
 
-TEST_CASE("Config directory resolution with empty name") {
+TEST_CASE("Directory resolution with empty name") {
   auto env = test::MockEnvironment{};
   const auto name = std::filesystem::path{};
 
