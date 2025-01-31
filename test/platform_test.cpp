@@ -31,21 +31,75 @@ TEST_CASE("Config directory resolution") {
   const auto name = std::filesystem::path{"test_app"};
 
   SUBCASE("Windows paths") {
+    env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
     env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-    auto config_dir = platform::windows::get_app_data(
-      [&env](const char *name) { return env.get(name); },
-      name);
-    REQUIRE(config_dir.has_value());
+    const auto getenv = [&env](const char *name) { return env.get(name); };
 
+    auto config_dir = platform::windows::get_app_data(getenv, name);
+    REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
     CHECK(*config_dir == expected);
+
+    auto data_dir = platform::windows::get_local_app_data(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
+    CHECK(*data_dir == expected_data);
   }
 
   SUBCASE("MacOS paths") {
     env.set("HOME", "/Users/test");
-    auto config_dir = platform::mac_os::get_application_support(
-      [&env](const char *name) { return env.get(name); },
-      name);
+    const auto getenv = [&env](const char *name) { return env.get(name); };
+
+    auto config_dir = platform::mac_os::get_application_support(getenv, name);
+    REQUIRE(config_dir.has_value());
+    const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
+    CHECK(*config_dir == expected);
+  }
+
+  SUBCASE("XDG paths") {
+    env.set("XDG_CONFIG_HOME", "/home/test/.config");
+    env.set("XDG_DATA_HOME", "/home/test/.local/share");
+    const auto getenv = [&env](const char *name) { return env.get(name); };
+
+    auto config_dir = platform::xdg::get_config_home(getenv, name);
+    REQUIRE(config_dir.has_value());
+    const auto expected = std::filesystem::path{"/home/test/.config"} / name;
+    CHECK(*config_dir == expected);
+
+    auto data_dir = platform::xdg::get_data_home(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
+    CHECK(*data_dir == expected_data);
+  }
+}
+
+TEST_CASE("Config directory resolution with empty name") {
+  auto env = test::MockEnvironment{};
+  const auto name = std::filesystem::path{};
+
+  CHECK(name.empty());
+
+  SUBCASE("Windows paths") {
+    env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
+    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
+    const auto getenv = [&env](const char *name) { return env.get(name); };
+
+    auto config_dir = platform::windows::get_app_data(getenv, name);
+    REQUIRE(config_dir.has_value());
+    const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
+    CHECK(*config_dir == expected);
+
+    auto data_dir = platform::windows::get_local_app_data(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
+    CHECK(*data_dir == expected_data);
+  }
+
+  SUBCASE("MacOS paths") {
+    env.set("HOME", "/Users/test");
+    const auto getenv = [&env](const char *name) { return env.get(name); };
+
+    auto config_dir = platform::mac_os::get_application_support(getenv, name);
     REQUIRE(config_dir.has_value());
 
     const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
@@ -54,12 +108,17 @@ TEST_CASE("Config directory resolution") {
 
   SUBCASE("XDG paths") {
     env.set("XDG_CONFIG_HOME", "/home/test/.config");
-    auto config_dir = platform::xdg::get_config_home(
-      [&env](const char *name) { return env.get(name); },
-      name);
-    REQUIRE(config_dir.has_value());
+    env.set("XDG_DATA_HOME", "/home/test/.local/share");
+    const auto getenv = [&env](const char *name) { return env.get(name); };
 
+    auto config_dir = platform::xdg::get_config_home(getenv, name);
+    REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{"/home/test/.config"} / name;
     CHECK(*config_dir == expected);
+
+    auto data_dir = platform::xdg::get_data_home(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
+    CHECK(*data_dir == expected_data);
   }
 }
