@@ -6,6 +6,7 @@ Checks: >
   misc-*,
   readability-*,
   -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
   -readability-function-cognitive-complexity,
 
 CheckOptions:

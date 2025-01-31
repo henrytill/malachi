@@ -23,6 +23,8 @@ struct Error {
 struct Config {
   std::filesystem::path config_dir;
   std::filesystem::path data_dir;
+
+  [[nodiscard]] auto to_string() const -> std::string;
 };
 
 using Result = std::variant<Config, Error>;

@@ -12,7 +12,6 @@
 #include <sqlite3.h>
 
 #include "config.h"
-#include "platform.h"
 
 using namespace malachi;
 
@@ -44,13 +43,6 @@ auto print_versions() -> int {
   std::cout << std::format("mupdf: {}\n", FZ_VERSION);
   std::cout << std::format("sqlite: {}\n", sqlite3_libversion());
   return 0;
-}
-
-void print_config(const config::Config &config) {
-  auto platform_str = platform::to_string_view(platform::get_platform());
-  std::cout << std::format("platform: {}\n", platform_str);
-  std::cout << std::format("config_dir: {}\n", config.config_dir.string());
-  std::cout << std::format("data_dir: {}\n", config.data_dir.string());
 }
 
 } // namespace
@@ -109,7 +101,7 @@ auto main(int argc, char *argv[]) -> int try {
   auto &config = std::get<config::Config>(config_result);
 
   if (opts.config) {
-    print_config(config);
+    std::cout << config.to_string();
     return EXIT_SUCCESS;
   }
 

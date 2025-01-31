@@ -1,5 +1,6 @@
 #include "config.h"
 #include "platform.h"
+#include <format>
 
 namespace malachi::config {
 
@@ -39,6 +40,14 @@ auto Builder::build() && -> Result {
     .config_dir = std::move(config_dir),
     .data_dir = std::move(data_dir),
   };
+}
+
+auto Config::to_string() const -> std::string {
+  auto platform_str = platform::to_string_view(platform::get_platform());
+  return std::format("platform: {}\nconfig_dir: {}\ndata_dir: {}\n",
+                     platform_str,
+                     config_dir.string(),
+                     data_dir.string());
 }
 
 } // namespace malachi::config
