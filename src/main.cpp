@@ -61,8 +61,7 @@ auto main(int argc, char *argv[]) -> int try {
     const auto long_options = std::array<struct option, 3>{
         {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
          {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-         {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}},
-    };
+         {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}}};
 
     while (true) {
       const int opt = getopt_long(static_cast<int>(args.size()), args.data(),
