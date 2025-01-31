@@ -38,6 +38,7 @@ enum class Platform : uint8_t {
   case Platform::Linux:
     return "Linux";
   case Platform::Unknown:
+    [[fallthrough]];
   default:
     return "Unknown";
   };
