@@ -6,9 +6,9 @@ namespace malachi::config {
 
 using platform::GetEnvFn;
 
-const std::filesystem::path kName = "malachi";
-constexpr std::string_view kMissingConfigDirMsg = "maybe_config_dir is empty";
-constexpr std::string_view kMissingDataDirMsg = "maybe_data_dir is empty";
+static const std::filesystem::path kName = "malachi";
+static constexpr std::string_view kMissingConfigDirMsg = "maybe_config_dir is empty";
+static constexpr std::string_view kMissingDataDirMsg = "maybe_data_dir is empty";
 
 Builder::Builder(GetEnvFn getenv) : getenv_{std::move(getenv)} {}
 
