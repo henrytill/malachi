@@ -35,12 +35,9 @@ auto Builder::build() && -> Result {
     };
   }
 
-  auto config_dir = std::move(maybe_config_dir_).value();
-  auto data_dir = std::move(maybe_data_dir_).value();
-
   return Config{
-    .config_dir = std::move(config_dir),
-    .data_dir = std::move(data_dir),
+    .config_dir = std::move(maybe_config_dir_.value()),
+    .data_dir = std::move(maybe_data_dir_.value()),
   };
 }
 
