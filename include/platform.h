@@ -113,9 +113,7 @@ namespace xdg {
 } // namespace xdg
 
 template <Platform p = get_platform()>
-[[nodiscard]] auto get_config_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
-  assert(name.empty() == false);
-
+[[nodiscard]] auto get_config_dir(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   if constexpr (p == Platform::Windows) {
     return windows::get_app_data(getenv, name);
   } else if constexpr (p == Platform::MacOS) {
@@ -126,9 +124,7 @@ template <Platform p = get_platform()>
 }
 
 template <Platform p = get_platform()>
-[[nodiscard]] auto get_data_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
-  assert(name.empty() == false);
-
+[[nodiscard]] auto get_data_dir(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   if constexpr (p == Platform::Windows) {
     return windows::get_local_app_data(getenv, name);
   } else if constexpr (p == Platform::MacOS) {
