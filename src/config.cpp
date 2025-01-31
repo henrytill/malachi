@@ -1,6 +1,8 @@
 #include "config.h"
-#include "platform.h"
+
 #include <format>
+
+#include "platform.h"
 
 namespace malachi::config {
 

@@ -55,6 +55,7 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   Options opts{};
+
   {
     int option_index = 0;
     std::array<struct option, 3> long_options{
