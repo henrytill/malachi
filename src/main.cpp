@@ -48,7 +48,7 @@ auto print_library_versions() -> int {
 } // namespace
 
 auto main(int argc, char *argv[]) -> int try {
-  const std::span<char *> args(argv, static_cast<size_t>(argc));
+  const auto args = std::span<char *>{argv, static_cast<size_t>(argc)};
   if (args.size() == 1) {
     print_usage(args[0]);
     return EXIT_FAILURE;
@@ -58,16 +58,15 @@ auto main(int argc, char *argv[]) -> int try {
 
   {
     int option_index = 0;
-    std::array<struct option, 3> long_options{
-        {
-            {.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
-            {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-            {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
-        },
+    const auto long_options = std::array<struct option, 3>{
+        {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
+         {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
+         {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}},
     };
 
     while (true) {
-      const int opt = getopt_long(static_cast<int>(args.size()), args.data(), "vc", long_options.data(), &option_index);
+      const int opt = getopt_long(static_cast<int>(args.size()), args.data(),
+                                  "vc", long_options.data(), &option_index);
       if (opt == -1) {
         break;
       }
