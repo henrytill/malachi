@@ -1,6 +1,9 @@
 CXXFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion
 ALL_CXXFLAGS = -std=c++20 -Iinclude $(CXXFLAGS)
 
+LDFLAGS =
+ALL_LDFLAGS = $(LDFLAGS)
+
 INSTALL = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
@@ -44,13 +47,13 @@ src/config.o: src/config.cpp include/config.h include/platform.h
 
 src/main: LDLIBS += $(MAIN_LIBS)
 src/main: $(MAIN_OBJECTS)
-	$(CXX) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
 test/config_test: src/config.o test/config_test.o
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/platform_test: test/platform_test.o
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $^ $(LDLIBS)
 
 .cpp.o:
 	$(CXX) $(ALL_CXXFLAGS) -o $@ -c $<
