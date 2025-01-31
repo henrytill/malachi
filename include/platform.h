@@ -34,7 +34,7 @@ enum class Platform : uint8_t {
   case Platform::Windows:
     return "Windows";
   case Platform::MacOS:
-    return "MacOS";
+    return "macOS";
   case Platform::Linux:
     return "Linux";
   case Platform::Unknown:

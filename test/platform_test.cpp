@@ -21,7 +21,7 @@ TEST_CASE("Platform detection") {
 
 TEST_CASE("Platform string conversion") {
   CHECK(platform::to_string_view(platform::Platform::Windows) == "Windows");
-  CHECK(platform::to_string_view(platform::Platform::MacOS) == "MacOS");
+  CHECK(platform::to_string_view(platform::Platform::MacOS) == "macOS");
   CHECK(platform::to_string_view(platform::Platform::Linux) == "Linux");
   CHECK(platform::to_string_view(platform::Platform::Unknown) == "Unknown");
 }
