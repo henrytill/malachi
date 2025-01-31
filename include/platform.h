@@ -19,7 +19,7 @@ enum class Platform : uint8_t {
   Unknown,
 };
 
-constexpr auto get_platform() -> Platform {
+[[nodiscard]] constexpr auto get_platform() -> Platform {
 #if defined(_WIN32)
   return Platform::Windows;
 #elif defined(__APPLE__)
@@ -31,7 +31,7 @@ constexpr auto get_platform() -> Platform {
 #endif
 }
 
-constexpr auto to_string_view(const Platform platform) -> std::string_view {
+[[nodiscard]] constexpr auto to_string_view(const Platform platform) -> std::string_view {
   switch (platform) {
   case Platform::Windows:
     return "Windows";
@@ -47,7 +47,7 @@ constexpr auto to_string_view(const Platform platform) -> std::string_view {
 
 namespace windows {
 
-inline auto get_app_data(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] inline auto get_app_data(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   auto app_data = std::unique_ptr<char>{getenv("APPDATA")};
   if (app_data != nullptr) {
     const auto config_dir = path{app_data.release()};
@@ -56,7 +56,7 @@ inline auto get_app_data(GetEnvFn getenv, const path name) -> std::optional<path
   return std::nullopt;
 }
 
-inline auto get_local_app_data(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] inline auto get_local_app_data(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   auto local_app_data = std::unique_ptr<char>{getenv("LOCALAPPDATA")};
   if (local_app_data != nullptr) {
     const auto data_dir = path{local_app_data.release()};
@@ -69,7 +69,7 @@ inline auto get_local_app_data(GetEnvFn getenv, const path name) -> std::optiona
 
 namespace mac_os {
 
-inline auto get_application_support(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] inline auto get_application_support(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   auto home = std::unique_ptr<char>{getenv("HOME")};
   if (home != nullptr) {
     const auto home_dir = path{home.release()};
@@ -82,7 +82,7 @@ inline auto get_application_support(GetEnvFn getenv, const path name) -> std::op
 
 namespace xdg {
 
-inline auto get_config_home(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] inline auto get_config_home(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   auto xdg_config_home = std::unique_ptr<char>{getenv("XDG_CONFIG_HOME")};
   if (xdg_config_home != nullptr) {
     const auto config_dir = path{xdg_config_home.release()};
@@ -96,7 +96,7 @@ inline auto get_config_home(GetEnvFn getenv, const path name) -> std::optional<p
   return std::nullopt;
 }
 
-inline auto get_data_home(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] inline auto get_data_home(GetEnvFn getenv, const path name) noexcept -> std::optional<path> {
   auto xdg_data_home = std::unique_ptr<char>{getenv("XDG_DATA_HOME")};
   if (xdg_data_home != nullptr) {
     const auto data_dir = path{xdg_data_home.release()};
@@ -113,7 +113,7 @@ inline auto get_data_home(GetEnvFn getenv, const path name) -> std::optional<pat
 } // namespace xdg
 
 template <Platform p = get_platform()>
-auto get_config_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] auto get_config_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
   assert(name.empty() == false);
 
   if constexpr (p == Platform::Windows) {
@@ -126,7 +126,7 @@ auto get_config_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
 }
 
 template <Platform p = get_platform()>
-auto get_data_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
+[[nodiscard]] auto get_data_dir(GetEnvFn getenv, const path name) -> std::optional<path> {
   assert(name.empty() == false);
 
   if constexpr (p == Platform::Windows) {
