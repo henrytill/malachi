@@ -21,8 +21,13 @@ MAIN_EXES =
 MAIN_EXES += src/main
 
 TEST_OBJECTS =
+TEST_OBJECTS += src/config.o
+TEST_OBJECTS += test/platform_test.o
+TEST_OBJECTS += test/config_test.o
 
 TEST_EXES =
+TEST_EXES += test/platform_test
+TEST_EXES += test/config_test
 
 MAIN_CFLAGS = $(LIBGIT2_CFLAGS) $(MUPDF_CFLAGS) $(SQLITE3_CFLAGS)
 MAIN_LIBS = $(LIBGIT2_LIBS) $(MUPDF_LIBS) $(SQLITE3_LIBS)
@@ -30,7 +35,7 @@ MAIN_LIBS = $(LIBGIT2_LIBS) $(MUPDF_LIBS) $(SQLITE3_LIBS)
 include config.mk
 
 .PHONY: all
-all: $(MAIN_EXES)
+all: $(MAIN_EXES) $(TEST_EXES)
 
 src/main.o: ALL_CXXFLAGS += $(MAIN_CFLAGS)
 src/main.o: src/main.cpp include/config.h include/platform.h
@@ -41,12 +46,19 @@ src/main: LDLIBS += $(MAIN_LIBS)
 src/main: $(MAIN_OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $(MAIN_OBJECTS) $(LDLIBS)
 
+test/config_test: src/config.o test/config_test.o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/platform_test: test/platform_test.o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 .cpp.o:
 	$(CXX) $(ALL_CXXFLAGS) -o $@ -c $<
 
 .PHONY: check
 check: $(TEST_EXES)
-	@echo "not yet"
+	./test/config_test
+	./test/platform_test
 
 .PHONY: lint
 lint:

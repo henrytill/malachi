@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -yyq --no-install-recommends \
-            libmupdf-dev libgit2-dev libfreetype-dev libsqlite3-dev
+            libmupdf-dev libgit2-dev libfreetype-dev libsqlite3-dev doctest-dev
       - run: uname -s
       - run: ./configure
       - run: cat config.mk
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          brew install mupdf libgit2
+          brew install mupdf libgit2 doctest
       - run: uname -s
       - run: c++ --version
       - run: ./configure
@@ -70,14 +70,15 @@ jobs:
             mingw-w64-${{matrix.env}}-sqlite3
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
             mingw-w64-${{matrix.env}}-libgit2
+            mingw-w64-${{matrix.env}}-doctest
       - name: Check MSYSTEM
         run: echo $MSYSTEM
       - run: uname -s
       - run: c++ --version
       - run: ./configure
       - run: cat config.mk
-      - run: mingw32-make CXX=c++
+      - run: mingw32-make -j CXX=c++
       - run: src/main --version
       - run: src/main --config
       - run: nm -C src/main.exe
-      - run: mingw32-make check
+      - run: mingw32-make -j CXX=c++ check
