@@ -17,8 +17,8 @@ using namespace malachi;
 
 namespace {
 
-constexpr size_t kCwdBufLen = 1024;
-constexpr std::string_view kUsageMsg = "Usage: {} [--version] [--config] <query>\n";
+constexpr auto kCwdBufLen = size_t{1024};
+constexpr auto kUsageMsg = std::string_view{"Usage: {} [--version] [--config] <query>\n"};
 
 struct Options {
   bool version{false};
@@ -57,7 +57,7 @@ auto main(int argc, char *argv[]) -> int try {
   Options opts{};
 
   {
-    int option_index = 0;
+    auto option_index = 0;
     const auto long_options = std::array<struct option, 3>{
         {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
          {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},

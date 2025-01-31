@@ -1,14 +1,15 @@
 #include "config.h"
 
 #include <format>
+#include <string_view>
 
 #include "platform.h"
 
 namespace malachi::config {
 
-static const std::filesystem::path kName = "malachi";
-static constexpr std::string_view kMissingConfigDirMsg = "maybe_config_dir is empty";
-static constexpr std::string_view kMissingDataDirMsg = "maybe_data_dir is empty";
+static const auto kName = std::filesystem::path{"malachi"};
+static constexpr auto kMissingConfigDirMsg = std::string_view{"maybe_config_dir is empty"};
+static constexpr auto kMissingDataDirMsg = std::string_view{"maybe_data_dir is empty"};
 
 Builder::Builder(platform::GetEnvFn getenv) : getenv_{std::move(getenv)} {}
 
