@@ -8,8 +8,8 @@
 namespace malachi::config {
 
 static const auto kName = std::filesystem::path{"malachi"};
-static constexpr auto kMissingConfigDirMsg = std::string_view{"maybe_config_dir is empty"};
-static constexpr auto kMissingDataDirMsg = std::string_view{"maybe_data_dir is empty"};
+static constexpr auto kMissingConfigDirMsg = std::string_view{"Configuration directory could not be determined"};
+static constexpr auto kMissingDataDirMsg = std::string_view{"Data directory could not be determined"};
 
 Builder::Builder(platform::GetEnvFn getenv) : getenv_{std::move(getenv)} {}
 
