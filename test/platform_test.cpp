@@ -28,12 +28,12 @@ TEST_CASE("Platform string conversion") {
 
 TEST_CASE("Directory resolution") {
   auto env = test::MockEnvironment{};
+  const auto getenv = [&env](const char *name) { return env.get(name); };
   const auto name = std::filesystem::path{"test_app"};
 
   SUBCASE("Windows paths") {
     env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
     env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::windows::get_app_data(getenv, name);
     REQUIRE(config_dir.has_value());
@@ -47,8 +47,8 @@ TEST_CASE("Directory resolution") {
   }
 
   SUBCASE("MacOS paths") {
+    env.clear();
     env.set("HOME", "/Users/test");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::mac_os::get_application_support(getenv, name);
     REQUIRE(config_dir.has_value());
@@ -57,9 +57,9 @@ TEST_CASE("Directory resolution") {
   }
 
   SUBCASE("XDG paths") {
+    env.clear();
     env.set("XDG_CONFIG_HOME", "/home/test/.config");
     env.set("XDG_DATA_HOME", "/home/test/.local/share");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::xdg::get_config_home(getenv, name);
     REQUIRE(config_dir.has_value());
@@ -75,6 +75,7 @@ TEST_CASE("Directory resolution") {
 
 TEST_CASE("Directory resolution with empty name") {
   auto env = test::MockEnvironment{};
+  const auto getenv = [&env](const char *name) { return env.get(name); };
   const auto name = std::filesystem::path{};
 
   CHECK(name.empty());
@@ -82,7 +83,6 @@ TEST_CASE("Directory resolution with empty name") {
   SUBCASE("Windows paths") {
     env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
     env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::windows::get_app_data(getenv, name);
     REQUIRE(config_dir.has_value());
@@ -96,8 +96,8 @@ TEST_CASE("Directory resolution with empty name") {
   }
 
   SUBCASE("MacOS paths") {
+    env.clear();
     env.set("HOME", "/Users/test");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::mac_os::get_application_support(getenv, name);
     REQUIRE(config_dir.has_value());
@@ -107,9 +107,9 @@ TEST_CASE("Directory resolution with empty name") {
   }
 
   SUBCASE("XDG paths") {
+    env.clear();
     env.set("XDG_CONFIG_HOME", "/home/test/.config");
     env.set("XDG_DATA_HOME", "/home/test/.local/share");
-    const auto getenv = [&env](const char *name) { return env.get(name); };
 
     auto config_dir = platform::xdg::get_config_home(getenv, name);
     REQUIRE(config_dir.has_value());

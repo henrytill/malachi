@@ -18,6 +18,10 @@ public:
     return nullptr;
   }
 
+  void clear() {
+    env_.clear();
+  }
+
 private:
   std::map<std::string, std::string> env_;
 };
