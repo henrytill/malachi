@@ -105,13 +105,15 @@ auto main(int argc, char *argv[]) -> int try {
     return EXIT_SUCCESS;
   }
 
-  auto offset = static_cast<size_t>(optind);
-  if (offset < args.size()) {
-    std::cout << "non-option argv elements:";
-    for (const auto *arg : args.subspan(offset)) {
-      std::cout << std::format(" {}", arg);
+  {
+    auto offset = static_cast<size_t>(optind);
+    if (offset < args.size()) {
+      std::cout << "non-option argv elements:";
+      for (const auto *arg : args.subspan(offset)) {
+        std::cout << std::format(" {}", arg);
+      }
+      std::cout << '\n';
     }
-    std::cout << '\n';
   }
 
   {
