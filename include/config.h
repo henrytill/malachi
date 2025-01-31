@@ -30,7 +30,7 @@ using Result = std::variant<Config, Error>;
 class Builder {
 public:
   Builder(GetEnvFn getenv);
-  void with_defaults();
+  auto with_defaults() && -> Builder &&;
   auto build() && -> Result;
 
 private:

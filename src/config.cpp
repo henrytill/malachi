@@ -11,9 +11,10 @@ constexpr std::string_view kMissingDataDirMsg = "maybe_data_dir is empty";
 
 Builder::Builder(GetEnvFn getenv) : getenv_{std::move(getenv)} {}
 
-void Builder::with_defaults() {
+auto Builder::with_defaults() && -> Builder && {
   maybe_config_dir_ = platform::get_config_dir(getenv_, kName);
   maybe_data_dir_ = platform::get_data_dir(getenv_, kName);
+  return std::move(*this);
 }
 
 auto Builder::build() && -> Result {
