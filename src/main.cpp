@@ -29,7 +29,7 @@ void print_usage(const char *program) {
   std::cerr << std::format(kUsageMsg, program);
 }
 
-auto print_versions() -> int {
+auto print_library_versions() -> int {
   {
     int major = 0;
     int minor = 0;
@@ -88,7 +88,7 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   if (opts.version) {
-    return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return print_library_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 
   auto config_result = config::Builder{getenv}.with_defaults().build();
