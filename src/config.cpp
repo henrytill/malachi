@@ -42,10 +42,13 @@ auto Builder::build() && -> Result {
   };
 }
 
+auto Config::platform() -> platform::Platform {
+  return platform::get_platform();
+}
+
 auto Config::to_string() const -> std::string {
-  auto platform_str = platform::to_string_view(platform::get_platform());
   return std::format("platform: {}\nconfig_dir: {}\ndata_dir: {}\n",
-                     platform_str,
+                     platform::to_string_view(platform()),
                      config_dir.string(),
                      data_dir.string());
 }

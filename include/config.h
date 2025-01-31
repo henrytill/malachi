@@ -24,6 +24,7 @@ struct Config {
   std::filesystem::path config_dir;
   std::filesystem::path data_dir;
 
+  static auto platform() -> platform::Platform;
   [[nodiscard]] auto to_string() const -> std::string;
 };
 
