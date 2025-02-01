@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstddef>
 #include <format>
 #include <iostream>
@@ -48,8 +49,11 @@ auto print_library_versions() -> int {
 
 auto main(int argc, char *argv[]) -> int try {
   const auto args = std::span<char *>{argv, static_cast<size_t>(argc)};
+
+  assert(not args.empty()); // we use args.front() below
+
   if (args.size() == 1) {
-    print_usage(args[0]);
+    print_usage(args.front());
     return EXIT_FAILURE;
   }
 
@@ -79,7 +83,7 @@ auto main(int argc, char *argv[]) -> int try {
         opts.config = true;
         break;
       case '?':
-        print_usage(args[0]);
+        print_usage(args.front());
         return EXIT_FAILURE;
       default:
         break;
