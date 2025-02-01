@@ -17,7 +17,7 @@ using namespace malachi;
 
 namespace {
 
-constexpr auto kUsageMsg = std::string_view{"Usage: {} [--version] [--config] <query>\n"};
+constexpr auto kUsageMsg = std::string_view{"Usage: {} [-v|--version] [-c|--config] <query>\n"};
 
 struct Options {
   bool version{false};
