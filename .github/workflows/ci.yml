@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v27
-      - run: nix build -L
+      - run: nix build -L --accept-flake-config
   macos:
     runs-on: macos-latest
     steps:
