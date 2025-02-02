@@ -23,25 +23,24 @@ TEST_CASE("Builder fails without configuration directory") {
   CHECK(error.message == "Configuration directory could not be determined");
 }
 
-TEST_CASE("Builder fails without data directory") {
-  // macOS does not have separate config and data directories
-  if constexpr (kPlatform != Platform::MacOS) {
-    auto env = test::MockEnvironment{};
-    const auto getenv = [&env](const char *name) { return env.get(name); };
+TEST_CASE("Builder fails without data directory"
+          // macOS does not have separate config and data directories
+          * doctest::skip(kPlatform == Platform::MacOS)) {
+  auto env = test::MockEnvironment{};
+  const auto getenv = [&env](const char *name) { return env.get(name); };
 
-    if constexpr (kPlatform == Platform::Windows) {
-      env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-    } else {
-      env.set("XDG_CONFIG_HOME", "/home/test/.config");
-    }
-
-    auto result = Builder(getenv).with_defaults().build();
-    REQUIRE(std::holds_alternative<Error>(result));
-
-    const auto &error = std::get<Error>(result);
-    CHECK(error.code == ErrorCode::kMissingDir);
-    CHECK(error.message == "Data directory could not be determined");
+  if constexpr (kPlatform == Platform::Windows) {
+    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
+  } else {
+    env.set("XDG_CONFIG_HOME", "/home/test/.config");
   }
+
+  auto result = Builder(getenv).with_defaults().build();
+  REQUIRE(std::holds_alternative<Error>(result));
+
+  const auto &error = std::get<Error>(result);
+  CHECK(error.code == ErrorCode::kMissingDir);
+  CHECK(error.message == "Data directory could not be determined");
 }
 
 TEST_CASE("Builder succeeds with the expected environment variables") {
