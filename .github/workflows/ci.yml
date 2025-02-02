@@ -20,7 +20,6 @@ jobs:
           sudo apt-get install -yqq --no-install-recommends \
             libmupdf-dev libgit2-dev libfreetype-dev libsqlite3-dev \
             doctest-dev
-      - run: uname -s
       - run: ./configure
       - run: cat config.mk
       - run: make CXX=${{ matrix.compiler }}
@@ -40,7 +39,6 @@ jobs:
       - name: Install dependencies
         run: |
           brew install mupdf libgit2 doctest
-      - run: uname -s
       - run: c++ --version
       - run: ./configure
       - name: Add Homebrew paths to config.mk
@@ -78,7 +76,6 @@ jobs:
             mingw-w64-${{matrix.env}}-doctest
       - name: Check MSYSTEM
         run: echo $MSYSTEM
-      - run: uname -s
       - run: c++ --version
       - run: ./configure
       - run: cat config.mk
