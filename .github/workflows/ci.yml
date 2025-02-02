@@ -27,6 +27,12 @@ jobs:
       - run: src/main --config
       - run: nm -C src/main
       - run: make CXX=${{ matrix.compiler }} check
+  linux-flake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+      - run: nix build -L
   macos:
     runs-on: macos-latest
     steps:
