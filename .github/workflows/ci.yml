@@ -26,7 +26,6 @@ jobs:
       - run: make CXX=${{ matrix.compiler }}
       - run: src/main --version
       - run: src/main --config
-      - run: nm -C src/main
       - run: make CXX=${{ matrix.compiler }} check
   linux-flake:
     runs-on: ubuntu-latest
@@ -54,7 +53,6 @@ jobs:
       - run: make
       - run: src/main --version
       - run: src/main --config
-      - run: nm -C src/main
       - run: make check
   windows:
     runs-on: windows-latest
@@ -87,5 +85,4 @@ jobs:
       - run: mingw32-make -j CXX=c++
       - run: src/main --version
       - run: src/main --config
-      - run: nm -C src/main.exe
       - run: mingw32-make -j CXX=c++ check
