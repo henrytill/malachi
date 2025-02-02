@@ -5,29 +5,31 @@
 
 #include "platform.h"
 
+using namespace platform;
+
 #if defined(_WIN32)
 TEST_CASE("Platform detection: Windows") {
-  CHECK(platform::get_platform() == platform::Platform::Windows);
+  CHECK(get_platform() == Platform::Windows);
 }
 #elif defined(__APPLE__)
 TEST_CASE("Platform detection: MacOS") {
-  CHECK(platform::get_platform() == platform::Platform::MacOS);
+  CHECK(get_platform() == Platform::MacOS);
 }
 #elif defined(__linux__)
 TEST_CASE("Platform detection: Linux") {
-  CHECK(platform::get_platform() == platform::Platform::Linux);
+  CHECK(get_platform() == Platform::Linux);
 }
 #else
 TEST_CASE("Platform detection: Unknown") {
-  CHECK(platform::get_platform() == platform::Platform::Unknown);
+  CHECK(get_platform() == Platform::Unknown);
 }
 #endif
 
 TEST_CASE("Platform string conversion") {
-  CHECK(platform::to_string_view(platform::Platform::Windows) == "Windows");
-  CHECK(platform::to_string_view(platform::Platform::MacOS) == "macOS");
-  CHECK(platform::to_string_view(platform::Platform::Linux) == "Linux");
-  CHECK(platform::to_string_view(platform::Platform::Unknown) == "Unknown");
+  CHECK(to_string_view(Platform::Windows) == "Windows");
+  CHECK(to_string_view(Platform::MacOS) == "macOS");
+  CHECK(to_string_view(Platform::Linux) == "Linux");
+  CHECK(to_string_view(Platform::Unknown) == "Unknown");
 }
 
 TEST_CASE("Directory resolution") {
@@ -39,12 +41,12 @@ TEST_CASE("Directory resolution") {
     env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
     env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
 
-    auto config_dir = platform::windows::get_app_data(getenv, name);
+    auto config_dir = get_config_dir<Platform::Windows>(getenv, name);
     REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
     CHECK(*config_dir == expected);
 
-    auto data_dir = platform::windows::get_local_app_data(getenv, name);
+    auto data_dir = get_data_dir<Platform::Windows>(getenv, name);
     REQUIRE(data_dir.has_value());
     const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
     CHECK(*data_dir == expected_data);
@@ -54,10 +56,15 @@ TEST_CASE("Directory resolution") {
     env.clear();
     env.set("HOME", "/Users/test");
 
-    auto config_dir = platform::mac_os::get_application_support(getenv, name);
+    auto config_dir = get_config_dir<Platform::MacOS>(getenv, name);
     REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
     CHECK(*config_dir == expected);
+
+    auto data_dir = get_config_dir<Platform::MacOS>(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
+    CHECK(*data_dir == expected_data);
   }
 
   SUBCASE("XDG paths") {
@@ -65,12 +72,12 @@ TEST_CASE("Directory resolution") {
     env.set("XDG_CONFIG_HOME", "/home/test/.config");
     env.set("XDG_DATA_HOME", "/home/test/.local/share");
 
-    auto config_dir = platform::xdg::get_config_home(getenv, name);
+    auto config_dir = get_config_dir<Platform::Linux>(getenv, name);
     REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{"/home/test/.config"} / name;
     CHECK(*config_dir == expected);
 
-    auto data_dir = platform::xdg::get_data_home(getenv, name);
+    auto data_dir = get_data_dir<Platform::Linux>(getenv, name);
     REQUIRE(data_dir.has_value());
     const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
     CHECK(*data_dir == expected_data);
@@ -88,12 +95,12 @@ TEST_CASE("Directory resolution with empty name") {
     env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
     env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
 
-    auto config_dir = platform::windows::get_app_data(getenv, name);
+    auto config_dir = get_config_dir<Platform::Windows>(getenv, name);
     REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
     CHECK(*config_dir == expected);
 
-    auto data_dir = platform::windows::get_local_app_data(getenv, name);
+    auto data_dir = get_data_dir<Platform::Windows>(getenv, name);
     REQUIRE(data_dir.has_value());
     const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
     CHECK(*data_dir == expected_data);
@@ -103,11 +110,15 @@ TEST_CASE("Directory resolution with empty name") {
     env.clear();
     env.set("HOME", "/Users/test");
 
-    auto config_dir = platform::mac_os::get_application_support(getenv, name);
+    auto config_dir = get_config_dir<Platform::MacOS>(getenv, name);
     REQUIRE(config_dir.has_value());
-
     const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
     CHECK(*config_dir == expected);
+
+    auto data_dir = get_config_dir<Platform::MacOS>(getenv, name);
+    REQUIRE(data_dir.has_value());
+    const auto expected_data = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
+    CHECK(*data_dir == expected_data);
   }
 
   SUBCASE("XDG paths") {
@@ -115,12 +126,12 @@ TEST_CASE("Directory resolution with empty name") {
     env.set("XDG_CONFIG_HOME", "/home/test/.config");
     env.set("XDG_DATA_HOME", "/home/test/.local/share");
 
-    auto config_dir = platform::xdg::get_config_home(getenv, name);
+    auto config_dir = get_config_dir<Platform::Linux>(getenv, name);
     REQUIRE(config_dir.has_value());
     const auto expected = std::filesystem::path{"/home/test/.config"} / name;
     CHECK(*config_dir == expected);
 
-    auto data_dir = platform::xdg::get_data_home(getenv, name);
+    auto data_dir = get_data_dir<Platform::Linux>(getenv, name);
     REQUIRE(data_dir.has_value());
     const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
     CHECK(*data_dir == expected_data);
