@@ -47,10 +47,11 @@ namespace {
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
 template <Platform p>
-void verify_directories(const GetEnvFn &getenv,
-                        const std::filesystem::path &name,
-                        const std::filesystem::path &expected_config,
-                        const std::filesystem::path &expected_data) {
+inline auto verify_directories(const GetEnvFn &getenv,
+                               const std::filesystem::path &name,
+                               const std::filesystem::path &expected_config,
+                               const std::filesystem::path &expected_data)
+    -> bool {
   const auto config_dir = get_config_dir<p>(getenv, name);
   REQUIRE(config_dir.has_value());
   CHECK(*config_dir == expected_config);
@@ -58,8 +59,20 @@ void verify_directories(const GetEnvFn &getenv,
   const auto data_dir = get_data_dir<p>(getenv, name);
   REQUIRE(data_dir.has_value());
   CHECK(*data_dir == expected_data);
+
+  return true;
 }
 // NOLINTEND(bugprone-easily-swappable-parameters)
+
+template <Platform... Ps>
+void dispatch_verify_directories(Platform platform,
+                                 const GetEnvFn &getenv,
+                                 const std::filesystem::path &name,
+                                 const std::filesystem::path &expected_config,
+                                 const std::filesystem::path &expected_data) {
+  const auto found = ((platform == Ps && verify_directories<Ps>(getenv, name, expected_config, expected_data)) || ...);
+  CHECK(found);
+}
 
 } // namespace
 
@@ -99,22 +112,8 @@ TEST_CASE("Directory resolution") {
           const auto expected_config = param.expected_config_base / name;
           const auto expected_data = param.expected_data_base / name;
 
-          switch (param.platform) {
-          case Platform::Windows: {
-            verify_directories<Platform::Windows>(getenv, name, expected_config, expected_data);
-            break;
-          }
-          case Platform::MacOS: {
-            verify_directories<Platform::MacOS>(getenv, name, expected_config, expected_data);
-            break;
-          }
-          case Platform::Linux: {
-            verify_directories<Platform::Linux>(getenv, name, expected_config, expected_data);
-            break;
-          }
-          default:
-            FAIL("Unsupported platform");
-          }
+          dispatch_verify_directories<Platform::Windows, Platform::MacOS, Platform::Linux>(
+              param.platform, getenv, name, expected_config, expected_data);
         }
       }
     }
