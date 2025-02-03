@@ -65,7 +65,7 @@ check: $(TEST_EXES)
 
 .PHONY: lint
 lint:
-	clang-tidy --quiet -p compile_commands.json include/*.h src/*.cpp
+	clang-tidy --quiet -p compile_commands.json include/*.h src/*.cpp test/*.h test/*.cpp
 
 .PHONY: install
 install:
