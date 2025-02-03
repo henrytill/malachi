@@ -13,19 +13,18 @@ jobs:
     strategy:
       matrix:
         compiler: [g++, clang++]
+    env:
+      CXX: ${{ matrix.compiler }}
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           sudo apt-get install -yqq --no-install-recommends \
             libmupdf-dev libgit2-dev libfreetype-dev libsqlite3-dev \
-            doctest-dev
-      - run: ./configure
-      - run: cat config.mk
-      - run: make CXX=${{ matrix.compiler }}
-      - run: src/main --version
-      - run: src/main --config
-      - run: make CXX=${{ matrix.compiler }} check
+            meson ninja-build
+      - run: meson setup build
+      - run: ninja -C build
+      - run: ninja -C build test
   linux-flake:
     runs-on: ubuntu-latest
     steps:
@@ -38,20 +37,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          brew install mupdf libgit2 doctest
+          brew install meson mupdf ninja libgit2 catch2
       - run: c++ --version
-      - run: ./configure
-      - name: Add Homebrew paths to config.mk
-        run: |
-          cat <<EOF >>config.mk
-          CXXFLAGS += -I/opt/homebrew/include
-          LDFLAGS += -L/opt/homebrew/lib
-          EOF
-      - run: cat config.mk
-      - run: make
-      - run: src/main --version
-      - run: src/main --config
-      - run: make check
+      - run: meson setup build
+      - run: ninja -C build
+      - run: ninja -C build test
   windows:
     runs-on: windows-latest
     strategy:
@@ -70,16 +60,14 @@ jobs:
           msystem: ${{matrix.sys}}
           install: >-
             mingw-w64-${{matrix.env}}-toolchain
+            mingw-w64-${{matrix.env}}-meson
+            mingw-w64-${{matrix.env}}-ninja            
             mingw-w64-${{matrix.env}}-sqlite3
             mingw-w64-${{matrix.env}}-mupdf-libmupdf
             mingw-w64-${{matrix.env}}-libgit2
-            mingw-w64-${{matrix.env}}-doctest
+            mingw-w64-${{matrix.env}}-catch
       - name: Check MSYSTEM
         run: echo $MSYSTEM
-      - run: c++ --version
-      - run: ./configure
-      - run: cat config.mk
-      - run: mingw32-make -j CXX=c++
-      - run: src/main --version
-      - run: src/main --config
-      - run: mingw32-make -j CXX=c++ check
+      - run: meson setup build
+      - run: ninja -C build
+      - run: ninja -C build test

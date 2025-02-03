@@ -1,122 +1,90 @@
-#include <filesystem>
 #include <format>
-#include <string>
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include <catch2/catch_session.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include "test_utils.h"
+#include "environment.h"
 
 #include "platform.h"
 
 using namespace platform;
 
 #if defined(_WIN32)
-TEST_CASE("Platform detection: Windows") {
+TEST_CASE("Platform detection: Windows", "[platform]") {
   CHECK(get_platform() == Platform::Windows);
 }
 #elif defined(__APPLE__)
-TEST_CASE("Platform detection: MacOS") {
+TEST_CASE("Platform detection: MacOS", "[platform]") {
   CHECK(get_platform() == Platform::MacOS);
 }
 #elif defined(__linux__)
-TEST_CASE("Platform detection: Linux") {
+TEST_CASE("Platform detection: Linux", "[platform]") {
   CHECK(get_platform() == Platform::Linux);
 }
 #else
-TEST_CASE("Platform detection: Unknown") {
+TEST_CASE("Platform detection: Unknown", "[platform]") {
   CHECK(get_platform() == Platform::Unknown);
 }
 #endif
 
-TEST_CASE("Platform string conversion") {
+TEST_CASE("Platform string conversion", "[platform]") {
   CHECK(to_string_view(Platform::Windows) == "Windows");
   CHECK(to_string_view(Platform::MacOS) == "macOS");
   CHECK(to_string_view(Platform::Linux) == "Linux");
   CHECK(to_string_view(Platform::Unknown) == "Unknown");
 }
 
-struct DirTestParams {
-  Platform platform;
-  std::vector<std::pair<std::string, std::string>> env;
-  std::filesystem::path expected_config_base;
-  std::filesystem::path expected_data_base;
+template <Platform P>
+struct DirFixture;
+
+template <>
+struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>> {
+  static constexpr auto env = std::array{
+      std::pair{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"},
+      std::pair{"APPDATA", R"(C:\Users\Test\AppData\Roaming)"}};
+  static constexpr auto config_base = R"(C:\Users\Test\AppData\Roaming)";
+  static constexpr auto data_base = R"(C:\Users\Test\AppData\Local)";
 };
 
-namespace {
+template <>
+struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>> {
+  static constexpr auto env = std::array{
+      std::pair{"HOME", "/Users/test"}};
+  static constexpr auto config_base = "/Users/test/Library/Application Support";
+  static constexpr auto data_base = "/Users/test/Library/Application Support";
+};
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters)
-template <Platform P>
-inline auto verify_directories(const GetEnvFn &getenv,
-                               const std::filesystem::path &name,
-                               const std::filesystem::path &expected_config,
-                               const std::filesystem::path &expected_data)
-    -> bool {
-  const auto config_dir = get_config_dir<P>(getenv, name);
-  REQUIRE(config_dir.has_value());
-  CHECK(config_dir.value() == expected_config);
+template <>
+struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
+  static constexpr auto env = std::array{
+      std::pair{"XDG_CONFIG_HOME", "/home/test/.config"},
+      std::pair{"XDG_DATA_HOME", "/home/test/.local/share"}};
+  static constexpr auto config_base = "/home/test/.config";
+  static constexpr auto data_base = "/home/test/.local/share";
+};
 
-  const auto data_dir = get_data_dir<P>(getenv, name);
-  REQUIRE(data_dir.has_value());
-  CHECK(data_dir.value() == expected_data);
+TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
+                              "Directory resolution", "[platform]",
+                              ((Platform P), P),
+                              Platform::Windows, Platform::MacOS, Platform::Linux) {
+  for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
+    SECTION(std::format("Name: {}", name.empty() ? "empty" : name.string())) {
+      const auto expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
+      const auto expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
 
-  return true;
-}
-// NOLINTEND(bugprone-easily-swappable-parameters)
+      const auto config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
+      REQUIRE(config_dir.has_value());
+      CHECK(config_dir.value() == expected_config);
 
-template <Platform... Ps>
-void dispatch_verify_directories(const Platform platform,
-                                 const GetEnvFn &getenv,
-                                 const std::filesystem::path &name,
-                                 const std::filesystem::path &expected_config,
-                                 const std::filesystem::path &expected_data) {
-  const auto found = ((platform == Ps && verify_directories<Ps>(getenv, name, expected_config, expected_data)) || ...);
-  REQUIRE(found);
-}
-
-} // namespace
-
-TEST_CASE("Directory resolution") {
-  const auto params = std::vector<DirTestParams>{
-      {.platform = Platform::Windows,
-       .env = {{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"},
-               {"APPDATA", R"(C:\Users\Test\AppData\Roaming)"}},
-       .expected_config_base = R"(C:\Users\Test\AppData\Roaming)",
-       .expected_data_base = R"(C:\Users\Test\AppData\Local)"},
-      {.platform = Platform::MacOS,
-       .env = {{"HOME", "/Users/test"}},
-       .expected_config_base = "/Users/test/Library/Application Support",
-       .expected_data_base = "/Users/test/Library/Application Support"},
-      {.platform = Platform::Linux,
-       .env = {{"XDG_CONFIG_HOME", "/home/test/.config"},
-               {"XDG_DATA_HOME", "/home/test/.local/share"}},
-       .expected_config_base = "/home/test/.config",
-       .expected_data_base = "/home/test/.local/share"}};
-
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
-
-  for (const auto &param : params) {
-    const auto platform_str = std::format("Platform: {}", to_string_view(param.platform));
-
-    SUBCASE(platform_str.c_str()) {
-
-      for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
-        const auto name_str = std::format("Name: {}", name.empty() ? "empty" : name.string());
-
-        SUBCASE(name_str.c_str()) {
-          env.clear();
-          for (const auto &[key, value] : param.env) {
-            env.set(key, value);
-          }
-
-          const auto expected_config = param.expected_config_base / name;
-          const auto expected_data = param.expected_data_base / name;
-
-          dispatch_verify_directories<Platform::Windows, Platform::MacOS, Platform::Linux>(
-              param.platform, getenv, name, expected_config, expected_data);
-        }
-      }
+      const auto data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
+      REQUIRE(data_dir.has_value());
+      CHECK(data_dir.value() == expected_data);
     }
   }
+}
+
+auto main(int argc, char *argv[]) -> int {
+  const int result = Catch::Session().run(argc, argv);
+  return result;
 }

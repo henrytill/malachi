@@ -1,7 +1,8 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include <catch2/catch_session.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include "test_utils.h"
+#include "environment.h"
 
 #include "config.h"
 #include "platform.h"
@@ -9,13 +10,12 @@
 using namespace malachi::config;
 using platform::Platform;
 
-constexpr auto kPlatform = platform::get_platform();
+struct EmptyConfigFixture : Environment<EmptyConfigFixture> {
+  static constexpr auto env = std::array<std::pair<const char *, const char *>, 0>{};
+};
 
-TEST_CASE("Builder fails without configuration directory") {
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
-
-  auto result = Builder(getenv).with_defaults().build();
+TEST_CASE_METHOD(EmptyConfigFixture, "Builder fails without configuration directory", "[config]") {
+  auto result = Builder(EmptyConfigFixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Error>(result));
 
   const auto &error = std::get<Error>(result);
@@ -23,44 +23,93 @@ TEST_CASE("Builder fails without configuration directory") {
   CHECK(error.message == "Configuration directory could not be determined");
 }
 
-TEST_CASE("Builder fails without data directory"
-          // macOS does not have separate config and data directories
-          * doctest::skip(kPlatform == Platform::MacOS)) {
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
+template <Platform P>
+struct ConfigFixture;
 
-  if constexpr (kPlatform == Platform::Windows) {
-    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-  } else {
-    env.set("XDG_CONFIG_HOME", "/home/test/.config");
-  }
+template <>
+struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Windows>> {
+  static constexpr auto env = std::array{
+      std::pair{"APPDATA", R"(C:\Users\Test\AppData\Roaming)"},
+      std::pair{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"}};
 
-  auto result = Builder(getenv).with_defaults().build();
-  REQUIRE(std::holds_alternative<Error>(result));
+  static constexpr auto expected_config_dir = R"(C:\Users\Test\AppData\Roaming\malachi)";
+  static constexpr auto expected_data_dir = R"(C:\Users\Test\AppData\Local\malachi)";
+};
 
-  const auto &error = std::get<Error>(result);
-  CHECK(error.code == ErrorCode::kMissingDir);
-  CHECK(error.message == "Data directory could not be determined");
-}
+template <>
+struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacOS>> {
+  static constexpr auto env = std::array{
+      std::pair{"HOME", "/Users/test"}};
 
-TEST_CASE("Builder succeeds with the expected environment variables") {
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
+  static constexpr auto expected_config_dir = "/Users/test/Library/Application Support/malachi";
+  static constexpr auto expected_data_dir = "/Users/test/Library/Application Support/malachi";
+};
 
-  if constexpr (kPlatform == Platform::Windows) {
-    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
-    env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
-  } else if constexpr (kPlatform == Platform::MacOS) {
-    env.set("HOME", "/Users/test");
-  } else {
-    env.set("XDG_CONFIG_HOME", "/home/test/.config");
-    env.set("XDG_DATA_HOME", "/home/test/.local/share");
-  }
+template <>
+struct ConfigFixture<Platform::Linux> : Environment<ConfigFixture<Platform::Linux>> {
+  static constexpr auto env = std::array{
+      std::pair{"XDG_CONFIG_HOME", "/home/test/.config"},
+      std::pair{"XDG_DATA_HOME", "/home/test/.local/share"}};
 
-  auto result = Builder(getenv).with_defaults().build();
+  static constexpr auto expected_config_dir = "/home/test/.config/malachi";
+  static constexpr auto expected_data_dir = "/home/test/.local/share/malachi";
+};
+
+TEMPLATE_TEST_CASE_METHOD_SIG(ConfigFixture,
+                              "Builder succeeds with platform-specific environment variables",
+                              "[config]",
+                              ((Platform P), P),
+                              platform::get_platform()) {
+  auto result = Builder(ConfigFixture<P>::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Config>(result));
 
   const auto &config = std::get<Config>(result);
-  CHECK_FALSE(config.config_dir.empty());
-  CHECK_FALSE(config.data_dir.empty());
+  CHECK(config.config_dir == std::filesystem::path{ConfigFixture<P>::expected_config_dir});
+  CHECK(config.data_dir == std::filesystem::path{ConfigFixture<P>::expected_data_dir});
+}
+
+template <Platform P>
+struct PartialConfigFixture;
+
+template <>
+struct PartialConfigFixture<Platform::Windows> : Environment<PartialConfigFixture<Platform::Windows>> {
+  static constexpr auto env = std::array{
+      std::pair{"APPDATA", R"(C:\Users\Test\AppData\Roaming)"}};
+};
+
+template <>
+struct PartialConfigFixture<Platform::MacOS> : Environment<PartialConfigFixture<Platform::MacOS>> {
+  static constexpr auto env = std::array{
+      std::pair{"HOME", "/Users/test"}};
+};
+
+template <>
+struct PartialConfigFixture<Platform::Linux> : Environment<PartialConfigFixture<Platform::Linux>> {
+  static constexpr auto env = std::array{
+      std::pair{"XDG_CONFIG_HOME", "/home/test/.config"}};
+};
+
+TEMPLATE_TEST_CASE_METHOD_SIG(PartialConfigFixture,
+                              "Builder fails with partial configuration",
+                              "[config]",
+                              ((Platform P), P),
+                              platform::get_platform()) {
+  auto result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
+
+  if constexpr (P == Platform::MacOS) {
+    // macOS doesn't require a separate data directory
+    REQUIRE(std::holds_alternative<Config>(result));
+  } else {
+    // Other platforms require both directories
+    REQUIRE(std::holds_alternative<Error>(result));
+
+    const auto &error = std::get<Error>(result);
+    CHECK(error.code == ErrorCode::kMissingDir);
+    CHECK(error.message == "Data directory could not be determined");
+  }
+}
+
+auto main(int argc, char *argv[]) -> int {
+  const int result = Catch::Session().run(argc, argv);
+  return result;
 }

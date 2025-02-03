@@ -28,9 +28,13 @@
             path = ./.;
             name = "malachi-src";
           };
-          nativeBuildInputs = with pkgs; [ pkg-config ];
+          nativeBuildInputs = with pkgs; [
+            meson
+            ninja
+            pkg-config
+          ];
           buildInputs = with pkgs; [
-            doctest
+            catch2_3
             libgit2
             mupdf
             sqlite

@@ -1,0 +1,18 @@
+Checks: >
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  misc-*,
+  readability-*,
+  -bugprone-unchecked-optional-access,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -modernize-avoid-c-arrays,
+  -misc-include-cleaner,
+  -misc-use-anonymous-namespace,
+  -readability-function-cognitive-complexity,
+# Local Variables:
+# mode: yaml
+# End:

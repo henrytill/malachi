@@ -27,7 +27,6 @@ CheckOptions:
   - key: readability-identifier-naming.UnionCase,
     value: CamelCase
 
-
   - key: readability-identifier-naming.ClassMemberCase,
     value: lower_case
   - key: readability-identifier-naming.ClassMethodCase,
@@ -37,6 +36,7 @@ CheckOptions:
   - key: readability-identifier-naming.VariableCase,
     value: lower_case
 
+HeaderFilterRegex: '(include|test)/.*\.h'
 # Local Variables:
 # mode: yaml
 # End:

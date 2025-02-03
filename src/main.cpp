@@ -1,3 +1,5 @@
+#include "project.h"
+
 #include <cassert>
 #include <cstddef>
 #include <format>
@@ -9,8 +11,11 @@
 #include <unistd.h>
 
 #include <git2/common.h>
-#include <mupdf/fitz.h>
 #include <sqlite3.h>
+
+#ifdef MALACHI_HAVE_MUPDF
+#  include <mupdf/fitz.h>
+#endif
 
 #include "config.h"
 
@@ -29,6 +34,14 @@ void print_usage(const char *program) {
   std::cerr << std::format(kUsageMsg, program);
 }
 
+#ifdef MALACHI_HAVE_MUPDF
+inline void print_mupdf_version() {
+  std::cout << std::format("mupdf: {}\n", FZ_VERSION);
+}
+#else
+inline void print_mupdf_version() {}
+#endif
+
 auto print_library_versions() -> int {
   {
     int major = 0;
@@ -40,7 +53,7 @@ auto print_library_versions() -> int {
     }
     std::cout << std::format("libgit2: {}.{}.{}\n", major, minor, rev);
   }
-  std::cout << std::format("mupdf: {}\n", FZ_VERSION);
+  print_mupdf_version();
   std::cout << std::format("sqlite: {}\n", sqlite3_libversion());
   return 0;
 }
