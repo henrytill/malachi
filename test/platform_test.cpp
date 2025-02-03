@@ -70,8 +70,11 @@ void dispatch_verify_directories(Platform platform,
                                  const std::filesystem::path &name,
                                  const std::filesystem::path &expected_config,
                                  const std::filesystem::path &expected_data) {
+  constexpr std::array platforms{Ps...};
+  static_assert(platforms.size() > 0, "Must provide at least one platform to verify");
+
   const auto found = ((platform == Ps && verify_directories<Ps>(getenv, name, expected_config, expected_data)) || ...);
-  CHECK(found);
+  REQUIRE(found);
 }
 
 } // namespace
@@ -93,17 +96,17 @@ TEST_CASE("Directory resolution") {
        .expected_config_base = "/home/test/.config",
        .expected_data_base = "/home/test/.local/share"}};
 
-  for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
-    const auto name_str = std::format("Name: {}", name.empty() ? "empty" : name.string());
+  for (const auto &param : params) {
+    const auto platform_str = std::format("Platform: {}", to_string_view(param.platform));
 
-    SUBCASE(name_str.c_str()) {
+    SUBCASE(platform_str.c_str()) {
       auto env = test::MockEnvironment{};
       const auto getenv = [&env](const char *name) { return env.get(name); };
 
-      for (const auto &param : params) {
-        const auto platform_str = std::format("Platform: {}", to_string_view(param.platform));
+      for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
+        const auto name_str = std::format("Name: {}", name.empty() ? "empty" : name.string());
 
-        SUBCASE(platform_str.c_str()) {
+        SUBCASE(name_str.c_str()) {
           env.clear();
           for (const auto &[key, value] : param.env) {
             env.set(key, value);
