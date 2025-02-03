@@ -46,33 +46,30 @@ struct DirTestParams {
 namespace {
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
-template <Platform p>
+template <Platform P>
 inline auto verify_directories(const GetEnvFn &getenv,
                                const std::filesystem::path &name,
                                const std::filesystem::path &expected_config,
                                const std::filesystem::path &expected_data)
     -> bool {
-  const auto config_dir = get_config_dir<p>(getenv, name);
+  const auto config_dir = get_config_dir<P>(getenv, name);
   REQUIRE(config_dir.has_value());
-  CHECK(*config_dir == expected_config);
+  CHECK(config_dir.value() == expected_config);
 
-  const auto data_dir = get_data_dir<p>(getenv, name);
+  const auto data_dir = get_data_dir<P>(getenv, name);
   REQUIRE(data_dir.has_value());
-  CHECK(*data_dir == expected_data);
+  CHECK(data_dir.value() == expected_data);
 
   return true;
 }
 // NOLINTEND(bugprone-easily-swappable-parameters)
 
 template <Platform... Ps>
-void dispatch_verify_directories(Platform platform,
+void dispatch_verify_directories(const Platform platform,
                                  const GetEnvFn &getenv,
                                  const std::filesystem::path &name,
                                  const std::filesystem::path &expected_config,
                                  const std::filesystem::path &expected_data) {
-  constexpr std::array platforms{Ps...};
-  static_assert(platforms.size() > 0, "Must provide at least one platform to verify");
-
   const auto found = ((platform == Ps && verify_directories<Ps>(getenv, name, expected_config, expected_data)) || ...);
   REQUIRE(found);
 }
