@@ -1,3 +1,7 @@
+#include <filesystem>
+#include <format>
+#include <string>
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
@@ -32,108 +36,87 @@ TEST_CASE("Platform string conversion") {
   CHECK(to_string_view(Platform::Unknown) == "Unknown");
 }
 
-TEST_CASE("Directory resolution") {
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
-  const auto name = std::filesystem::path{"test_app"};
+struct DirTestParams {
+  Platform platform;
+  std::vector<std::pair<std::string, std::string>> env;
+  std::filesystem::path expected_config_base;
+  std::filesystem::path expected_data_base;
+};
 
-  SUBCASE("Windows paths") {
-    env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
-    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
+namespace {
 
-    auto config_dir = get_config_dir<Platform::Windows>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
-    CHECK(*config_dir == expected);
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+template <Platform p>
+void verify_directories(const GetEnvFn &getenv,
+                        const std::filesystem::path &name,
+                        const std::filesystem::path &expected_config,
+                        const std::filesystem::path &expected_data) {
+  const auto config_dir = get_config_dir<p>(getenv, name);
+  REQUIRE(config_dir.has_value());
+  CHECK(*config_dir == expected_config);
 
-    auto data_dir = get_data_dir<Platform::Windows>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
-    CHECK(*data_dir == expected_data);
-  }
-
-  SUBCASE("MacOS paths") {
-    env.clear();
-    env.set("HOME", "/Users/test");
-
-    auto config_dir = get_config_dir<Platform::MacOS>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
-    CHECK(*config_dir == expected);
-
-    auto data_dir = get_config_dir<Platform::MacOS>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
-    CHECK(*data_dir == expected_data);
-  }
-
-  SUBCASE("XDG paths") {
-    env.clear();
-    env.set("XDG_CONFIG_HOME", "/home/test/.config");
-    env.set("XDG_DATA_HOME", "/home/test/.local/share");
-
-    auto config_dir = get_config_dir<Platform::Linux>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{"/home/test/.config"} / name;
-    CHECK(*config_dir == expected);
-
-    auto data_dir = get_data_dir<Platform::Linux>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
-    CHECK(*data_dir == expected_data);
-  }
+  const auto data_dir = get_data_dir<p>(getenv, name);
+  REQUIRE(data_dir.has_value());
+  CHECK(*data_dir == expected_data);
 }
+// NOLINTEND(bugprone-easily-swappable-parameters)
 
-TEST_CASE("Directory resolution with empty name") {
-  auto env = test::MockEnvironment{};
-  const auto getenv = [&env](const char *name) { return env.get(name); };
-  const auto name = std::filesystem::path{};
+} // namespace
 
-  CHECK(name.empty());
+TEST_CASE("Directory resolution") {
+  const auto params = std::vector<DirTestParams>{
+      {.platform = Platform::Windows,
+       .env = {{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"},
+               {"APPDATA", R"(C:\Users\Test\AppData\Roaming)"}},
+       .expected_config_base = R"(C:\Users\Test\AppData\Roaming)",
+       .expected_data_base = R"(C:\Users\Test\AppData\Local)"},
+      {.platform = Platform::MacOS,
+       .env = {{"HOME", "/Users/test"}},
+       .expected_config_base = "/Users/test/Library/Application Support",
+       .expected_data_base = "/Users/test/Library/Application Support"},
+      {.platform = Platform::Linux,
+       .env = {{"XDG_CONFIG_HOME", "/home/test/.config"},
+               {"XDG_DATA_HOME", "/home/test/.local/share"}},
+       .expected_config_base = "/home/test/.config",
+       .expected_data_base = "/home/test/.local/share"}};
 
-  SUBCASE("Windows paths") {
-    env.set("LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)");
-    env.set("APPDATA", R"(C:\Users\Test\AppData\Roaming)");
+  for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
+    const auto name_str = std::format("Name: {}", name.empty() ? "empty" : name.string());
 
-    auto config_dir = get_config_dir<Platform::Windows>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{R"(C:\Users\Test\AppData\Roaming)"} / name;
-    CHECK(*config_dir == expected);
+    SUBCASE(name_str.c_str()) {
+      auto env = test::MockEnvironment{};
+      const auto getenv = [&env](const char *name) { return env.get(name); };
 
-    auto data_dir = get_data_dir<Platform::Windows>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{R"(C:\Users\Test\AppData\Local)"} / name;
-    CHECK(*data_dir == expected_data);
-  }
+      for (const auto &param : params) {
+        const auto platform_str = std::format("Platform: {}", to_string_view(param.platform));
 
-  SUBCASE("MacOS paths") {
-    env.clear();
-    env.set("HOME", "/Users/test");
+        SUBCASE(platform_str.c_str()) {
+          env.clear();
+          for (const auto &[key, value] : param.env) {
+            env.set(key, value);
+          }
 
-    auto config_dir = get_config_dir<Platform::MacOS>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
-    CHECK(*config_dir == expected);
+          const auto expected_config = param.expected_config_base / name;
+          const auto expected_data = param.expected_data_base / name;
 
-    auto data_dir = get_config_dir<Platform::MacOS>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{"/Users/test/Library/Application Support"} / name;
-    CHECK(*data_dir == expected_data);
-  }
-
-  SUBCASE("XDG paths") {
-    env.clear();
-    env.set("XDG_CONFIG_HOME", "/home/test/.config");
-    env.set("XDG_DATA_HOME", "/home/test/.local/share");
-
-    auto config_dir = get_config_dir<Platform::Linux>(getenv, name);
-    REQUIRE(config_dir.has_value());
-    const auto expected = std::filesystem::path{"/home/test/.config"} / name;
-    CHECK(*config_dir == expected);
-
-    auto data_dir = get_data_dir<Platform::Linux>(getenv, name);
-    REQUIRE(data_dir.has_value());
-    const auto expected_data = std::filesystem::path{"/home/test/.local/share"} / name;
-    CHECK(*data_dir == expected_data);
+          switch (param.platform) {
+          case Platform::Windows: {
+            verify_directories<Platform::Windows>(getenv, name, expected_config, expected_data);
+            break;
+          }
+          case Platform::MacOS: {
+            verify_directories<Platform::MacOS>(getenv, name, expected_config, expected_data);
+            break;
+          }
+          case Platform::Linux: {
+            verify_directories<Platform::Linux>(getenv, name, expected_config, expected_data);
+            break;
+          }
+          default:
+            FAIL("Unsupported platform");
+          }
+        }
+      }
+    }
   }
 }
