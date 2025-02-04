@@ -11,7 +11,7 @@ public:
       return strcmp(pair.first, name) == 0;
     });
     if (iterator != vars.end()) {
-      return const_cast<char *>(iterator->second); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+      return const_cast<char *>(iterator->second);
     }
     return nullptr;
   }
