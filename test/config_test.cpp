@@ -31,7 +31,6 @@ struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Wi
   static constexpr auto env = std::array{
       std::pair{"APPDATA", R"(C:\Users\Test\AppData\Roaming)"},
       std::pair{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"}};
-
   static constexpr auto expected_config_dir = R"(C:\Users\Test\AppData\Roaming\malachi)";
   static constexpr auto expected_data_dir = R"(C:\Users\Test\AppData\Local\malachi)";
 };
@@ -40,7 +39,6 @@ template <>
 struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacOS>> {
   static constexpr auto env = std::array{
       std::pair{"HOME", "/Users/test"}};
-
   static constexpr auto expected_config_dir = "/Users/test/Library/Application Support/malachi";
   static constexpr auto expected_data_dir = "/Users/test/Library/Application Support/malachi";
 };
@@ -50,7 +48,6 @@ struct ConfigFixture<Platform::Linux> : Environment<ConfigFixture<Platform::Linu
   static constexpr auto env = std::array{
       std::pair{"XDG_CONFIG_HOME", "/home/test/.config"},
       std::pair{"XDG_DATA_HOME", "/home/test/.local/share"}};
-
   static constexpr auto expected_config_dir = "/home/test/.config/malachi";
   static constexpr auto expected_data_dir = "/home/test/.local/share/malachi";
 };
