@@ -42,7 +42,13 @@ inline void print_mupdf_version() {
 inline void print_mupdf_version() {}
 #endif
 
-auto print_library_versions() -> int {
+auto print_versions() -> int {
+  {
+    const int major = MALACHI_VERSION_MAJOR;
+    const int minor = MALACHI_VERSION_MINOR;
+    const int patch = MALACHI_VERSION_PATCH;
+    std::cout << std::format("malachi: {}.{}.{}\n", major, minor, patch);
+  }
   {
     int major = 0;
     int minor = 0;
@@ -105,7 +111,7 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   if (opts.version) {
-    return print_library_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 
   const auto config_result = config::Builder{getenv}.with_defaults().build();
