@@ -30,12 +30,14 @@ jobs:
           CXX: ccache ${{ matrix.compiler }}
       - run: ninja -C build
       - run: ninja -C build test
+      - run: build/malachi -v
   linux-flake:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v27
       - run: nix build -L --accept-flake-config
+      - run: result/bin/malachi -v
   macos:
     runs-on: macos-latest
     steps:
@@ -47,6 +49,7 @@ jobs:
       - run: meson setup build
       - run: ninja -C build
       - run: ninja -C build test
+      - run: build/malachi -v
   windows:
     runs-on: windows-latest
     strategy:
@@ -76,3 +79,4 @@ jobs:
       - run: meson setup build
       - run: ninja -C build
       - run: ninja -C build test
+      - run: build/malachi -v
