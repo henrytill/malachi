@@ -11,6 +11,7 @@ Checks: >
   -cppcoreguidelines-avoid-non-const-global-variables,
   -modernize-avoid-c-arrays,
   -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
   -misc-use-anonymous-namespace,
   -readability-function-cognitive-complexity,
 # Local Variables:
