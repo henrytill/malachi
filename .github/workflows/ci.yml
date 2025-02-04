@@ -17,12 +17,17 @@ jobs:
       CXX: ${{ matrix.compiler }}
     steps:
       - uses: actions/checkout@v4
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.compiler }}
       - name: Install dependencies
         run: |
           sudo apt-get install -yqq --no-install-recommends \
             libmupdf-dev libgit2-dev libfreetype-dev libsqlite3-dev \
             meson ninja-build
       - run: meson setup build
+        env:
+          CXX: ccache ${{ matrix.compiler }}
       - run: ninja -C build
       - run: ninja -C build test
   linux-flake:
