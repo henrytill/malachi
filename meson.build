@@ -11,7 +11,11 @@ mupdf_dep = dependency('mupdf', required: false)
 
 sqlite_dep = dependency('sqlite3', required: true)
 
+catch2_dep = dependency('catch2', fallback: ['catch2', 'catch2_dep'])
+
 include_dir = include_directories('include')
+
+root_dir = include_directories('.')
 
 configure_file(
     output: 'project.h',
@@ -23,8 +27,6 @@ configure_file(
     },
 )
 
-root_dir = include_directories('.')
-
 executable(
     'malachi',
     sources: ['src/config.cpp', 'src/main.cpp'],
@@ -32,8 +34,6 @@ executable(
     include_directories: [include_dir, root_dir],
     install: true,
 )
-
-catch2_dep = dependency('catch2', fallback: ['catch2', 'catch2_dep'])
 
 platform_test = executable(
     'platform_test',
@@ -44,7 +44,7 @@ platform_test = executable(
 
 config_test = executable(
     'config_test',
-    sources: ['test/config_test.cpp', 'src/config.cpp'],
+    sources: ['src/config.cpp', 'test/config_test.cpp'],
     dependencies: catch2_dep,
     include_directories: include_dir,
 )
