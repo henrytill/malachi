@@ -1,4 +1,5 @@
 #include <format>
+#include <string_view>
 
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_template_test_macros.hpp>
@@ -7,6 +8,8 @@
 #include "environment.h"
 
 #include "platform.h"
+
+using namespace std::literals;
 
 using namespace platform;
 
@@ -41,8 +44,8 @@ struct DirFixture;
 template <>
 struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>> {
   static constexpr auto env = std::array{
-      std::pair{"LOCALAPPDATA", R"(C:\Users\Test\AppData\Local)"},
-      std::pair{"APPDATA", R"(C:\Users\Test\AppData\Roaming)"}};
+      std::pair{"LOCALAPPDATA"sv, R"(C:\Users\Test\AppData\Local)"},
+      std::pair{"APPDATA"sv, R"(C:\Users\Test\AppData\Roaming)"}};
   static constexpr auto config_base = R"(C:\Users\Test\AppData\Roaming)";
   static constexpr auto data_base = R"(C:\Users\Test\AppData\Local)";
 };
@@ -50,7 +53,7 @@ struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>
 template <>
 struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>> {
   static constexpr auto env = std::array{
-      std::pair{"HOME", "/Users/test"}};
+      std::pair{"HOME"sv, "/Users/test"}};
   static constexpr auto config_base = "/Users/test/Library/Application Support";
   static constexpr auto data_base = "/Users/test/Library/Application Support";
 };
@@ -58,11 +61,13 @@ struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>> {
 template <>
 struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
   static constexpr auto env = std::array{
-      std::pair{"XDG_CONFIG_HOME", "/home/test/.config"},
-      std::pair{"XDG_DATA_HOME", "/home/test/.local/share"}};
+      std::pair{"XDG_CONFIG_HOME"sv, "/home/test/.config"},
+      std::pair{"XDG_DATA_HOME"sv, "/home/test/.local/share"}};
   static constexpr auto config_base = "/home/test/.config";
   static constexpr auto data_base = "/home/test/.local/share";
 };
+
+static_assert(std::string_view{DirFixture<Platform::Linux>::getenv("XDG_CONFIG_HOME"sv)} == "/home/test/.config");
 
 TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               "Directory resolution", "[platform]",
