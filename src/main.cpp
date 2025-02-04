@@ -114,7 +114,7 @@ auto main(int argc, char *argv[]) -> int try {
     return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 
-  const auto config_result = config::Builder{getenv}.with_defaults().build();
+  const auto config_result = config::Builder{std::getenv}.with_defaults().build();
   if (std::holds_alternative<config::Error>(config_result)) {
     const auto &error = std::get<config::Error>(config_result);
     std::cerr << std::format("Failed to build config: {}\n", error.message);
