@@ -17,7 +17,7 @@ public:
     return nullptr;
   }
 
-  friend Derived; // allows subclasses to access to private constructor
+  friend Derived; // gives access to private constructor
 
 private:
   Environment() = default; // private constructor to prevent direct instantiation
