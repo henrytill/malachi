@@ -1,5 +1,7 @@
+#include <array>
 #include <format>
 #include <string_view>
+#include <utility>
 
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_template_test_macros.hpp>

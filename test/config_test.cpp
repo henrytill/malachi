@@ -1,3 +1,9 @@
+#include <array>
+#include <filesystem>
+#include <string_view>
+#include <utility>
+#include <variant>
+
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>

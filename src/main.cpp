@@ -1,20 +1,24 @@
 #include "project.h"
 
+#include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstdlib>
+#include <exception>
 #include <format>
 #include <iostream>
 #include <span>
 #include <string_view>
+#include <variant>
 
-#include <getopt.h>
+#include <getopt.h> // IWYU pragma: keep
 #include <unistd.h>
 
 #include <git2/common.h>
 #include <sqlite3.h>
 
 #ifdef MALACHI_HAVE_MUPDF
-#  include <mupdf/fitz.h>
+#  include <mupdf/fitz.h> // IWYU pragma: keep
 #endif
 
 #include "config.h"
@@ -36,7 +40,7 @@ void print_usage(const char *program) {
 
 #ifdef MALACHI_HAVE_MUPDF
 inline void print_mupdf_version() {
-  std::cout << std::format("mupdf: {}\n", FZ_VERSION);
+  std::cout << std::format("mupdf: {}\n", FZ_VERSION); // NOLINT(misc-include-cleaner)
 }
 #else
 inline void print_mupdf_version() {}
@@ -80,14 +84,17 @@ auto main(int argc, char *argv[]) -> int try {
 
   {
     constexpr auto long_options_len = size_t{3};
+    // NOLINTBEGIN(misc-include-cleaner)
     constexpr auto long_options = std::array<struct option, long_options_len>{
         {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
          {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
          {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}}};
+    // NOLINTEND(misc-include-cleaner)
 
     auto option_index = 0;
 
     while (true) {
+      // NOLINTNEXTLINE(misc-include-cleaner)
       const int opt = getopt_long(static_cast<int>(args.size()), args.data(),
                                   "vc", long_options.data(), &option_index);
       if (opt == -1) {
@@ -129,7 +136,7 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    auto offset = static_cast<size_t>(optind);
+    auto offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
     if (offset < args.size()) {
       std::cout << "non-option argv elements:";
       for (const auto *arg : args.subspan(offset)) {
