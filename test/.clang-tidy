@@ -13,6 +13,7 @@ Checks: >
   -misc-non-private-member-variables-in-classes,
   -misc-use-anonymous-namespace,
   -readability-function-cognitive-complexity,
+
 # Local Variables:
 # mode: yaml
 # End:
