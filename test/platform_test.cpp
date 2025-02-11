@@ -83,11 +83,11 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
 
       const auto config_dir = get_config_dir<P>(fixture::getenv, name);
       REQUIRE(config_dir.has_value());
-      CHECK(config_dir.value() == expected_config);
+      CHECK(config_dir.value() == expected_config); // NOLINT(bugprone-unchecked-optional-access)
 
       const auto data_dir = get_data_dir<P>(fixture::getenv, name);
       REQUIRE(data_dir.has_value());
-      CHECK(data_dir.value() == expected_data);
+      CHECK(data_dir.value() == expected_data); // NOLINT(bugprone-unchecked-optional-access)
     }
   }
 }
