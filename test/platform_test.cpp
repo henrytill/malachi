@@ -69,7 +69,7 @@ struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
   static constexpr auto data_base = "/home/test/.local/share";
 };
 
-static_assert(std::string_view{DirFixture<Platform::Linux>::getenv("XDG_CONFIG_HOME"sv)} == "/home/test/.config");
+static_assert(std::string_view{DirFixture<Platform::Linux>::getenv("XDG_CONFIG_HOME"sv)} == DirFixture<Platform::Linux>::config_base);
 
 TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               "Directory resolution", "[platform]",
@@ -77,14 +77,16 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               Platform::Windows, Platform::MacOS, Platform::Linux) {
   for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
     SECTION(std::format("Name: {}", name.empty() ? "empty" : name.string())) {
-      const auto expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
-      const auto expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
+      using fixture = DirFixture<P>;
 
-      const auto config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
+      const auto expected_config = std::filesystem::path{fixture::config_base} / name;
+      const auto expected_data = std::filesystem::path{fixture::data_base} / name;
+
+      const auto config_dir = get_config_dir<P>(fixture::getenv, name);
       REQUIRE(config_dir.has_value());
       CHECK(config_dir.value() == expected_config);
 
-      const auto data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
+      const auto data_dir = get_data_dir<P>(fixture::getenv, name);
       REQUIRE(data_dir.has_value());
       CHECK(data_dir.value() == expected_data);
     }
@@ -92,6 +94,6 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
 }
 
 auto main(int argc, char *argv[]) -> int {
-  const int result = Catch::Session().run(argc, argv);
+  const auto result = Catch::Session().run(argc, argv);
   return result;
 }

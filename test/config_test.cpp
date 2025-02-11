@@ -65,12 +65,14 @@ TEMPLATE_TEST_CASE_METHOD_SIG(ConfigFixture,
                               "[config]",
                               ((Platform P), P),
                               platform::get_platform()) {
-  auto result = Builder(ConfigFixture<P>::getenv).with_defaults().build();
+  using fixture = ConfigFixture<P>;
+
+  auto result = Builder(fixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Config>(result));
 
   const auto &config = std::get<Config>(result);
-  CHECK(config.config_dir == std::filesystem::path{ConfigFixture<P>::expected_config_dir});
-  CHECK(config.data_dir == std::filesystem::path{ConfigFixture<P>::expected_data_dir});
+  CHECK(config.config_dir == std::filesystem::path{fixture::expected_config_dir});
+  CHECK(config.data_dir == std::filesystem::path{fixture::expected_data_dir});
 }
 
 template <Platform P>
@@ -115,6 +117,6 @@ TEMPLATE_TEST_CASE_METHOD_SIG(PartialConfigFixture,
 }
 
 auto main(int argc, char *argv[]) -> int {
-  const int result = Catch::Session().run(argc, argv);
+  const auto result = Catch::Session().run(argc, argv);
   return result;
 }
