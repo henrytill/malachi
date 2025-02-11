@@ -75,10 +75,9 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               "Directory resolution", "[platform]",
                               ((Platform P), P),
                               Platform::Windows, Platform::MacOS, Platform::Linux) {
+  using fixture = DirFixture<P>;
   for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
     SECTION(std::format("Name: {}", name.empty() ? "empty" : name.string())) {
-      using fixture = DirFixture<P>;
-
       const auto expected_config = std::filesystem::path{fixture::config_base} / name;
       const auto expected_data = std::filesystem::path{fixture::data_base} / name;
 
