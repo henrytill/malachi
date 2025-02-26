@@ -75,17 +75,16 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               "Directory resolution", "[platform]",
                               ((Platform P), P),
                               Platform::Windows, Platform::MacOS, Platform::Linux) {
-  using fixture = DirFixture<P>;
   for (const auto &name : {std::filesystem::path{"test_app"}, std::filesystem::path{}}) {
     SECTION(std::format("Name: {}", name.empty() ? "empty" : name.string())) {
-      const auto expected_config = std::filesystem::path{fixture::config_base} / name;
-      const auto expected_data = std::filesystem::path{fixture::data_base} / name;
+      const auto expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
+      const auto expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
 
-      const auto config_dir = get_config_dir<P>(fixture::getenv, name);
+      const auto config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
       REQUIRE(config_dir.has_value());
       CHECK(config_dir.value() == expected_config); // NOLINT(bugprone-unchecked-optional-access)
 
-      const auto data_dir = get_data_dir<P>(fixture::getenv, name);
+      const auto data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
       REQUIRE(data_dir.has_value());
       CHECK(data_dir.value() == expected_data); // NOLINT(bugprone-unchecked-optional-access)
     }
