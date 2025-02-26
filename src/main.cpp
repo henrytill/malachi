@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <format>
 #include <iostream>
 #include <span>
@@ -12,7 +13,6 @@
 #include <variant>
 
 #include <getopt.h> // IWYU pragma: keep
-#include <unistd.h>
 
 #include <git2/common.h>
 #include <sqlite3.h>
@@ -147,11 +147,8 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    constexpr auto buf_len = size_t{1024};
-    auto buf = std::array<char, buf_len>{};
-    if (auto *cwd = getcwd(buf.data(), buf.size())) {
-      std::cout << std::format("cwd: {}\n", cwd);
-    }
+    const auto cwd = std::filesystem::current_path();
+    std::cout << std::format("cwd: {}\n", cwd.string());
   }
 
   return EXIT_SUCCESS;
