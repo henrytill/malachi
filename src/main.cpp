@@ -80,7 +80,7 @@ auto main(int argc, char *argv[]) -> int try {
     return EXIT_FAILURE;
   }
 
-  Options opts{};
+  auto opts = Options{};
 
   {
     constexpr auto long_options_len = size_t{3};
