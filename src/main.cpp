@@ -136,7 +136,7 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    auto offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
+    const auto offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
     if (offset < args.size()) {
       std::cout << "non-option argv elements:";
       for (const auto *arg : args.subspan(offset)) {
