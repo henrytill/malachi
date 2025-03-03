@@ -8,7 +8,7 @@
 
 namespace malachi::config {
 
-static const auto kName = std::filesystem::path{"malachi"};
+static constexpr auto kName = std::string_view{"malachi"};
 static constexpr auto kMissingConfigDirMsg = std::string_view{"Configuration directory could not be determined"};
 static constexpr auto kMissingDataDirMsg = std::string_view{"Data directory could not be determined"};
 
