@@ -23,7 +23,7 @@ struct EmptyConfigFixture : Environment<EmptyConfigFixture> {
 };
 
 TEST_CASE_METHOD(EmptyConfigFixture, "Builder fails without configuration directory", "[config]") {
-  auto result = Builder(EmptyConfigFixture::getenv).with_defaults().build();
+  const auto result = Builder(EmptyConfigFixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Error>(result));
 
   const auto &error = std::get<Error>(result);
@@ -67,7 +67,7 @@ TEMPLATE_TEST_CASE_METHOD_SIG(ConfigFixture,
                               platform::get_platform()) {
   using fixture = ConfigFixture<P>;
 
-  auto result = Builder(fixture::getenv).with_defaults().build();
+  const auto result = Builder(fixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Config>(result));
 
   const auto &config = std::get<Config>(result);
@@ -101,7 +101,7 @@ TEMPLATE_TEST_CASE_METHOD_SIG(PartialConfigFixture,
                               "[config]",
                               ((Platform P), P),
                               platform::get_platform()) {
-  auto result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
+  const auto result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
 
   if constexpr (P == Platform::MacOS) {
     // macOS doesn't require a separate data directory
