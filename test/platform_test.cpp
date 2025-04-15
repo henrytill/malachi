@@ -46,28 +46,28 @@ struct DirFixture;
 
 template <>
 struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>> {
-  static constexpr auto env = std::array{
-      std::pair{"LOCALAPPDATA"sv, R"(C:\Users\Test\AppData\Local)"},
-      std::pair{"APPDATA"sv, R"(C:\Users\Test\AppData\Roaming)"}};
   static constexpr auto config_base = R"(C:\Users\Test\AppData\Roaming)";
   static constexpr auto data_base = R"(C:\Users\Test\AppData\Local)";
+  static constexpr auto env = std::array{
+      std::pair{"APPDATA"sv, config_base},
+      std::pair{"LOCALAPPDATA"sv, data_base}};
 };
 
 template <>
 struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>> {
-  static constexpr auto env = std::array{
-      std::pair{"HOME"sv, "/Users/test"}};
   static constexpr auto config_base = "/Users/test/Library/Application Support";
   static constexpr auto data_base = "/Users/test/Library/Application Support";
+  static constexpr auto env = std::array{
+      std::pair{"HOME"sv, "/Users/test"}};
 };
 
 template <>
 struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
-  static constexpr auto env = std::array{
-      std::pair{"XDG_CONFIG_HOME"sv, "/home/test/.config"},
-      std::pair{"XDG_DATA_HOME"sv, "/home/test/.local/share"}};
   static constexpr auto config_base = "/home/test/.config";
   static constexpr auto data_base = "/home/test/.local/share";
+  static constexpr auto env = std::array{
+      std::pair{"XDG_CONFIG_HOME"sv, config_base},
+      std::pair{"XDG_DATA_HOME"sv, data_base}};
 };
 
 static_assert(std::string_view{DirFixture<Platform::Linux>::getenv("XDG_CONFIG_HOME"sv)} == DirFixture<Platform::Linux>::config_base);
@@ -77,7 +77,7 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               ((Platform P), P),
                               Platform::Windows, Platform::MacOS, Platform::Linux) {
   for (const auto &name : {std::string_view{"test_app"}, std::string_view{}}) {
-    SECTION(std::format("Name: {}", name.empty() ? "empty" : name)) {
+    SECTION(std::format("Name: {}", name.empty() ? "<empty>" : name)) {
       const auto expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
       const auto expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
 
