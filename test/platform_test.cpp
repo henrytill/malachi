@@ -76,16 +76,16 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
                               "Directory resolution", "[platform]",
                               ((Platform P), P),
                               Platform::Windows, Platform::MacOS, Platform::Linux) {
-  for (const auto &name : {std::string_view{"test_app"}, std::string_view{}}) {
+  for (auto const &name : {std::string_view{"test_app"}, std::string_view{}}) {
     SECTION(std::format("Name: {}", name.empty() ? "<empty>" : name)) {
-      const auto expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
-      const auto expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
+      auto const expected_config = std::filesystem::path{DirFixture<P>::config_base} / name;
+      auto const expected_data = std::filesystem::path{DirFixture<P>::data_base} / name;
 
-      const auto config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
+      auto const config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
       REQUIRE(config_dir.has_value());
       CHECK(config_dir.value() == expected_config); // NOLINT(bugprone-unchecked-optional-access)
 
-      const auto data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
+      auto const data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
       REQUIRE(data_dir.has_value());
       CHECK(data_dir.value() == expected_data); // NOLINT(bugprone-unchecked-optional-access)
     }
@@ -93,6 +93,6 @@ TEMPLATE_TEST_CASE_METHOD_SIG(DirFixture,
 }
 
 auto main(int argc, char *argv[]) -> int {
-  const auto result = Catch::Session().run(argc, argv);
+  auto const result = Catch::Session().run(argc, argv);
   return result;
 }

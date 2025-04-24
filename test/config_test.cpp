@@ -19,14 +19,14 @@ using namespace malachi::config;
 using platform::Platform;
 
 struct EmptyConfigFixture : Environment<EmptyConfigFixture> {
-  static constexpr auto env = std::array<std::pair<std::string_view, const char *>, 0>{};
+  static constexpr auto env = std::array<std::pair<std::string_view, char const *>, 0>{};
 };
 
 TEST_CASE_METHOD(EmptyConfigFixture, "Builder fails without configuration directory", "[config]") {
-  const auto result = Builder(EmptyConfigFixture::getenv).with_defaults().build();
+  auto const result = Builder(EmptyConfigFixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Error>(result));
 
-  const auto &error = std::get<Error>(result);
+  auto const &error = std::get<Error>(result);
   CHECK(error.code == ErrorCode::kMissingDir);
   CHECK(error.message == "Configuration directory could not be determined");
 }
@@ -67,10 +67,10 @@ TEMPLATE_TEST_CASE_METHOD_SIG(ConfigFixture,
                               platform::get_platform()) {
   using fixture = ConfigFixture<P>;
 
-  const auto result = Builder(fixture::getenv).with_defaults().build();
+  auto const result = Builder(fixture::getenv).with_defaults().build();
   REQUIRE(std::holds_alternative<Config>(result));
 
-  const auto &config = std::get<Config>(result);
+  auto const &config = std::get<Config>(result);
   CHECK(config.config_dir == std::filesystem::path{fixture::expected_config_dir});
   CHECK(config.data_dir == std::filesystem::path{fixture::expected_data_dir});
 }
@@ -101,7 +101,7 @@ TEMPLATE_TEST_CASE_METHOD_SIG(PartialConfigFixture,
                               "[config]",
                               ((Platform P), P),
                               platform::get_platform()) {
-  const auto result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
+  auto const result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
 
   if constexpr (P == Platform::MacOS) {
     // macOS doesn't require a separate data directory
@@ -110,13 +110,13 @@ TEMPLATE_TEST_CASE_METHOD_SIG(PartialConfigFixture,
     // Other platforms require both directories
     REQUIRE(std::holds_alternative<Error>(result));
 
-    const auto &error = std::get<Error>(result);
+    auto const &error = std::get<Error>(result);
     CHECK(error.code == ErrorCode::kMissingDir);
     CHECK(error.message == "Data directory could not be determined");
   }
 }
 
 auto main(int argc, char *argv[]) -> int {
-  const auto result = Catch::Session().run(argc, argv);
+  auto const result = Catch::Session().run(argc, argv);
   return result;
 }

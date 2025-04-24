@@ -6,9 +6,9 @@
 template <typename Derived>
 struct Environment {
 public:
-  static constexpr auto getenv(const std::string_view name) -> char * {
+  static constexpr auto getenv(std::string_view const name) -> char * {
     constexpr auto &vars = Derived::env;
-    const auto *const iterator = std::ranges::find_if(vars, [name](const auto &pair) {
+    auto const *const iterator = std::ranges::find_if(vars, [name](auto const &pair) {
       return name == pair.first;
     });
     if (iterator != vars.end()) {

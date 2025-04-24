@@ -34,7 +34,7 @@ struct Options {
   bool config{false};
 };
 
-void print_usage(const char *program) {
+void print_usage(char const *program) {
   std::cerr << std::format(kUsageMsg, program);
 }
 
@@ -48,9 +48,9 @@ inline void print_mupdf_version() {}
 
 auto print_versions() -> int {
   {
-    const int major = MALACHI_VERSION_MAJOR;
-    const int minor = MALACHI_VERSION_MINOR;
-    const int patch = MALACHI_VERSION_PATCH;
+    int const major = MALACHI_VERSION_MAJOR;
+    int const minor = MALACHI_VERSION_MINOR;
+    int const patch = MALACHI_VERSION_PATCH;
     std::cout << std::format("malachi: {}.{}.{}\n", major, minor, patch);
   }
   {
@@ -71,7 +71,7 @@ auto print_versions() -> int {
 } // namespace
 
 auto main(int argc, char *argv[]) -> int try {
-  const auto args = std::span<char *>{argv, static_cast<size_t>(argc)};
+  auto const args = std::span<char *>{argv, static_cast<size_t>(argc)};
 
   assert(not args.empty()); // we use args.front() below
 
@@ -95,7 +95,7 @@ auto main(int argc, char *argv[]) -> int try {
 
     while (true) {
       // NOLINTNEXTLINE(misc-include-cleaner)
-      const int opt = getopt_long(static_cast<int>(args.size()), args.data(),
+      int const opt = getopt_long(static_cast<int>(args.size()), args.data(),
                                   "vc", long_options.data(), &option_index);
       if (opt == -1) {
         break;
@@ -121,14 +121,14 @@ auto main(int argc, char *argv[]) -> int try {
     return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 
-  const auto config_result = config::Builder{std::getenv}.with_defaults().build();
+  auto const config_result = config::Builder{std::getenv}.with_defaults().build();
   if (std::holds_alternative<config::Error>(config_result)) {
-    const auto &error = std::get<config::Error>(config_result);
+    auto const &error = std::get<config::Error>(config_result);
     std::cerr << std::format("Failed to build config: {}\n", error.message);
     return EXIT_FAILURE;
   }
 
-  const auto &config = std::get<config::Config>(config_result);
+  auto const &config = std::get<config::Config>(config_result);
 
   if (opts.config) {
     std::cout << config.to_string();
@@ -136,10 +136,10 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    const auto offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
+    auto const offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
     if (offset < args.size()) {
       std::cout << "non-option argv elements:";
-      for (const auto *arg : args.subspan(offset)) {
+      for (auto const *arg : args.subspan(offset)) {
         std::cout << std::format(" {}", arg);
       }
       std::cout << '\n';
@@ -147,12 +147,12 @@ auto main(int argc, char *argv[]) -> int try {
   }
 
   {
-    const auto cwd = std::filesystem::current_path();
+    auto const cwd = std::filesystem::current_path();
     std::cout << std::format("cwd: {}\n", cwd.string());
   }
 
   return EXIT_SUCCESS;
-} catch (const std::exception &e) {
+} catch (std::exception const &e) {
   std::cerr << std::format("Fatal error: {}\n", e.what());
   return EXIT_FAILURE;
 } catch (...) {
