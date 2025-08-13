@@ -20,20 +20,19 @@
       ...
     }:
     let
-      makeMalachi =
-        pkgs:
-        pkgs.stdenv.mkDerivation {
+      overlay = final: prev: {
+        malachi = final.stdenv.mkDerivation {
           name = "malachi";
           src = builtins.path {
             path = ./.;
             name = "malachi-src";
           };
-          nativeBuildInputs = with pkgs; [
+          nativeBuildInputs = with final; [
             meson
             ninja
             pkg-config
           ];
-          buildInputs = with pkgs; [
+          buildInputs = with final; [
             catch2_3
             libgit2
             mupdf
@@ -41,14 +40,18 @@
           ];
           doCheck = true;
         };
+      };
     in
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ overlay ];
+        };
       in
       {
-        packages.malachi = makeMalachi pkgs;
+        packages.malachi = pkgs.malachi;
         packages.default = self.packages.${system}.malachi;
       }
     );
