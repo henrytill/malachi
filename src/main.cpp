@@ -86,17 +86,25 @@ auto main(int argc, char *argv[]) -> int try {
         constexpr auto long_options_len = size_t{3};
         // NOLINTBEGIN(misc-include-cleaner)
         constexpr auto long_options = std::array<struct option, long_options_len>{
-            {{.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
-             {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-             {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}}};
+            {
+                {.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
+                {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
+                {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
+            }
+        };
         // NOLINTEND(misc-include-cleaner)
 
         auto option_index = 0;
 
         while (true) {
             // NOLINTNEXTLINE(misc-include-cleaner)
-            int const opt = getopt_long(static_cast<int>(args.size()), args.data(),
-                                        "vc", long_options.data(), &option_index);
+            int const opt = getopt_long(
+                static_cast<int>(args.size()),
+                args.data(),
+                "vc",
+                long_options.data(),
+                &option_index
+            );
             if (opt == -1) {
                 break;
             }

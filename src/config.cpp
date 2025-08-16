@@ -18,10 +18,12 @@ auto Config::platform() -> platform::Platform {
 }
 
 auto Config::to_string() const -> std::string {
-    return std::format("platform: {}\nconfig_dir: {}\ndata_dir: {}\n",
-                       platform::to_string_view(platform()),
-                       config_dir.string(),
-                       data_dir.string());
+    return std::format(
+        "platform: {}\nconfig_dir: {}\ndata_dir: {}\n",
+        platform::to_string_view(platform()),
+        config_dir.string(),
+        data_dir.string()
+    );
 }
 
 Builder::Builder(platform::GetEnvFn getenv) : getenv_{std::move(getenv)} {}
@@ -36,18 +38,21 @@ auto Builder::build() && -> Result {
     if (not maybe_config_dir_.has_value()) {
         return Error{
             .code = ErrorCode::kMissingDir,
-            .message = std::string{kMissingConfigDirMsg}};
+            .message = std::string{kMissingConfigDirMsg},
+        };
     }
 
     if (not maybe_data_dir_.has_value()) {
         return Error{
             .code = ErrorCode::kMissingDir,
-            .message = std::string{kMissingDataDirMsg}};
+            .message = std::string{kMissingDataDirMsg},
+        };
     }
 
     return Config{
         .config_dir = std::move(maybe_config_dir_.value()),
-        .data_dir = std::move(maybe_data_dir_.value())};
+        .data_dir = std::move(maybe_data_dir_.value()),
+    };
 }
 
 } // namespace malachi::config
