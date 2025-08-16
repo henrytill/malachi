@@ -86,11 +86,9 @@ auto main(int argc, char *argv[]) -> int try {
         constexpr auto long_options_len = size_t{3};
         // NOLINTBEGIN(misc-include-cleaner)
         constexpr auto long_options = std::array<struct option, long_options_len>{
-            {
-                {.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
-                {.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-                {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
-            }
+            (struct option){.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
+            (struct option){.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
+            (struct option){.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
         };
         // NOLINTEND(misc-include-cleaner)
 
