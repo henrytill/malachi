@@ -11,10 +11,10 @@ public:
         auto const *const iterator = std::ranges::find_if(vars, [name](auto const &pair) {
             return name == pair.first;
         });
-        if (iterator != vars.end()) {
-            return const_cast<char *>(iterator->second);
+        if (iterator == vars.end()) {
+            return nullptr;
         }
-        return nullptr;
+        return const_cast<char *>(iterator->second);
     }
 
     friend Derived; // gives access to private constructor
