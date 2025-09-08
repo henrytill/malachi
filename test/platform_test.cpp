@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <format>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 #include <catch2/catch_session.hpp>
@@ -72,6 +73,10 @@ struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
         std::pair{"XDG_DATA_HOME"sv, data_base},
     };
 };
+
+static_assert(std::is_same_v<decltype(DirFixture<Platform::Windows>::config_base), char const *const>);
+static_assert(std::is_same_v<decltype(DirFixture<Platform::MacOS>::config_base), char const *const>);
+static_assert(std::is_same_v<decltype(DirFixture<Platform::Linux>::config_base), char const *const>);
 
 static_assert(std::string_view{DirFixture<Platform::Linux>::getenv("XDG_CONFIG_HOME"sv)} == DirFixture<Platform::Linux>::config_base);
 
