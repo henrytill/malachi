@@ -1,44 +1,31 @@
-#pragma once
+#ifndef MALACHI_INCLUDE_CONFIG_H
+#define MALACHI_INCLUDE_CONFIG_H
 
-#include <cstdint>
-#include <filesystem>
-#include <optional>
-#include <string>
-#include <variant>
+struct error;
 
-#include "platform.h"
-
-namespace malachi::config {
-
-enum class ErrorCode : int8_t {
-    kMissingDir = 1,
+enum config_error {
+    CONFIG_ERROR_MISSING_DIR = 1,
 };
 
-struct Error {
-    ErrorCode code;
-    std::string message;
+struct config {
+    char *config_dir;
+    char *data_dir;
 };
 
-struct Config {
-    std::filesystem::path config_dir;
-    std::filesystem::path data_dir;
+void config_finish(struct config *config);
 
-    static auto platform() -> platform::Platform;
-    [[nodiscard]] auto to_string() const -> std::string;
+typedef char *platform_getenv_fn(char const *name);
+
+struct config_builder {
+    platform_getenv_fn *getenv;
+    char *maybe_config_dir;
+    char *maybe_data_dir;
 };
 
-using Result = std::variant<Config, Error>;
+int config_builder_init(struct config_builder *builder, platform_getenv_fn getenv);
 
-class Builder {
-public:
-    Builder(platform::GetEnvFn getenv);
-    auto with_defaults() && -> Builder &&;
-    auto build() && -> Result;
+void config_builder_with_defaults(struct config_builder *builder);
 
-private:
-    platform::GetEnvFn getenv_;
-    std::optional<std::filesystem::path> maybe_config_dir_;
-    std::optional<std::filesystem::path> maybe_data_dir_;
-};
+int config_builder_build(struct config_builder *builder, struct config *out, struct error *err);
 
-} // namespace malachi::config
+#endif // MALACHI_INCLUDE_CONFIG_H

@@ -1,41 +1,40 @@
 Checks: >
   bugprone-*,
+  cert-*-c,
   clang-analyzer-*,
-  cppcoreguidelines-*,
-  modernize-*,
-  misc-*,
   readability-*,
-  -misc-non-private-member-variables-in-classes,
-  -readability-function-cognitive-complexity,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-easily-swappable-parameters,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-redundant-declaration,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
 
 CheckOptions:
-  - key: readability-identifier-naming.ClassCase,
-    value: CamelCase
-  - key: readability-identifier-naming.ClassConstantCase,
-    value: CamelCase
-  - key: readability-identifier-naming.ConstexprVariableCase,
-    value: CamelCase,
-  - key: readability-identifier-naming.StructCase,
-    value: CamelCase
-  - key: readability-identifier-naming.TemplateParameterCase,
-    value: CamelCase,
-  - key: readability-identifier-naming.TypeAliasCase,
-    value: CamelCase
-  - key: readability-identifier-naming.TypedefCase,
-    value: CamelCase
-  - key: readability-identifier-naming.UnionCase,
-    value: CamelCase
-
-  - key: readability-identifier-naming.ClassMemberCase,
+  - key: readability-identifier-naming.FunctionCase
     value: lower_case
-  - key: readability-identifier-naming.ClassMethodCase,
+  - key: readability-identifier-naming.VariableCase
     value: lower_case
-  - key: readability-identifier-naming.ParameterCase,
+  - key: readability-identifier-naming.ParameterCase
     value: lower_case
-  - key: readability-identifier-naming.VariableCase,
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.UnionCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefCase
     value: lower_case
 
-HeaderFilterRegex: '(include|test)/.*\.h'
+HeaderFilterRegex: "^include/.*\\.h$"
 # Local Variables:
 # mode: yaml
 # End:

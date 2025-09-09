@@ -33,7 +33,6 @@
             pkg-config
           ];
           buildInputs = with final; [
-            catch2_3
             libgit2
             mupdf
             sqlite
