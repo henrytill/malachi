@@ -93,14 +93,12 @@ main(int argc, char *argv[])
 		int option_index = 0;
 
 		struct option long_options[] = {
-			{"version", no_argument, &opts.version, 1},
-			{"config", no_argument, &opts.config, 1},
+			{"version", no_argument, NULL, 'v'},
+			{"config", no_argument, NULL, 'c'},
 			{0, 0, 0, 0},
 		};
 
 		for (;;) {
-			option_index = 0;
-
 			c = getopt_long(argc, argv, "vc", long_options, &option_index);
 			if (c == -1) {
 				break;
