@@ -82,7 +82,7 @@ configure(struct config *config)
 }
 
 static void
-print_config(const struct config *config)
+print_config(struct config const *config)
 {
 	printf("platform: %s\n", platform_to_string());
 	printf("config_dir: %s\n", config->config_dir);
