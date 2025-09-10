@@ -11,9 +11,9 @@
 char *
 getenv_defaults(char const *name)
 {
-	if (strcmp(name, "HOME") == 0) {
+	if (strcmp(name, "HOME") == 0)
 		return "/home/user";
-	}
+
 	return NULL;
 }
 
@@ -36,12 +36,12 @@ test_config_init_with_defaults(void)
 char *
 getenv_custom_xdg_dirs(char const *name)
 {
-	if (strcmp(name, "XDG_CONFIG_HOME") == 0) {
+	if (strcmp(name, "XDG_CONFIG_HOME") == 0)
 		return "/tmp/config";
-	}
-	if (strcmp(name, "XDG_DATA_HOME") == 0) {
+
+	if (strcmp(name, "XDG_DATA_HOME") == 0)
 		return "/tmp/data";
-	}
+
 	return NULL;
 }
 
@@ -66,9 +66,9 @@ test_config_init_with_custom_xdg_dirs(void)
 char *
 getenv_defaults(const char *name)
 {
-	if (strcmp(name, "HOME") == 0) {
+	if (strcmp(name, "HOME") == 0)
 		return "/Users/user";
-	}
+
 	return NULL;
 }
 

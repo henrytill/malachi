@@ -104,9 +104,8 @@ main(int argc, char *argv[])
 
 		for (;;) {
 			c = getopt_long(argc, argv, "vc", long_options, &option_index);
-			if (c == -1) {
+			if (c == -1)
 				break;
-			}
 
 			switch (c) {
 			case 'v':
@@ -136,9 +135,8 @@ main(int argc, char *argv[])
 		}
 
 		rc = configure(&config);
-		if (rc != 0) {
+		if (rc != 0)
 			return EXIT_FAILURE;
-		}
 
 		if (opts.config) {
 			print_config(&config);
@@ -148,9 +146,8 @@ main(int argc, char *argv[])
 
 		if (optind < argc) {
 			printf("non-option argv elements: ");
-			while (optind < argc) {
+			while (optind < argc)
 				printf("%s ", argv[optind++]);
-			}
 			printf("\n");
 		}
 
@@ -158,9 +155,8 @@ main(int argc, char *argv[])
 			// NOLINTNEXTLINE(clang-analyzer-unix.StdCLibraryFunctions)
 			char *cwd = getcwd(NULL, 0);
 			printf("cwd: %s\n", cwd);
-			if (cwd != NULL) {
+			if (cwd != NULL)
 				free(cwd);
-			}
 		}
 
 		config_finish(&config);

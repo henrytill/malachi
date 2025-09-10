@@ -19,12 +19,12 @@ test_platform_to_string(void)
 char *
 test_getenv(char const *name)
 {
-	if (strcmp(name, "HOME") == 0) {
+	if (strcmp(name, "HOME") == 0)
 		return "/home/test";
-	}
-	if (strcmp(name, "XDG_CONFIG_HOME") == 0) {
+
+	if (strcmp(name, "XDG_CONFIG_HOME") == 0)
 		return "/tmp/config";
-	}
+
 	return NULL;
 }
 
