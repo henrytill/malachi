@@ -37,6 +37,9 @@
             mupdf
             sqlite
           ];
+          preConfigure = ''
+            sed -i 's/@MALACHI_COMMIT_SHORT_HASH@/"${self.shortRev or self.dirtyShortRev or ""}"/g' include/project.h.in
+          '';
           doCheck = true;
         };
       };

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <git2/common.h>
@@ -46,6 +47,11 @@ print_mupdf_version(void)
 static int
 print_versions(void)
 {
+	printf("malachi: %d.%d.%d", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH);
+	if (strlen(MALACHI_COMMIT_SHORT_HASH) > 0) {
+		printf("-%s", MALACHI_COMMIT_SHORT_HASH);
+	}
+	printf("\n");
 	{
 		int major = 0;
 		int minor = 0;
