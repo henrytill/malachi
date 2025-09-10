@@ -16,17 +16,25 @@
 
 typedef char *platform_getenv_fn(char const *name);
 
+#if defined(PLATFORM_MACOS)
 static inline char const *
 platform_to_string(void)
 {
-#if defined(PLATFORM_MACOS)
 	return "macOS";
-#elif defined(PLATFORM_LINUX)
-	return "Linux";
-#elif defined(PLATFORM_UNKNOWN)
-	return "Unknown";
-#endif
 }
+#elif defined(PLATFORM_LINUX)
+static inline char const *
+platform_to_string(void)
+{
+	return "Linux";
+}
+#else
+static inline char const *
+platform_to_string(void)
+{
+	return "Unknown";
+}
+#endif
 
 static inline char *
 platform_macos_get_application_support(platform_getenv_fn getenv, char const *name)
@@ -72,24 +80,32 @@ platform_xdg_get_data_home(platform_getenv_fn getenv, char const *name)
 	return NULL;
 }
 
+#if defined(PLATFORM_MACOS)
 static inline char *
 platform_get_config_dir(platform_getenv_fn getenv, char const *name)
 {
-#if defined(PLATFORM_MACOS)
 	return platform_macos_get_application_support(getenv, name);
-#else
-	return platform_xdg_get_config_home(getenv, name);
-#endif
 }
+#else
+static inline char *
+platform_get_config_dir(platform_getenv_fn getenv, char const *name)
+{
+	return platform_xdg_get_config_home(getenv, name);
+}
+#endif
 
+#if defined(PLATFORM_MACOS)
 static inline char *
 platform_get_data_dir(platform_getenv_fn getenv, char const *name)
 {
-#if defined(PLATFORM_MACOS)
 	return platform_macos_get_application_support(getenv, name);
-#else
-	return platform_xdg_get_data_home(getenv, name);
-#endif
 }
+#else
+static inline char *
+platform_get_data_dir(platform_getenv_fn getenv, char const *name)
+{
+	return platform_xdg_get_data_home(getenv, name);
+}
+#endif
 
 #endif // MALACHI_INCLUDE_PLATFORM_H
