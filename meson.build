@@ -41,9 +41,16 @@ platform_test = executable(
     include_directories: [include_dir, test_include_dir],
 )
 
+config_test_sources = ['test/config_test.c', 'src/config.c', 'src/path.c']
+if host_machine.system() == 'darwin'
+    config_test_sources += ['test/config_test_macos.c']
+else
+    config_test_sources += ['test/config_test_xdg.c']
+endif
+
 config_test = executable(
     'config_test',
-    sources: ['test/config_test.c', 'src/config.c', 'src/path.c'],
+    sources: config_test_sources,
     include_directories: [include_dir, test_include_dir],
 )
 

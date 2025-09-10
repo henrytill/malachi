@@ -7,90 +7,11 @@
 #include "platform.h"
 #include "test.h"
 
-#ifdef PLATFORM_LINUX
-char *
-getenv_defaults(char const *name)
-{
-	if (strcmp(name, "HOME") == 0)
-		return "/home/user";
-
-	return NULL;
-}
-
-void
-test_config_init_with_defaults(void)
-{
-	BEGIN_TEST();
-	struct config config = {0};
-	struct error error = {0};
-	int rc = config_init(getenv_defaults, &config, &error);
-	TEST(rc == 0);
-	TEST(error.rc == rc);
-	TEST(error.msg == NULL);
-	TEST(strcmp(config.config_dir, "/home/user/.config/malachi") == 0);
-	TEST(strcmp(config.data_dir, "/home/user/.local/share/malachi") == 0);
-	config_finish(&config);
-	END_TEST();
-}
+void test_config_init_with_defaults(void);
+void test_platform_specific(void);
 
 char *
-getenv_custom_xdg_dirs(char const *name)
-{
-	if (strcmp(name, "XDG_CONFIG_HOME") == 0)
-		return "/tmp/config";
-
-	if (strcmp(name, "XDG_DATA_HOME") == 0)
-		return "/tmp/data";
-
-	return NULL;
-}
-
-void
-test_config_init_with_custom_xdg_dirs(void)
-{
-	BEGIN_TEST();
-	struct config config = {0};
-	struct error error = {0};
-	int rc = config_init(getenv_custom_xdg_dirs, &config, &error);
-	TEST(rc == 0);
-	TEST(error.rc == rc);
-	TEST(error.msg == NULL);
-	TEST(strcmp(config.config_dir, "/tmp/config/malachi") == 0);
-	TEST(strcmp(config.data_dir, "/tmp/data/malachi") == 0);
-	config_finish(&config);
-	END_TEST();
-}
-#endif
-
-#ifdef PLATFORM_MACOS
-char *
-getenv_defaults(const char *name)
-{
-	if (strcmp(name, "HOME") == 0)
-		return "/Users/user";
-
-	return NULL;
-}
-
-void
-test_config_init_with_defaults(void)
-{
-	BEGIN_TEST();
-	struct config config = {0};
-	struct error error = {0};
-	int rc = config_init(getenv_defaults, &config, &error);
-	TEST(rc == 0);
-	TEST(error.rc == rc);
-	TEST(error.msg == NULL);
-	TEST(strcmp(config.config_dir, "/Users/user/Library/Application Support/malachi") == 0);
-	TEST(strcmp(config.data_dir, "/Users/user/Library/Application Support/malachi") == 0);
-	config_finish(&config);
-	END_TEST();
-}
-#endif
-
-char *
-getenv_empty(const char *name)
+getenv_empty(char const *name)
 {
 	(void)name;
 	return NULL;
@@ -114,9 +35,7 @@ int
 main(void)
 {
 	test_config_init_with_defaults();
-#ifdef PLATFORM_LINUX
-	test_config_init_with_custom_xdg_dirs();
-#endif
+	test_platform_specific();
 	test_config_init_with_missing_dirs();
 	return EXIT_SUCCESS;
 }
