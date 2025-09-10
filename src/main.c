@@ -153,9 +153,12 @@ main(int argc, char *argv[])
 		}
 
 		{
+			// NOLINTNEXTLINE(clang-analyzer-unix.StdCLibraryFunctions)
 			char *cwd = getcwd(NULL, 0);
 			printf("cwd: %s\n", cwd);
-			free(cwd);
+			if (cwd != NULL) {
+				free(cwd);
+			}
 		}
 
 		config_finish(&config);

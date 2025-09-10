@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdio.h>
+#include <stdio.h> // IWYU pragma: keep
 #include <stdlib.h>
 
 #define TAG(s)       printf("%s:%d:%s: %s\n", __FILE__, __LINE__, __func__, (s))
