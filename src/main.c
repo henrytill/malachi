@@ -30,6 +30,19 @@ usage(char *argv[])
 	eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
 }
 
+#ifdef MALACHI_HAVE_MUPDF
+static inline void
+print_mupdf_version(void)
+{
+	printf("mupdf: %s\n", FZ_VERSION);
+}
+#else
+static inline void
+print_mupdf_version(void)
+{
+}
+#endif
+
 static int
 print_versions(void)
 {
@@ -44,9 +57,7 @@ print_versions(void)
 		}
 		printf("libgit2: %d.%d.%d\n", major, minor, rev);
 	}
-#ifdef MALACHI_HAVE_MUPDF
-	printf("mupdf: %s\n", FZ_VERSION);
-#endif
+	print_mupdf_version();
 	printf("sqlite: %s\n", sqlite3_libversion());
 	return 0;
 }
