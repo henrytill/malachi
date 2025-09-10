@@ -119,4 +119,4 @@ platform_get_data_dir(platform_getenv_fn getenv, char const *name)
 #endif
 }
 
-#endif
+#endif // MALACHI_INCLUDE_PLATFORM_H

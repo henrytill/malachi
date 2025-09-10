@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MALACHI_TEST_TEST_H
+#define MALACHI_TEST_TEST_H
 
 #include <stdio.h> // IWYU pragma: keep
 #include <stdlib.h>
@@ -12,3 +13,5 @@
 		(void)fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, #e); \
 		exit(EXIT_FAILURE);                                           \
 	}
+
+#endif // MALACHI_TEST_TEST_H
