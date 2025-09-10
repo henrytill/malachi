@@ -101,40 +101,6 @@ test_config_builder_with_defaults(void)
 }
 #endif
 
-#ifdef PLATFORM_WINDOWS
-char *
-getenv_defaults(const char *name)
-{
-	if (strcmp(name, "APPDATA") == 0) {
-		return "C:/Users/user/AppData/Roaming";
-	}
-	if (strcmp(name, "LOCALAPPDATA") == 0) {
-		return "C:/Users/user/AppData/Local";
-	}
-	return NULL;
-}
-
-void
-test_config_builder_with_defaults(void)
-{
-	BEGIN_TEST();
-	struct config_builder config_builder = {0};
-	int rc = config_builder_init(&config_builder, getenv_defaults);
-	TEST(rc == 0);
-	config_builder_with_defaults(&config_builder);
-	struct config config = {0};
-	struct error error = {0};
-	rc = config_builder_build(&config_builder, &config, &error);
-	TEST(rc == 0);
-	TEST(error.rc == rc);
-	TEST(error.msg == NULL);
-	TEST(strcmp(config.config_dir, "C:/Users/user/AppData/Roaming/malachi") == 0);
-	TEST(strcmp(config.data_dir, "C:/Users/user/AppData/Local/malachi") == 0);
-	config_finish(&config);
-	END_TEST();
-}
-#endif
-
 char *
 getenv_empty(const char *name)
 {

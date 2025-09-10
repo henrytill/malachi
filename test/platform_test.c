@@ -25,12 +25,6 @@ test_getenv(char const *name)
 	if (strcmp(name, "XDG_CONFIG_HOME") == 0) {
 		return "/tmp/config";
 	}
-	if (strcmp(name, "APPDATA") == 0) {
-		return "C:\\Users\\test\\AppData\\Roaming";
-	}
-	if (strcmp(name, "LOCALAPPDATA") == 0) {
-		return "C:\\Users\\test\\AppData\\Local";
-	}
 	return NULL;
 }
 

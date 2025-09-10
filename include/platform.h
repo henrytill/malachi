@@ -6,9 +6,7 @@
 
 #include "path.h"
 
-#if defined(_WIN32)
-#	define PLATFORM_WINDOWS
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
 #	define PLATFORM_MACOS
 #elif defined(__linux__)
 #	define PLATFORM_LINUX
@@ -21,37 +19,13 @@ typedef char *platform_getenv_fn(char const *name);
 static inline char const *
 platform_to_string(void)
 {
-#if defined(PLATFORM_WINDOWS)
-	return "Windows";
-#elif defined(PLATFORM_MACOS)
+#if defined(PLATFORM_MACOS)
 	return "macOS";
 #elif defined(PLATFORM_LINUX)
 	return "Linux";
 #elif defined(PLATFORM_UNKNOWN)
 	return "Unknown";
 #endif
-}
-
-static inline char *
-platform_windows_get_app_data(platform_getenv_fn getenv, char const *name)
-{
-	assert(name != NULL);
-	char const *app_data = getenv("APPDATA");
-	if (app_data != NULL) {
-		return joinpath2(app_data, name);
-	}
-	return NULL;
-}
-
-static inline char *
-platform_windows_get_local_app_data(platform_getenv_fn getenv, char const *name)
-{
-	assert(name != NULL);
-	char const *local_app_data = getenv("LOCALAPPDATA");
-	if (local_app_data != NULL) {
-		return joinpath2(local_app_data, name);
-	}
-	return NULL;
 }
 
 static inline char *
@@ -98,9 +72,7 @@ platform_xdg_get_data_home(platform_getenv_fn getenv, char const *name)
 static inline char *
 platform_get_config_dir(platform_getenv_fn getenv, char const *name)
 {
-#if defined(PLATFORM_WINDOWS)
-	return platform_windows_get_app_data(getenv, name);
-#elif defined(PLATFORM_MACOS)
+#if defined(PLATFORM_MACOS)
 	return platform_macos_get_application_support(getenv, name);
 #else
 	return platform_xdg_get_config_home(getenv, name);
@@ -110,9 +82,7 @@ platform_get_config_dir(platform_getenv_fn getenv, char const *name)
 static inline char *
 platform_get_data_dir(platform_getenv_fn getenv, char const *name)
 {
-#if defined(PLATFORM_WINDOWS)
-	return platform_windows_get_local_app_data(getenv, name);
-#elif defined(PLATFORM_MACOS)
+#if defined(PLATFORM_MACOS)
 	return platform_macos_get_application_support(getenv, name);
 #else
 	return platform_xdg_get_data_home(getenv, name);
