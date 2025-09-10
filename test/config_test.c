@@ -18,16 +18,12 @@ getenv_defaults(char const *name)
 }
 
 void
-test_config_builder_with_defaults(void)
+test_config_init_with_defaults(void)
 {
 	BEGIN_TEST();
-	struct config_builder config_builder = {0};
-	int rc = config_builder_init(&config_builder, getenv_defaults);
-	TEST(rc == 0);
-	config_builder_with_defaults(&config_builder);
 	struct config config = {0};
 	struct error error = {0};
-	rc = config_builder_build(&config_builder, &config, &error);
+	int rc = config_init(getenv_defaults, &config, &error);
 	TEST(rc == 0);
 	TEST(error.rc == rc);
 	TEST(error.msg == NULL);
@@ -50,16 +46,12 @@ getenv_custom_xdg_dirs(char const *name)
 }
 
 void
-test_config_builder_with_custom_xdg_dirs(void)
+test_config_init_with_custom_xdg_dirs(void)
 {
 	BEGIN_TEST();
-	struct config_builder config_builder = {0};
-	int rc = config_builder_init(&config_builder, getenv_custom_xdg_dirs);
-	TEST(rc == 0);
-	config_builder_with_defaults(&config_builder);
 	struct config config = {0};
 	struct error error = {0};
-	rc = config_builder_build(&config_builder, &config, &error);
+	int rc = config_init(getenv_custom_xdg_dirs, &config, &error);
 	TEST(rc == 0);
 	TEST(error.rc == rc);
 	TEST(error.msg == NULL);
@@ -81,16 +73,12 @@ getenv_defaults(const char *name)
 }
 
 void
-test_config_builder_with_defaults(void)
+test_config_init_with_defaults(void)
 {
 	BEGIN_TEST();
-	struct config_builder config_builder = {0};
-	int rc = config_builder_init(&config_builder, getenv_defaults);
-	TEST(rc == 0);
-	config_builder_with_defaults(&config_builder);
 	struct config config = {0};
 	struct error error = {0};
-	rc = config_builder_build(&config_builder, &config, &error);
+	int rc = config_init(getenv_defaults, &config, &error);
 	TEST(rc == 0);
 	TEST(error.rc == rc);
 	TEST(error.msg == NULL);
@@ -109,19 +97,15 @@ getenv_empty(const char *name)
 }
 
 void
-test_config_builder_with_missing_dirs(void)
+test_config_init_with_missing_dirs(void)
 {
 	BEGIN_TEST();
-	struct config_builder config_builder = {0};
-	int rc = config_builder_init(&config_builder, getenv_empty);
-	TEST(rc == 0);
-	config_builder_with_defaults(&config_builder);
 	struct config config = {0};
 	struct error error = {0};
-	rc = config_builder_build(&config_builder, &config, &error);
+	int rc = config_init(getenv_empty, &config, &error);
 	TEST(rc == -CONFIG_ERROR_MISSING_DIR);
 	TEST(error.rc == -CONFIG_ERROR_MISSING_DIR);
-	TEST(strcmp(error.msg, "maybe_config_dir is NULL") == 0);
+	TEST(strcmp(error.msg, "config_dir is NULL") == 0);
 	config_finish(&config);
 	END_TEST();
 }
@@ -129,10 +113,10 @@ test_config_builder_with_missing_dirs(void)
 int
 main(void)
 {
-	test_config_builder_with_defaults();
+	test_config_init_with_defaults();
 #ifdef PLATFORM_LINUX
-	test_config_builder_with_custom_xdg_dirs();
+	test_config_init_with_custom_xdg_dirs();
 #endif
-	test_config_builder_with_missing_dirs();
+	test_config_init_with_missing_dirs();
 	return EXIT_SUCCESS;
 }

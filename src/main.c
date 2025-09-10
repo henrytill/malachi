@@ -66,16 +66,9 @@ static int
 configure(struct config *config)
 {
 	struct error error = {0};
-	struct config_builder builder = {0};
-	int rc = config_builder_init(&builder, getenv);
+	int rc = config_init(getenv, config, &error);
 	if (rc != 0) {
-		eprintf("Failed to create config_builder\n");
-		return -1;
-	}
-	config_builder_with_defaults(&builder);
-	rc = config_builder_build(&builder, config, &error);
-	if (rc != 0) {
-		eprintf("Failed to build config: %s\n", error.msg);
+		eprintf("Failed to initialize config: %s\n", error.msg);
 		return -1;
 	}
 	return 0;
