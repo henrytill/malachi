@@ -9,11 +9,11 @@ static int
 testplatformstr(void)
 {
 	char const *plat = platformstr();
-	if (plat == NULL) {
+	if(plat == NULL) {
 		eprintf("platformstr returned NULL\n");
 		return -1;
 	}
-	if (strlen(plat) == 0) {
+	if(strlen(plat) == 0) {
 		eprintf("platformstr returned empty string\n");
 		return -1;
 	}
@@ -23,10 +23,10 @@ testplatformstr(void)
 static char *
 testgetenv(char const *name)
 {
-	if (strcmp(name, "HOME") == 0)
+	if(strcmp(name, "HOME") == 0)
 		return "/home/test";
 
-	if (strcmp(name, "XDG_CONFIG_HOME") == 0)
+	if(strcmp(name, "XDG_CONFIG_HOME") == 0)
 		return "/tmp/config";
 
 	return NULL;
@@ -36,7 +36,7 @@ static int
 testconfigdir(void)
 {
 	char *configdir = getconfigdir(testgetenv, "testapp");
-	if (configdir == NULL) {
+	if(configdir == NULL) {
 		eprintf("getconfigdir returned NULL\n");
 		return -1;
 	}
@@ -48,7 +48,7 @@ static int
 testdatadir(void)
 {
 	char *datadir = getdatadir(testgetenv, "testapp");
-	if (datadir == NULL) {
+	if(datadir == NULL) {
 		eprintf("getdatadir returned NULL\n");
 		return -1;
 	}
@@ -61,11 +61,11 @@ run(void)
 {
 	int failures = 0;
 
-	if (testplatformstr() != 0)
+	if(testplatformstr() != 0)
 		failures++;
-	if (testconfigdir() != 0)
+	if(testconfigdir() != 0)
 		failures++;
-	if (testdatadir() != 0)
+	if(testdatadir() != 0)
 		failures++;
 
 	return failures;

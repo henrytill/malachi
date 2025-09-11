@@ -34,6 +34,9 @@ PointerAlignment: Right
 QualifierAlignment: Right
 ReflowComments: true
 SortIncludes: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
 SpacesBeforeTrailingComments: 1
 UseTab: ForContinuationAndIndentation
 

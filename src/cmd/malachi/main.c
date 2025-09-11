@@ -31,7 +31,7 @@ static int
 versions(void)
 {
 	printf("malachi: %d.%d.%d", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH);
-	if (strlen(MALACHI_COMMIT_SHORT_HASH) > 0) {
+	if(strlen(MALACHI_COMMIT_SHORT_HASH) > 0) {
 		printf("-%s", MALACHI_COMMIT_SHORT_HASH);
 	}
 	printf("\n");
@@ -40,7 +40,7 @@ versions(void)
 		int minor = 0;
 		int rev = 0;
 		int const rc = git_libgit2_version(&major, &minor, &rev);
-		if (rc != 0) {
+		if(rc != 0) {
 			eprintf("Failed to get libgit2 version\n");
 			return -1;
 		}
@@ -48,7 +48,7 @@ versions(void)
 	}
 	{
 		Filter const **filters = filterall();
-		for (int i = 0; filters[i]; ++i) {
+		for(int i = 0; filters[i]; ++i) {
 			printf("%s: %s\n", filters[i]->name, filters[i]->version());
 		}
 	}
@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 {
 	struct Opts opts = {0};
 
-	if (argc == 1) {
+	if(argc == 1) {
 		usage(argv);
 		return EXIT_FAILURE;
 	}
@@ -78,12 +78,12 @@ main(int argc, char *argv[])
 	{
 		int c = 0;
 
-		for (;;) {
+		for(;;) {
 			c = getopt(argc, argv, "vct::");
-			if (c == -1)
+			if(c == -1)
 				break;
 
-			switch (c) {
+			switch(c) {
 			case 'v':
 				opts.version = 1;
 				break;
@@ -110,9 +110,9 @@ main(int argc, char *argv[])
 		Config config = {0};
 		Error error = {0};
 
-		if (opts.test) {
+		if(opts.test) {
 			int tr;
-			if (opts.testname) {
+			if(opts.testname) {
 				tr = testone(opts.testname);
 			} else {
 				tr = testall();
@@ -121,26 +121,26 @@ main(int argc, char *argv[])
 			return tr ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
-		if (opts.version) {
+		if(opts.version) {
 			rc = versions();
 			return rc ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
 		rc = configinit(getenv, &config, &error);
-		if (rc != 0) {
+		if(rc != 0) {
 			eprintf("Failed to initialize config: %s\n", error.msg);
 			return EXIT_FAILURE;
 		}
 
-		if (opts.config) {
+		if(opts.config) {
 			configprint(&config);
 			configfree(&config);
 			return EXIT_SUCCESS;
 		}
 
-		if (optind < argc) {
+		if(optind < argc) {
 			printf("non-option argv elements: ");
-			while (optind < argc)
+			while(optind < argc)
 				printf("%s ", argv[optind++]);
 			printf("\n");
 		}
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 		{
 			char *cwd = realpath(".", NULL);
 			printf("cwd: %s\n", cwd);
-			if (cwd != NULL)
+			if(cwd != NULL)
 				free(cwd);
 		}
 

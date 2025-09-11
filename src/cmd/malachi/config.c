@@ -13,7 +13,7 @@ configinit(Getenvfn getenv, Config *config, Error *err)
 	char *datadir = getdatadir(getenv, name);
 	char *cachedir = getcachedir(getenv, name);
 
-	if (configdir == NULL) {
+	if(configdir == NULL) {
 		err->rc = -EMISSINGDIR;
 		err->msg = "configdir is NULL";
 		free(datadir);
@@ -21,7 +21,7 @@ configinit(Getenvfn getenv, Config *config, Error *err)
 		return -EMISSINGDIR;
 	}
 
-	if (datadir == NULL) {
+	if(datadir == NULL) {
 		err->rc = -EMISSINGDIR;
 		err->msg = "datadir is NULL";
 		free(configdir);
@@ -29,7 +29,7 @@ configinit(Getenvfn getenv, Config *config, Error *err)
 		return -EMISSINGDIR;
 	}
 
-	if (cachedir == NULL) {
+	if(cachedir == NULL) {
 		err->rc = -EMISSINGDIR;
 		err->msg = "cachedir is NULL";
 		free(configdir);
@@ -46,7 +46,7 @@ configinit(Getenvfn getenv, Config *config, Error *err)
 void
 configfree(Config *config)
 {
-	if (config->configdir == config->datadir && config->configdir == config->cachedir) {
+	if(config->configdir == config->datadir && config->configdir == config->cachedir) {
 		free(config->configdir);
 	} else {
 		free(config->configdir);

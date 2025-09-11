@@ -12,7 +12,7 @@ joinpath2(char const *a, char const *b)
 {
 	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s", a, separator, b);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
-	if (ret == NULL)
+	if(ret == NULL)
 		return NULL;
 
 	(void)snprintf(ret, len, "%s%c%s", a, separator, b);
@@ -24,7 +24,7 @@ joinpath3(char const *a, char const *b, char const *c)
 {
 	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s", a, separator, b, separator, c);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
-	if (ret == NULL)
+	if(ret == NULL)
 		return NULL;
 
 	(void)snprintf(ret, len, "%s%c%s%c%s", a, separator, b, separator, c);
@@ -36,7 +36,7 @@ joinpath4(char const *a, char const *b, char const *c, char const *d)
 {
 	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s%c%s", a, separator, b, separator, c, separator, d);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
-	if (ret == NULL)
+	if(ret == NULL)
 		return NULL;
 
 	(void)snprintf(ret, len, "%s%c%s%c%s%c%s", a, separator, b, separator, c, separator, d);
