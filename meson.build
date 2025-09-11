@@ -32,7 +32,7 @@ project_h = vcs_tag(
 
 platform_sources = []
 if host_machine.system() == 'darwin'
-    platform_sources += ['src/cmd/malachi/platmacos.c']
+    platform_sources += ['src/cmd/malachi/platmac.c']
 else
     platform_sources += ['src/cmd/malachi/platxdg.c']
 endif
@@ -46,7 +46,7 @@ test_sources = []
 test_sources += ['src/cmd/malachi/testconf.c']
 test_sources += ['src/cmd/malachi/testplat.c']
 if host_machine.system() == 'darwin'
-    test_sources += ['src/cmd/malachi/testconfmacos.c']
+    test_sources += ['src/cmd/malachi/testconfmac.c']
 else
     test_sources += ['src/cmd/malachi/testconfxdg.c']
 endif
