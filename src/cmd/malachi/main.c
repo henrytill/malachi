@@ -60,18 +60,6 @@ versions(void)
 	return 0;
 }
 
-static int
-configure(Config *config)
-{
-	Error error = {0};
-	int rc = configinit(getenv, config, &error);
-	if (rc != 0) {
-		eprintf("Failed to initialize config: %s\n", error.msg);
-		return -1;
-	}
-	return 0;
-}
-
 static void
 printconfig(Config const *config)
 {
@@ -132,6 +120,7 @@ main(int argc, char *argv[])
 
 		int rc = -1;
 		Config config = {0};
+		Error error = {0};
 
 		if (opts.test) {
 			int tr;
@@ -149,9 +138,11 @@ main(int argc, char *argv[])
 			return rc ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
-		rc = configure(&config);
-		if (rc != 0)
+		rc = configinit(getenv, &config, &error);
+		if (rc != 0) {
+			eprintf("Failed to initialize config: %s\n", error.msg);
 			return EXIT_FAILURE;
+		}
 
 		if (opts.config) {
 			printconfig(&config);
