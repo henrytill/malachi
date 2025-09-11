@@ -2,22 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "error.h"
-#include "platform.h"
+#include "dat.h"
+#include "fns.h"
+
 #include "test.h"
 
 void test_config_init_with_defaults(void);
 void test_platform_specific(void);
 
-char *
+static char *
 getenv_empty(char const *name)
 {
 	(void)name;
 	return NULL;
 }
 
-void
+static void
 test_config_init_with_missing_dirs(void)
 {
 	BEGIN_TEST();
@@ -31,11 +31,22 @@ test_config_init_with_missing_dirs(void)
 	END_TEST();
 }
 
-int
-main(void)
+static int
+config_test_run(void)
 {
 	test_config_init_with_defaults();
 	test_platform_specific();
 	test_config_init_with_missing_dirs();
 	return EXIT_SUCCESS;
+}
+
+static struct test_ops const config_test_ops = {
+	.name = "config",
+	.run = config_test_run,
+};
+
+__attribute__((constructor)) static void
+config_test_init(void)
+{
+	test_register(&config_test_ops);
 }

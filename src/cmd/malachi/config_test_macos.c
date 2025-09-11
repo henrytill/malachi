@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "error.h"
-#include "platform.h"
+#include "dat.h"
+#include "fns.h"
+
 #include "test.h"
 
-char *
+static char *
 getenv_defaults(char const *name)
 {
 	if (strcmp(name, "HOME") == 0)

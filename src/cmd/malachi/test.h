@@ -1,8 +1,4 @@
-#ifndef MALACHI_TEST_TEST_H
-#define MALACHI_TEST_TEST_H
-
-#include <stdio.h> // IWYU pragma: keep
-#include <stdlib.h>
+#pragma once
 
 #define TAG(s)       printf("%s:%d:%s: %s\n", __FILE__, __LINE__, __func__, (s))
 #define BEGIN_TEST() TAG("Starting...")
@@ -13,5 +9,3 @@
 		(void)fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, #e); \
 		exit(EXIT_FAILURE);                                           \
 	}
-
-#endif // MALACHI_TEST_TEST_H

@@ -1,7 +1,9 @@
-#include "path.h"
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "dat.h" // IWYU pragma: keep
+#include "fns.h"
 
 #define SEPARATOR '/'
 

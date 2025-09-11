@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "error.h"
-#include "platform.h"
+#include "dat.h"
+#include "fns.h"
+
 #include "test.h"
 
-char *
+static char *
 getenv_defaults(char const *name)
 {
 	if (strcmp(name, "HOME") == 0)
@@ -32,7 +32,7 @@ test_config_init_with_defaults(void)
 	END_TEST();
 }
 
-char *
+static char *
 getenv_custom_xdg_dirs(char const *name)
 {
 	if (strcmp(name, "XDG_CONFIG_HOME") == 0)
@@ -44,7 +44,7 @@ getenv_custom_xdg_dirs(char const *name)
 	return NULL;
 }
 
-void
+static void
 test_config_init_with_custom_xdg_dirs(void)
 {
 	BEGIN_TEST();

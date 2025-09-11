@@ -28,41 +28,40 @@ project_h = vcs_tag(
     fallback: '',
     input: project_config,
     output: 'project.h',
-    replace_string: '@MALACHI_COMMIT_SHORT_HASH@'
+    replace_string: '@MALACHI_COMMIT_SHORT_HASH@',
 )
 
-include_dir = include_directories('include')
+platform_sources = []
+if host_machine.system() == 'darwin'
+    platform_sources += ['src/cmd/malachi/platform_macos.c']
+else
+    platform_sources += ['src/cmd/malachi/platform_xdg.c']
+endif
 
-root_dir = include_directories('.')
+test_sources = []
+test_sources += ['src/cmd/malachi/config_test.c']
+test_sources += ['src/cmd/malachi/platform_test.c']
+if host_machine.system() == 'darwin'
+    test_sources += ['src/cmd/malachi/config_test_macos.c']
+else
+    test_sources += ['src/cmd/malachi/config_test_xdg.c']
+endif
 
-executable(
+malachi = executable(
     'malachi',
-    sources: ['src/config.c', 'src/main.c', 'src/path.c', project_h],
+    sources: [
+        'src/cmd/malachi/config.c',
+        'src/cmd/malachi/main.c',
+        'src/cmd/malachi/path.c',
+        'src/cmd/malachi/test.c',
+        platform_sources,
+        test_sources,
+        project_h,
+    ],
     dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
-    include_directories: [include_dir, root_dir],
+    include_directories: [include_directories('src/cmd/malachi')],
     install: true,
 )
 
-test_include_dir = include_directories('test')
-
-platform_test = executable(
-    'platform_test',
-    sources: ['test/platform_test.c', 'src/path.c'],
-    include_directories: [include_dir, test_include_dir],
-)
-
-config_test_sources = ['test/config_test.c', 'src/config.c', 'src/path.c']
-if host_machine.system() == 'darwin'
-    config_test_sources += ['test/config_test_macos.c']
-else
-    config_test_sources += ['test/config_test_xdg.c']
-endif
-
-config_test = executable(
-    'config_test',
-    sources: config_test_sources,
-    include_directories: [include_dir, test_include_dir],
-)
-
-test('platform_test', platform_test)
-test('config_test', config_test)
+test('config_test', malachi, args: ['--test=config'])
+test('platform_test', malachi, args: ['--test=platform'])

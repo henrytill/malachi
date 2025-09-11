@@ -1,5 +1,6 @@
 #include "project.h"
 
+#include <assert.h>
 #include <getopt.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -14,21 +15,20 @@
 #	include <mupdf/fitz.h>
 #endif
 
-#include "config.h"
-#include "error.h"
-#include "platform.h"
-
-#define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
+#include "dat.h"
+#include "fns.h"
 
 struct malachi_opts {
 	int version;
 	int config;
+	int test;
+	char const *test_name;
 };
 
 static void
 usage(char *argv[])
 {
-	eprintf("Usage: %s [--version] [--config] <query>\n", argv[0]);
+	eprintf("Usage: %s [--version] [--config] [--test [name]] <query>\n", argv[0]);
 }
 
 #ifdef MALACHI_HAVE_MUPDF
@@ -105,11 +105,12 @@ main(int argc, char *argv[])
 		struct option long_options[] = {
 			{"version", no_argument, NULL, 'v'},
 			{"config", no_argument, NULL, 'c'},
+			{"test", optional_argument, NULL, 't'},
 			{0, 0, 0, 0},
 		};
 
 		for (;;) {
-			c = getopt_long(argc, argv, "vc", long_options, &option_index);
+			c = getopt_long(argc, argv, "vct::", long_options, &option_index);
 			if (c == -1)
 				break;
 
@@ -119,6 +120,10 @@ main(int argc, char *argv[])
 				break;
 			case 'c':
 				opts.config = 1;
+				break;
+			case 't':
+				opts.test = 1;
+				opts.test_name = optarg;
 				break;
 			case '?':
 				usage(argv);
@@ -134,6 +139,17 @@ main(int argc, char *argv[])
 
 		int rc = -1;
 		struct config config = {0};
+
+		if (opts.test) {
+			int test_result;
+			if (opts.test_name) {
+				test_result = test_run_by_name(opts.test_name);
+			} else {
+				test_result = test_run_all();
+			}
+			config_finish(&config);
+			return test_result ? EXIT_FAILURE : EXIT_SUCCESS;
+		}
 
 		if (opts.version) {
 			rc = print_versions();

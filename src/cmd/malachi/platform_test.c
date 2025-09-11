@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "platform.h"
+#include "dat.h"
+#include "fns.h"
+
 #include "test.h"
 
-void
+static void
 test_platform_to_string(void)
 {
 	BEGIN_TEST();
@@ -16,7 +18,7 @@ test_platform_to_string(void)
 	END_TEST();
 }
 
-char *
+static char *
 test_getenv(char const *name)
 {
 	if (strcmp(name, "HOME") == 0)
@@ -28,7 +30,7 @@ test_getenv(char const *name)
 	return NULL;
 }
 
-void
+static void
 test_platform_get_config_dir(void)
 {
 	BEGIN_TEST();
@@ -39,7 +41,7 @@ test_platform_get_config_dir(void)
 	END_TEST();
 }
 
-void
+static void
 test_platform_get_data_dir(void)
 {
 	BEGIN_TEST();
@@ -50,11 +52,22 @@ test_platform_get_data_dir(void)
 	END_TEST();
 }
 
-int
-main(void)
+static int
+platform_test_run(void)
 {
 	test_platform_to_string();
 	test_platform_get_config_dir();
 	test_platform_get_data_dir();
 	return EXIT_SUCCESS;
+}
+
+static struct test_ops const platform_test_ops = {
+	.name = "platform",
+	.run = platform_test_run,
+};
+
+__attribute__((constructor)) static void
+platform_test_init(void)
+{
+	test_register(&platform_test_ops);
 }

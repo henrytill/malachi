@@ -19,7 +19,7 @@ CheckOptions:
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.GlobalConstantCase
-    value: UPPER_CASE
+    value: lower_case
   - key: readability-identifier-naming.GlobalVariableCase
     value: lower_case
   - key: readability-identifier-naming.EnumCase
@@ -35,7 +35,7 @@ CheckOptions:
   - key: readability-identifier-naming.TypedefCase
     value: lower_case
 
-HeaderFilterRegex: "^include/.*\\.h$"
+ExcludeHeaderFilterRegex: "^src/cmd/malachi/.*\\.h$"
 # Local Variables:
 # mode: yaml
 # End:

@@ -1,10 +1,8 @@
-#include "config.h"
-
 #include <assert.h>
 #include <stdlib.h>
 
-#include "error.h"
-#include "platform.h"
+#include "dat.h"
+#include "fns.h"
 
 #define NAME "malachi"
 
