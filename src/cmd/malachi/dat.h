@@ -1,5 +1,7 @@
 #pragma once
 
+/* IWYU pragma: always_keep */
+
 typedef struct Error Error;
 
 struct Error {

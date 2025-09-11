@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "dat.h" // IWYU pragma: keep
+#include "dat.h"
 #include "fns.h"
 
 static char const separator = '/';
