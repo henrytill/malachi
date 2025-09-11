@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 
 	{
 		int c = 0;
-		int idx = 0;
+		int longind = 0;
 
 		struct option longopts[] = {
 			{"version", no_argument, NULL, 'v'},
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 		};
 
 		for (;;) {
-			c = getopt_long(argc, argv, "vct::", longopts, &idx);
+			c = getopt_long(argc, argv, "vct::", longopts, &longind);
 			if (c == -1)
 				break;
 

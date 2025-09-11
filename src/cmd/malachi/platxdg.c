@@ -15,13 +15,13 @@ xdgconfighome(Getenvfn getenv, char const *name)
 {
 	assert(name != NULL);
 
-	char const *xdgvar = getenv("XDG_CONFIG_HOME");
-	if (xdgvar != NULL)
-		return joinpath2(xdgvar, name);
+	char const *xdg = getenv("XDG_CONFIG_HOME");
+	if (xdg != NULL)
+		return joinpath2(xdg, name);
 
-	char const *homevar = getenv("HOME");
-	if (homevar != NULL)
-		return joinpath3(homevar, ".config", name);
+	char const *home = getenv("HOME");
+	if (home != NULL)
+		return joinpath3(home, ".config", name);
 
 	return NULL;
 }
@@ -31,13 +31,13 @@ xdgdatahome(Getenvfn getenv, char const *name)
 {
 	assert(name != NULL);
 
-	char const *xdgvar = getenv("XDG_DATA_HOME");
-	if (xdgvar != NULL)
-		return joinpath2(xdgvar, name);
+	char const *xdg = getenv("XDG_DATA_HOME");
+	if (xdg != NULL)
+		return joinpath2(xdg, name);
 
-	char const *homevar = getenv("HOME");
-	if (homevar != NULL)
-		return joinpath4(homevar, ".local", "share", name);
+	char const *home = getenv("HOME");
+	if (home != NULL)
+		return joinpath4(home, ".local", "share", name);
 
 	return NULL;
 }
@@ -47,13 +47,13 @@ xdgcachehome(Getenvfn getenv, char const *name)
 {
 	assert(name != NULL);
 
-	char const *xdgvar = getenv("XDG_CACHE_HOME");
-	if (xdgvar != NULL)
-		return joinpath2(xdgvar, name);
+	char const *xdg = getenv("XDG_CACHE_HOME");
+	if (xdg != NULL)
+		return joinpath2(xdg, name);
 
-	char const *homevar = getenv("HOME");
-	if (homevar != NULL)
-		return joinpath3(homevar, ".cache", name);
+	char const *home = getenv("HOME");
+	if (home != NULL)
+		return joinpath3(home, ".cache", name);
 
 	return NULL;
 }

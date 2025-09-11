@@ -15,9 +15,9 @@ appsupport(Getenvfn getenv, char const *name)
 {
 	assert(name != NULL);
 
-	char const *homevar = getenv("HOME");
-	if (homevar != NULL)
-		return joinpath4(homevar, "Library", "Application Support", name);
+	char const *home = getenv("HOME");
+	if (home != NULL)
+		return joinpath4(home, "Library", "Application Support", name);
 
 	return NULL;
 }
@@ -27,9 +27,9 @@ caches(Getenvfn getenv, char const *name)
 {
 	assert(name != NULL);
 
-	char const *homevar = getenv("HOME");
-	if (homevar != NULL)
-		return joinpath4(homevar, "Library", "Caches", name);
+	char const *home = getenv("HOME");
+	if (home != NULL)
+		return joinpath4(home, "Library", "Caches", name);
 
 	return NULL;
 }

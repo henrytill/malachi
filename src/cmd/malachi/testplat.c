@@ -71,7 +71,7 @@ run(void)
 	return failures;
 }
 
-static Test const platformtestops = {
+static Test const test = {
 	.name = "platform",
 	.run = run,
 };
@@ -79,5 +79,5 @@ static Test const platformtestops = {
 __attribute__((constructor)) static void
 init(void)
 {
-	testadd(&platformtestops);
+	testadd(&test);
 }

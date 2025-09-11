@@ -52,7 +52,7 @@ run(void)
 	return failures;
 }
 
-static Test const configtestops = {
+static Test const test = {
 	.name = "config",
 	.run = run,
 };
@@ -60,5 +60,5 @@ static Test const configtestops = {
 __attribute__((constructor)) static void
 init(void)
 {
-	testadd(&configtestops);
+	testadd(&test);
 }

@@ -21,9 +21,9 @@ filteradd(Filter const *ops)
 Filter const *
 filterget(char const *ext)
 {
-	for (int i = 0; i < nfilters; i++) {
+	for (int i = 0; i < nfilters; ++i) {
 		Filter const *filter = filters[i];
-		for (int j = 0; filter->exts[j]; j++) {
+		for (int j = 0; filter->exts[j]; ++j) {
 			if (strcmp(ext, filter->exts[j]) == 0)
 				return filter;
 		}
