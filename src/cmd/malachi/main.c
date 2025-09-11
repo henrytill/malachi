@@ -33,7 +33,7 @@ usage(char *argv[])
 }
 
 static int
-versions(void)
+versionprint(void)
 {
 	printf("malachi=%d.%d.%d%s\n",
 		MALACHI_VERSION_MAJOR,
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 		}
 
 		if(opts.version) {
-			rc = versions();
+			rc = versionprint();
 			return rc ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
