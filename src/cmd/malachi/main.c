@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <getopt.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,8 +155,7 @@ main(int argc, char *argv[])
 		}
 
 		{
-			// NOLINTNEXTLINE(clang-analyzer-unix.StdCLibraryFunctions)
-			char *cwd = getcwd(NULL, 0);
+			char *cwd = realpath(".", NULL);
 			printf("cwd: %s\n", cwd);
 			if (cwd != NULL)
 				free(cwd);

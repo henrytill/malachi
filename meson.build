@@ -5,6 +5,8 @@ project(
     default_options: ['warning_level=2', 'c_std=c17'],
 )
 
+add_project_arguments('-D_XOPEN_SOURCE=600', language: 'c')
+
 libgit2_dep = dependency('libgit2', required: true)
 
 mupdf_dep = dependency('mupdf', required: false)
