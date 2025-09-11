@@ -27,15 +27,6 @@ usage(char *argv[])
 	eprintf("Usage: %s [--version] [--config] [--test [name]] <query>\n", argv[0]);
 }
 
-static void
-filterversions(void)
-{
-	Filter const **filters = filterall();
-	for (int i = 0; filters[i]; ++i) {
-		printf("%s: %s\n", filters[i]->name, filters[i]->version());
-	}
-}
-
 static int
 versions(void)
 {
@@ -55,7 +46,12 @@ versions(void)
 		}
 		printf("libgit2: %d.%d.%d\n", major, minor, rev);
 	}
-	filterversions();
+	{
+		Filter const **filters = filterall();
+		for (int i = 0; filters[i]; ++i) {
+			printf("%s: %s\n", filters[i]->name, filters[i]->version());
+		}
+	}
 	printf("sqlite: %s\n", sqlite3_libversion());
 	return 0;
 }
