@@ -5,17 +5,19 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "test.h"
-
-static void
+static int
 test_platform_to_string(void)
 {
-	BEGIN_TEST();
 	char const *platform_str = platform_to_string();
-	TEST(platform_str != NULL);
-	TEST(strlen(platform_str) > 0);
-	printf("Platform: %s\n", platform_str);
-	END_TEST();
+	if (platform_str == NULL) {
+		eprintf("ERROR: platform_to_string returned NULL\n");
+		return -1;
+	}
+	if (strlen(platform_str) == 0) {
+		eprintf("ERROR: platform_to_string returned empty string\n");
+		return -1;
+	}
+	return 0;
 }
 
 static char *
@@ -30,35 +32,43 @@ test_getenv(char const *name)
 	return NULL;
 }
 
-static void
+static int
 test_platform_get_config_dir(void)
 {
-	BEGIN_TEST();
 	char *config_dir = platform_get_config_dir(test_getenv, "testapp");
-	TEST(config_dir != NULL);
-	printf("Config dir: %s\n", config_dir);
+	if (config_dir == NULL) {
+		eprintf("ERROR: platform_get_config_dir returned NULL\n");
+		return -1;
+	}
 	free(config_dir);
-	END_TEST();
+	return 0;
 }
 
-static void
+static int
 test_platform_get_data_dir(void)
 {
-	BEGIN_TEST();
 	char *data_dir = platform_get_data_dir(test_getenv, "testapp");
-	TEST(data_dir != NULL);
-	printf("Data dir: %s\n", data_dir);
+	if (data_dir == NULL) {
+		eprintf("ERROR: platform_get_data_dir returned NULL\n");
+		return -1;
+	}
 	free(data_dir);
-	END_TEST();
+	return 0;
 }
 
 static int
 platform_test_run(void)
 {
-	test_platform_to_string();
-	test_platform_get_config_dir();
-	test_platform_get_data_dir();
-	return EXIT_SUCCESS;
+	int failures = 0;
+
+	if (test_platform_to_string() != 0)
+		failures++;
+	if (test_platform_get_config_dir() != 0)
+		failures++;
+	if (test_platform_get_data_dir() != 0)
+		failures++;
+
+	return failures;
 }
 
 static struct test_ops const platform_test_ops = {

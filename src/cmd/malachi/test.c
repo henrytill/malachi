@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 #include "dat.h"
 #include "fns.h"
@@ -28,30 +26,19 @@ test_run_all(void)
 
 	printf("Running %d tests...\n", test_count);
 
-	for (int i = 0; i < test_count; i++) {
+	for (int i = 0; i < test_count; ++i) {
 		struct test_ops const *test = all_tests[i];
 		printf("Running test: %s... ", test->name);
 		(void)fflush(stdout);
 
-		pid_t pid = fork();
-		if (pid == 0) {
-			int result = test->run();
-			exit(result);
-		} else if (pid > 0) {
-			int status;
-			if (waitpid(pid, &status, 0) == -1) {
-				printf("ERROR (waitpid failed)\n");
-				failed++;
-			} else if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-				printf("PASS\n");
-			} else {
-				printf("FAIL\n");
-				failed++;
-			}
-		} else {
-			printf("ERROR (fork failed)\n");
-			failed++;
+		int result = test->run();
+		if (result == 0) {
+			printf("PASS\n");
+			continue;
 		}
+
+		printf("FAIL\n");
+		failed++;
 	}
 
 	printf("\nResults: %d passed, %d failed\n", test_count - failed, failed);
@@ -61,35 +48,20 @@ test_run_all(void)
 int
 test_run_by_name(char const *name)
 {
-	for (int i = 0; i < test_count; i++) {
+	for (int i = 0; i < test_count; ++i) {
 		struct test_ops const *test = all_tests[i];
 		if (strcmp(test->name, name) == 0) {
 			printf("Running test: %s... ", test->name);
 			(void)fflush(stdout);
 
-			pid_t pid = fork();
-			if (pid == 0) {
-				int result = test->run();
-				exit(result);
-			} else if (pid > 0) {
-				int status;
-				if (waitpid(pid, &status, 0) == -1) {
-					printf("ERROR (waitpid failed)\n");
-					return 1;
-				}
-
-				if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-					printf("PASS\n");
-					return 0;
-				}
-
-				printf("FAIL\n");
-				return 1;
-
-			} else {
-				printf("ERROR (fork failed)\n");
-				return 1;
+			int result = test->run();
+			if (result == 0) {
+				printf("PASS\n");
+				return 0;
 			}
+
+			printf("FAIL\n");
+			return 1;
 		}
 	}
 
