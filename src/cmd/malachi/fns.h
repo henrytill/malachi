@@ -1,6 +1,6 @@
 #pragma once
 
-#define eprintf(...) (void)fprintf(stderr, __VA_ARGS__)
+int eprintf(char const *fmt, ...);
 
 char *joinpath2(char const *a, char const *b);
 char *joinpath3(char const *a, char const *b, char const *c);

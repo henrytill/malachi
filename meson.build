@@ -63,6 +63,7 @@ malachi = executable(
         'src/cmd/malachi/main.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',
+        'src/cmd/malachi/util.c',
         platform_sources,
         filter_sources,
         test_sources,
