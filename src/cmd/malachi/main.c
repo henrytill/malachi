@@ -61,7 +61,7 @@ versions(void)
 }
 
 static void
-printconfig(Config const *config)
+configprint(Config const *config)
 {
 	printf("platform: %s\n", platformstr());
 	printf("configdir: %s\n", config->configdir);
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 		}
 
 		if (opts.config) {
-			printconfig(&config);
+			configprint(&config);
 			configfree(&config);
 			return EXIT_SUCCESS;
 		}
