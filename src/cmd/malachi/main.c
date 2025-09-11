@@ -21,6 +21,11 @@ struct Opts {
 	char const *testname;
 };
 
+static char const *const commitstr =
+	strlen(MALACHI_COMMIT_SHORT_HASH) > 0
+		? "-" MALACHI_COMMIT_SHORT_HASH
+		: "";
+
 static void
 usage(char *argv[])
 {
@@ -30,10 +35,12 @@ usage(char *argv[])
 static int
 versions(void)
 {
-	printf("malachi: %d.%d.%d", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH);
-	if(strlen(MALACHI_COMMIT_SHORT_HASH) > 0)
-		printf(" (%s)", MALACHI_COMMIT_SHORT_HASH);
-	printf("\n");
+	printf("malachi=%d.%d.%d%s\n",
+		MALACHI_VERSION_MAJOR,
+		MALACHI_VERSION_MINOR,
+		MALACHI_VERSION_PATCH,
+		commitstr);
+
 	{
 		int major = 0;
 		int minor = 0;
@@ -43,14 +50,19 @@ versions(void)
 			eprintf("Failed to get libgit2 version\n");
 			return -1;
 		}
-		printf("libgit2: %d.%d.%d\n", major, minor, rev);
+		printf("libgit2=%d.%d.%d\n", major, minor, rev);
 	}
+
+	printf("sqlite=%s\n", sqlite3_libversion());
+
 	{
 		Filter const **filters = filterall();
 		for(int i = 0; filters[i]; ++i)
-			printf("%s: %s\n", filters[i]->name, filters[i]->version());
+			printf("%s=%s\n",
+				filters[i]->name,
+				filters[i]->version());
 	}
-	printf("sqlite: %s\n", sqlite3_libversion());
+
 	return 0;
 }
 
