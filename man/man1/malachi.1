@@ -1,0 +1,33 @@
+.TH MALACHI 1
+.SH NAME
+malachi \- full-text search indexer for Git repositories
+.SH SYNOPSIS
+.B malachi
+[
+.B -vct
+]
+[
+.I query
+]
+.SH DESCRIPTION
+.I Malachi
+is a full-text search indexer for Git repositories.
+.PP
+If no arguments are given,
+.I malachi
+prints usage information.
+.PP
+The optional flags are:
+.TP
+.B -v
+Print version information.
+.TP
+.B -c
+Print configuration paths (config, data, and cache directories).
+.TP
+.B -t
+Run tests. If followed by a test name, run only that test.
+.PP
+Search functionality is pending implementation.
+.SH SOURCE
+.B src/cmd/malachi
