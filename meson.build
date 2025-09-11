@@ -42,7 +42,6 @@ if mupdf_dep.found()
     filter_sources += ['src/cmd/malachi/filter_mupdf.c']
 endif
 
-
 test_sources = []
 test_sources += ['src/cmd/malachi/config_test.c']
 test_sources += ['src/cmd/malachi/platform_test.c']
