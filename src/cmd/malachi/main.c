@@ -69,10 +69,10 @@ versions(void)
 static void
 configprint(Config const *config)
 {
-	printf("platform: %s\n", platformstr());
-	printf("configdir: %s\n", config->configdir);
-	printf("datadir: %s\n", config->datadir);
-	printf("cachedir: %s\n", config->cachedir);
+	printf("platform=%s\n", platformstr());
+	printf("configdir=%s\n", config->configdir);
+	printf("datadir=%s\n", config->datadir);
+	printf("cachedir=%s\n", config->cachedir);
 }
 
 int
