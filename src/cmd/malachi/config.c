@@ -4,13 +4,13 @@
 #include "dat.h"
 #include "fns.h"
 
-#define NAME "malachi"
+static char const *const name = "malachi";
 
 int
 config_init(platform_getenv_fn getenv, struct config *config, struct error *err)
 {
-	char *config_dir = platform_get_config_dir(getenv, NAME);
-	char *data_dir = platform_get_data_dir(getenv, NAME);
+	char *config_dir = platform_get_config_dir(getenv, name);
+	char *data_dir = platform_get_data_dir(getenv, name);
 
 	if (config_dir == NULL) {
 		err->rc = -CONFIG_ERROR_MISSING_DIR;
