@@ -110,12 +110,11 @@ main(int argc, char *argv[])
 
 		if(opts.test) {
 			int tr;
-			if(opts.testname) {
+			if(opts.testname)
 				tr = testone(opts.testname);
-			} else {
+			else
 				tr = testall();
-			}
-			configfree(&config);
+
 			return tr ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
