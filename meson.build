@@ -48,10 +48,7 @@ if mupdf_dep.found()
     filter_sources += ['src/cmd/malachi/filtmupdf.c']
 endif
 
-test_sources = [
-    'src/cmd/malachi/testconf.c',
-    'src/cmd/malachi/testplat.c',
-]
+test_sources = ['src/cmd/malachi/testconf.c', 'src/cmd/malachi/testplat.c']
 if host_machine.system() == 'darwin'
     test_sources += ['src/cmd/malachi/testconfmac.c']
 else
