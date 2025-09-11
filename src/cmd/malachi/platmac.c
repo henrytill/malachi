@@ -4,7 +4,7 @@
 #include "dat.h"
 #include "fns.h"
 
-char const *
+char *
 platformstr(void)
 {
 	return "macOS";

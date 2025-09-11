@@ -6,7 +6,7 @@ char *joinpath2(char const *a, char const *b);
 char *joinpath3(char const *a, char const *b, char const *c);
 char *joinpath4(char const *a, char const *b, char const *c, char const *d);
 
-char const *platformstr(void);
+char *platformstr(void);
 char *getconfigdir(Getenvfn getenv, char const *name);
 char *getdatadir(Getenvfn getenv, char const *name);
 char *getcachedir(Getenvfn getenv, char const *name);
