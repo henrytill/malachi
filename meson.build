@@ -72,5 +72,5 @@ malachi = executable(
     install: true,
 )
 
-test('config_test', malachi, args: ['--test=config'])
-test('platform_test', malachi, args: ['--test=platform'])
+test('config_test', malachi, args: ['-tconfig'])
+test('platform_test', malachi, args: ['-tplatform'])

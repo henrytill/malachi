@@ -1,7 +1,6 @@
 #include "project.h"
 
 #include <assert.h>
-#include <getopt.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -25,7 +24,7 @@ struct Opts {
 static void
 usage(char *argv[])
 {
-	eprintf("Usage: %s [--version] [--config] [--test [name]] <query>\n", argv[0]);
+	eprintf("Usage: %s [-v] [-c] [-t [name]] <query>\n", argv[0]);
 }
 
 static int
@@ -78,17 +77,9 @@ main(int argc, char *argv[])
 
 	{
 		int c = 0;
-		int longind = 0;
-
-		struct option longopts[] = {
-			{"version", no_argument, NULL, 'v'},
-			{"config", no_argument, NULL, 'c'},
-			{"test", optional_argument, NULL, 't'},
-			{0, 0, 0, 0},
-		};
 
 		for (;;) {
-			c = getopt_long(argc, argv, "vct::", longopts, &longind);
+			c = getopt(argc, argv, "vct::");
 			if (c == -1)
 				break;
 
