@@ -1,6 +1,6 @@
 #pragma once
 
-int eprintf(char const *fmt, ...);
+int eprintf(char *fmt, ...);
 
 char *joinpath2(char const *a, char const *b);
 char *joinpath3(char const *a, char const *b, char const *c);

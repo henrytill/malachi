@@ -5,14 +5,14 @@
 #include "fns.h"
 
 int
-eprintf(char const *fmt, ...)
+eprintf(char *fmt, ...)
 {
-	va_list args;
-	int ret;
+	va_list arg;
+	int n;
 
-	va_start(args, fmt);
-	ret = vfprintf(stderr, fmt, args);
-	va_end(args);
+	va_start(arg, fmt);
+	n = vfprintf(stderr, fmt, arg);
+	va_end(arg);
 
-	return ret;
+	return n;
 }
