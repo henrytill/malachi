@@ -42,6 +42,22 @@ xdgdatahome(Getenvfn getenv, char const *name)
 	return NULL;
 }
 
+static char *
+xdgcachehome(Getenvfn getenv, char const *name)
+{
+	assert(name != NULL);
+
+	char const *xdgvar = getenv("XDG_CACHE_HOME");
+	if (xdgvar != NULL)
+		return joinpath2(xdgvar, name);
+
+	char const *homevar = getenv("HOME");
+	if (homevar != NULL)
+		return joinpath3(homevar, ".cache", name);
+
+	return NULL;
+}
+
 char *
 getconfigdir(Getenvfn getenv, char const *name)
 {
@@ -52,4 +68,10 @@ char *
 getdatadir(Getenvfn getenv, char const *name)
 {
 	return xdgdatahome(getenv, name);
+}
+
+char *
+getcachedir(Getenvfn getenv, char const *name)
+{
+	return xdgcachehome(getenv, name);
 }

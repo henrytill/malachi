@@ -9,6 +9,7 @@ char *joinpath4(char const *a, char const *b, char const *c, char const *d);
 char const *platformstr(void);
 char *getconfigdir(Getenvfn getenv, char const *name);
 char *getdatadir(Getenvfn getenv, char const *name);
+char *getcachedir(Getenvfn getenv, char const *name);
 
 int configinit(Getenvfn getenv, Config *config, Error *err);
 void configfree(Config *config);

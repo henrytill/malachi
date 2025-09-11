@@ -18,6 +18,7 @@ typedef struct Config Config;
 struct Config {
 	char *configdir;
 	char *datadir;
+	char *cachedir;
 };
 
 typedef struct Filter Filter;

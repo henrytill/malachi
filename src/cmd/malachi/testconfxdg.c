@@ -53,6 +53,9 @@ getenvxdg(char const *name)
 	if (strcmp(name, "XDG_DATA_HOME") == 0)
 		return "/tmp/data";
 
+	if (strcmp(name, "XDG_CACHE_HOME") == 0)
+		return "/tmp/cache";
+
 	return NULL;
 }
 

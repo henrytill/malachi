@@ -22,6 +22,18 @@ appsupport(Getenvfn getenv, char const *name)
 	return NULL;
 }
 
+static char *
+caches(Getenvfn getenv, char const *name)
+{
+	assert(name != NULL);
+
+	char const *homevar = getenv("HOME");
+	if (homevar != NULL)
+		return joinpath4(homevar, "Library", "Caches", name);
+
+	return NULL;
+}
+
 char *
 getconfigdir(Getenvfn getenv, char const *name)
 {
@@ -32,4 +44,10 @@ char *
 getdatadir(Getenvfn getenv, char const *name)
 {
 	return appsupport(getenv, name);
+}
+
+char *
+getcachedir(Getenvfn getenv, char const *name)
+{
+	return caches(getenv, name);
 }

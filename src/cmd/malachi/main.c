@@ -78,6 +78,7 @@ printconfig(Config const *config)
 	printf("platform: %s\n", platformstr());
 	printf("configdir: %s\n", config->configdir);
 	printf("datadir: %s\n", config->datadir);
+	printf("cachedir: %s\n", config->cachedir);
 }
 
 int
