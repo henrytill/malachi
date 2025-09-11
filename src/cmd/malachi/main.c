@@ -29,7 +29,7 @@ static char const *const commitstr =
 static void
 usage(char *argv[])
 {
-	eprintf("Usage: %s [-v] [-c] [-t [name]] <query>\n", argv[0]);
+	eprintf("Usage: %s [-v] [-c] [-t [name]] [query]\n", argv[0]);
 }
 
 static int
