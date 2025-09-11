@@ -20,4 +20,4 @@ Filter const **filterall(void);
 
 void testadd(Test const *ops);
 int testall(void);
-int testrun(char const *name);
+int testone(char const *name);

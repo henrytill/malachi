@@ -46,7 +46,7 @@ testall(void)
 }
 
 int
-testrun(char const *name)
+testone(char const *name)
 {
 	for (int i = 0; i < ntests; ++i) {
 		Test const *test = tests[i];

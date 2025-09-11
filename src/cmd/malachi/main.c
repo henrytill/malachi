@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 		if (opts.test) {
 			int tr;
 			if (opts.testname) {
-				tr = testrun(opts.testname);
+				tr = testone(opts.testname);
 			} else {
 				tr = testall();
 			}
