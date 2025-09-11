@@ -7,6 +7,10 @@ project(
 
 add_project_arguments('-D_XOPEN_SOURCE=600', language: 'c')
 
+if get_option('optimization') != '0'
+    add_project_arguments('-D_FORTIFY_SOURCE=2', language: 'c')
+endif
+
 libgit2_dep = dependency('libgit2', required: true)
 
 mupdf_dep = dependency('mupdf', required: false)
