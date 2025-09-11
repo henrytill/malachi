@@ -5,29 +5,29 @@
 #include "dat.h"
 #include "fns.h"
 
-#define MAX_TESTS 16
+#define MAXTESTS 16
 
-static struct test_ops const *all_tests[MAX_TESTS];
-static int test_count = 0;
+static Test const *tests[MAXTESTS];
+static int ntests = 0;
 
 void
-test_register(struct test_ops const *ops)
+testadd(Test const *ops)
 {
-	if (test_count < MAX_TESTS - 1) {
-		all_tests[test_count++] = ops;
-		all_tests[test_count] = NULL;
+	if (ntests < MAXTESTS - 1) {
+		tests[ntests++] = ops;
+		tests[ntests] = NULL;
 	}
 }
 
 int
-test_run_all(void)
+testall(void)
 {
 	int failed = 0;
 
-	printf("Running %d tests...\n", test_count);
+	printf("Running %d tests...\n", ntests);
 
-	for (int i = 0; i < test_count; ++i) {
-		struct test_ops const *test = all_tests[i];
+	for (int i = 0; i < ntests; ++i) {
+		Test const *test = tests[i];
 		printf("Running test: %s... ", test->name);
 		(void)fflush(stdout);
 
@@ -41,15 +41,15 @@ test_run_all(void)
 		failed++;
 	}
 
-	printf("\nResults: %d passed, %d failed\n", test_count - failed, failed);
+	printf("\nResults: %d passed, %d failed\n", ntests - failed, failed);
 	return failed;
 }
 
 int
-test_run_by_name(char const *name)
+testrun(char const *name)
 {
-	for (int i = 0; i < test_count; ++i) {
-		struct test_ops const *test = all_tests[i];
+	for (int i = 0; i < ntests; ++i) {
+		Test const *test = tests[i];
 		if (strcmp(test->name, name) == 0) {
 			printf("Running test: %s... ", test->name);
 			(void)fflush(stdout);

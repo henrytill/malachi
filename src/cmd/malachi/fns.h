@@ -6,17 +6,17 @@ char *joinpath2(char const *a, char const *b);
 char *joinpath3(char const *a, char const *b, char const *c);
 char *joinpath4(char const *a, char const *b, char const *c, char const *d);
 
-char const *platform_to_string(void);
-char *platform_get_config_dir(platform_getenv_fn getenv, char const *name);
-char *platform_get_data_dir(platform_getenv_fn getenv, char const *name);
+char const *platformstr(void);
+char *getconfigdir(Getenvfn getenv, char const *name);
+char *getdatadir(Getenvfn getenv, char const *name);
 
-int config_init(platform_getenv_fn getenv, struct config *config, struct error *err);
-void config_finish(struct config *config);
+int configinit(Getenvfn getenv, Config *config, Error *err);
+void configfree(Config *config);
 
-void filter_register(struct filter_ops const *ops);
-struct filter_ops const *filter_for_extension(char const *ext);
-struct filter_ops const **filter_get_all(void);
+void filteradd(Filter const *ops);
+Filter const *filterget(char const *ext);
+Filter const **filterall(void);
 
-void test_register(struct test_ops const *ops);
-int test_run_all(void);
-int test_run_by_name(char const *name);
+void testadd(Test const *ops);
+int testall(void);
+int testrun(char const *name);

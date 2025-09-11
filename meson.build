@@ -32,30 +32,30 @@ project_h = vcs_tag(
 
 platform_sources = []
 if host_machine.system() == 'darwin'
-    platform_sources += ['src/cmd/malachi/platform_macos.c']
+    platform_sources += ['src/cmd/malachi/platmacos.c']
 else
-    platform_sources += ['src/cmd/malachi/platform_xdg.c']
+    platform_sources += ['src/cmd/malachi/platxdg.c']
 endif
 
 filter_sources = []
 if mupdf_dep.found()
-    filter_sources += ['src/cmd/malachi/filter_mupdf.c']
+    filter_sources += ['src/cmd/malachi/filtmupdf.c']
 endif
 
 test_sources = []
-test_sources += ['src/cmd/malachi/config_test.c']
-test_sources += ['src/cmd/malachi/platform_test.c']
+test_sources += ['src/cmd/malachi/testconf.c']
+test_sources += ['src/cmd/malachi/testplat.c']
 if host_machine.system() == 'darwin'
-    test_sources += ['src/cmd/malachi/config_test_macos.c']
+    test_sources += ['src/cmd/malachi/testconfmacos.c']
 else
-    test_sources += ['src/cmd/malachi/config_test_xdg.c']
+    test_sources += ['src/cmd/malachi/testconfxdg.c']
 endif
 
 malachi = executable(
     'malachi',
     sources: [
         'src/cmd/malachi/config.c',
-        'src/cmd/malachi/filter.c',
+        'src/cmd/malachi/filt.c',
         'src/cmd/malachi/main.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',

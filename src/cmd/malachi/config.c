@@ -7,37 +7,37 @@
 static char const *const name = "malachi";
 
 int
-config_init(platform_getenv_fn getenv, struct config *config, struct error *err)
+configinit(Getenvfn getenv, Config *config, Error *err)
 {
-	char *config_dir = platform_get_config_dir(getenv, name);
-	char *data_dir = platform_get_data_dir(getenv, name);
+	char *configdir = getconfigdir(getenv, name);
+	char *datadir = getdatadir(getenv, name);
 
-	if (config_dir == NULL) {
-		err->rc = -CONFIG_ERROR_MISSING_DIR;
-		err->msg = "config_dir is NULL";
-		free(data_dir);
-		return -CONFIG_ERROR_MISSING_DIR;
+	if (configdir == NULL) {
+		err->rc = -EMISSINGDIR;
+		err->msg = "configdir is NULL";
+		free(datadir);
+		return -EMISSINGDIR;
 	}
 
-	if (data_dir == NULL) {
-		err->rc = -CONFIG_ERROR_MISSING_DIR;
-		err->msg = "data_dir is NULL";
-		free(config_dir);
-		return -CONFIG_ERROR_MISSING_DIR;
+	if (datadir == NULL) {
+		err->rc = -EMISSINGDIR;
+		err->msg = "datadir is NULL";
+		free(configdir);
+		return -EMISSINGDIR;
 	}
 
-	config->config_dir = config_dir;
-	config->data_dir = data_dir;
+	config->configdir = configdir;
+	config->datadir = datadir;
 	return 0;
 }
 
 void
-config_finish(struct config *config)
+configfree(Config *config)
 {
-	if (config->config_dir == config->data_dir) {
-		free(config->config_dir);
+	if (config->configdir == config->datadir) {
+		free(config->configdir);
 	} else {
-		free(config->config_dir);
-		free(config->data_dir);
+		free(config->configdir);
+		free(config->datadir);
 	}
 }

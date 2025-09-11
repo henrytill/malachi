@@ -14,11 +14,11 @@
 #include "dat.h"
 #include "fns.h"
 
-struct malachi_opts {
+struct Opts {
 	int version;
 	int config;
 	int test;
-	char const *test_name;
+	char const *testname;
 };
 
 static void
@@ -28,16 +28,16 @@ usage(char *argv[])
 }
 
 static void
-print_filter_versions(void)
+filterversions(void)
 {
-	struct filter_ops const **filters = filter_get_all();
+	Filter const **filters = filterall();
 	for (int i = 0; filters[i]; ++i) {
-		printf("%s: %s\n", filters[i]->name, filters[i]->get_version());
+		printf("%s: %s\n", filters[i]->name, filters[i]->version());
 	}
 }
 
 static int
-print_versions(void)
+versions(void)
 {
 	printf("malachi: %d.%d.%d", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH);
 	if (strlen(MALACHI_COMMIT_SHORT_HASH) > 0) {
@@ -55,16 +55,16 @@ print_versions(void)
 		}
 		printf("libgit2: %d.%d.%d\n", major, minor, rev);
 	}
-	print_filter_versions();
+	filterversions();
 	printf("sqlite: %s\n", sqlite3_libversion());
 	return 0;
 }
 
 static int
-configure(struct config *config)
+configure(Config *config)
 {
-	struct error error = {0};
-	int rc = config_init(getenv, config, &error);
+	Error error = {0};
+	int rc = configinit(getenv, config, &error);
 	if (rc != 0) {
 		eprintf("Failed to initialize config: %s\n", error.msg);
 		return -1;
@@ -73,17 +73,17 @@ configure(struct config *config)
 }
 
 static void
-print_config(struct config const *config)
+printconfig(Config const *config)
 {
-	printf("platform: %s\n", platform_to_string());
-	printf("config_dir: %s\n", config->config_dir);
-	printf("data_dir: %s\n", config->data_dir);
+	printf("platform: %s\n", platformstr());
+	printf("configdir: %s\n", config->configdir);
+	printf("datadir: %s\n", config->datadir);
 }
 
 int
 main(int argc, char *argv[])
 {
-	struct malachi_opts opts = {0};
+	struct Opts opts = {0};
 
 	if (argc == 1) {
 		usage(argv);
@@ -92,9 +92,9 @@ main(int argc, char *argv[])
 
 	{
 		int c = 0;
-		int option_index = 0;
+		int idx = 0;
 
-		struct option long_options[] = {
+		struct option longopts[] = {
 			{"version", no_argument, NULL, 'v'},
 			{"config", no_argument, NULL, 'c'},
 			{"test", optional_argument, NULL, 't'},
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 		};
 
 		for (;;) {
-			c = getopt_long(argc, argv, "vct::", long_options, &option_index);
+			c = getopt_long(argc, argv, "vct::", longopts, &idx);
 			if (c == -1)
 				break;
 
@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 				break;
 			case 't':
 				opts.test = 1;
-				opts.test_name = optarg;
+				opts.testname = optarg;
 				break;
 			case '?':
 				usage(argv);
@@ -130,21 +130,21 @@ main(int argc, char *argv[])
 		extern int optind;
 
 		int rc = -1;
-		struct config config = {0};
+		Config config = {0};
 
 		if (opts.test) {
-			int test_result;
-			if (opts.test_name) {
-				test_result = test_run_by_name(opts.test_name);
+			int tr;
+			if (opts.testname) {
+				tr = testrun(opts.testname);
 			} else {
-				test_result = test_run_all();
+				tr = testall();
 			}
-			config_finish(&config);
-			return test_result ? EXIT_FAILURE : EXIT_SUCCESS;
+			configfree(&config);
+			return tr ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
 		if (opts.version) {
-			rc = print_versions();
+			rc = versions();
 			return rc ? EXIT_FAILURE : EXIT_SUCCESS;
 		}
 
@@ -153,8 +153,8 @@ main(int argc, char *argv[])
 			return EXIT_FAILURE;
 
 		if (opts.config) {
-			print_config(&config);
-			config_finish(&config);
+			printconfig(&config);
+			configfree(&config);
 			return EXIT_SUCCESS;
 		}
 
@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 				free(cwd);
 		}
 
-		config_finish(&config);
+		configfree(&config);
 	}
 
 	return EXIT_SUCCESS;

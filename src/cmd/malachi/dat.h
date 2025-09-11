@@ -1,29 +1,37 @@
 #pragma once
 
-struct error {
+typedef struct Error Error;
+
+struct Error {
 	int rc;
 	char const *msg;
 };
 
-typedef char *platform_getenv_fn(char const *name);
+typedef char *Getenvfn(char const *name);
 
-enum config_error {
-	CONFIG_ERROR_MISSING_DIR = 1,
+enum {
+	EMISSINGDIR = 1,
 };
 
-struct config {
-	char *config_dir;
-	char *data_dir;
+typedef struct Config Config;
+
+struct Config {
+	char *configdir;
+	char *datadir;
 };
 
-struct filter_ops {
+typedef struct Filter Filter;
+
+struct Filter {
 	char const *name;
-	char const **extensions;
-	int (*extract_text)(char const *input_path, char **output_text);
-	char const *(*get_version)(void);
+	char const **exts;
+	int (*extract)(char const *input, char **output);
+	char const *(*version)(void);
 };
 
-struct test_ops {
+typedef struct Test Test;
+
+struct Test {
 	char const *name;
 	int (*run)(void);
 };
