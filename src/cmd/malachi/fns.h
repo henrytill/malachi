@@ -18,6 +18,12 @@ int config_init(platform_getenv_fn getenv, struct config *config, struct error *
 
 void config_finish(struct config *config);
 
+void filter_register(struct filter_ops const *ops);
+
+struct filter_ops const *filter_for_extension(char const *ext);
+
+struct filter_ops const **filter_get_all(void);
+
 void test_register(struct test_ops const *ops);
 
 int test_run_all(void);

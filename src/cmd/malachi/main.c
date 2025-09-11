@@ -11,10 +11,6 @@
 #include <git2/common.h>
 #include <sqlite3.h>
 
-#ifdef MALACHI_HAVE_MUPDF
-#	include <mupdf/fitz.h>
-#endif
-
 #include "dat.h"
 #include "fns.h"
 
@@ -31,18 +27,14 @@ usage(char *argv[])
 	eprintf("Usage: %s [--version] [--config] [--test [name]] <query>\n", argv[0]);
 }
 
-#ifdef MALACHI_HAVE_MUPDF
-static inline void
-print_mupdf_version(void)
+static void
+print_filter_versions(void)
 {
-	printf("mupdf: %s\n", FZ_VERSION);
+	struct filter_ops const **filters = filter_get_all();
+	for (int i = 0; filters[i]; ++i) {
+		printf("%s: %s\n", filters[i]->name, filters[i]->get_version());
+	}
 }
-#else
-static inline void
-print_mupdf_version(void)
-{
-}
-#endif
 
 static int
 print_versions(void)
@@ -63,7 +55,7 @@ print_versions(void)
 		}
 		printf("libgit2: %d.%d.%d\n", major, minor, rev);
 	}
-	print_mupdf_version();
+	print_filter_versions();
 	printf("sqlite: %s\n", sqlite3_libversion());
 	return 0;
 }

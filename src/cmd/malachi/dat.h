@@ -16,6 +16,13 @@ struct config {
 	char *data_dir;
 };
 
+struct filter_ops {
+	char const *name;
+	char const **extensions;
+	int (*extract_text)(char const *input_path, char **output_text);
+	char const *(*get_version)(void);
+};
+
 struct test_ops {
 	char const *name;
 	int (*run)(void);

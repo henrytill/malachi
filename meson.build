@@ -15,7 +15,6 @@ project_config = configure_file(
     input: 'include/project.h.in',
     output: 'project.h.in',
     configuration: {
-        'MALACHI_HAVE_MUPDF': mupdf_dep.found(),
         'MALACHI_VERSION_MAJOR': meson.project_version().split('.')[0],
         'MALACHI_VERSION_MINOR': meson.project_version().split('.')[1],
         'MALACHI_VERSION_PATCH': meson.project_version().split('.')[2],
@@ -38,6 +37,12 @@ else
     platform_sources += ['src/cmd/malachi/platform_xdg.c']
 endif
 
+filter_sources = []
+if mupdf_dep.found()
+    filter_sources += ['src/cmd/malachi/filter_mupdf.c']
+endif
+
+
 test_sources = []
 test_sources += ['src/cmd/malachi/config_test.c']
 test_sources += ['src/cmd/malachi/platform_test.c']
@@ -51,10 +56,12 @@ malachi = executable(
     'malachi',
     sources: [
         'src/cmd/malachi/config.c',
+        'src/cmd/malachi/filter.c',
         'src/cmd/malachi/main.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',
         platform_sources,
+        filter_sources,
         test_sources,
         project_h,
     ],
