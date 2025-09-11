@@ -70,7 +70,6 @@ malachi = executable(
         project_h,
     ],
     dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
-    include_directories: [include_directories('src/cmd/malachi')],
     install: true,
 )
 
