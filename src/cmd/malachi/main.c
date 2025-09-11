@@ -31,9 +31,8 @@ static int
 versions(void)
 {
 	printf("malachi: %d.%d.%d", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH);
-	if(strlen(MALACHI_COMMIT_SHORT_HASH) > 0) {
-		printf("-%s", MALACHI_COMMIT_SHORT_HASH);
-	}
+	if(strlen(MALACHI_COMMIT_SHORT_HASH) > 0)
+		printf(" (%s)", MALACHI_COMMIT_SHORT_HASH);
 	printf("\n");
 	{
 		int major = 0;
@@ -48,9 +47,8 @@ versions(void)
 	}
 	{
 		Filter const **filters = filterall();
-		for(int i = 0; filters[i]; ++i) {
+		for(int i = 0; filters[i]; ++i)
 			printf("%s: %s\n", filters[i]->name, filters[i]->version());
-		}
 	}
 	printf("sqlite: %s\n", sqlite3_libversion());
 	return 0;
