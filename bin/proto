@@ -116,10 +116,10 @@ main() {
 		exit 1
 	fi
 
-	echo "repo=${repo}"
+	log "repo=${repo}"
 	cd "${repo}"
 	head="$(git rev-parse HEAD)"
-	echo "head=${head}"
+	log "head=${head}"
 
 	cachepath="${cachedir}/${repo}"
 	cached="$(getcachedhead "${cachepath}" "${head}")"
@@ -133,9 +133,9 @@ main() {
 
 	IFS=$'\n' readarray -t tree < <(git ls-tree -r --format='%(objectname) %(path)' HEAD)
 
-	if test "${debug}" = "1"
+	if test "${debug}" = "2"
 	then
-		log "tree elements: ${#tree[@]}"
+		log "ntree=${#tree[@]}"
 		for t in "${tree[@]}"
 		do
 			log "${t}"
