@@ -141,7 +141,7 @@ main() {
 	then
 		printf '%s\n' "${tree[@]}" | awk -f "${projroot}/lib/index.awk" "${indexfile}" -
 	else
-		printf '%s\n' "${tree[@]}" | awk '{print "added:", $2}'
+		printf '%s\n' "${tree[@]}" | awk '{printf "op=added path=\"%s\" hash=%s\n", $2, $1}'
 	fi
 
 	printf '%s\n' "${tree[@]}" | awk '{print $1, $2}' > "${indexfile}"
