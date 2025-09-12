@@ -17,6 +17,27 @@ projroot="${scriptdir}/.."
 
 source "${projroot}/lib/config.sh"
 
+command -v git >/dev/null 2>&1
+if test $? -ne 0
+then
+	error "git not found"
+	exit 1
+fi
+
+usage() {
+	cat <<EOF >&2
+Usage: ${0} [-c] [-d] [directory]
+
+Options:
+    -c          Show configuration directories
+    -d          Enable debug output
+
+Arguments:
+    directory   Git repository directory (default: current)
+EOF
+	exit 1
+}
+
 log() {
 	if test "${debug}" = "1"
 	then
@@ -27,17 +48,6 @@ log() {
 error() {
 	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
 }
-
-command -v git >/dev/null 2>&1
-if test $? -ne 0
-then
-	error "git not found"
-	exit 1
-fi
-
-configdir="$(getcachedir)"
-datadir="$(getdatadir)"
-cachedir="$(getcachedir)"
 
 findrepo() {
 	test $# -gt 1 && { error "usage: findrepo [directory]"; return 1; }
@@ -58,34 +68,25 @@ findrepo() {
 	return 1
 }
 
-getcachedhead() {
-	test $# -eq 2 || { error "usage: getcachedhead cachepath head"; return 1; }
+firstrun() {
+	test $# -eq 1 || { error "usage: firstrun cachepath"; return 1; }
 	local cachepath="${1}"
-	local head="${2}"
-	local headfile="${cachepath}/HEAD"
-
-	if test -f "${headfile}"
-	then
-		cat "${headfile}"
-	else
-		mkdir -p "${cachepath}"
-		echo "${head}" > "${headfile}"
-		echo "${head}"
-	fi
+	log "first run - generating add events for all files"
+	mkdir -p "${cachepath}"
+	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{printf "op=added path=\"%s\" hash=%s\n", $2, $1}'
 }
 
-usage() {
-	cat <<EOF >&2
-Usage: ${0} [-c] [-d] [directory]
+genevents() {
+	test $# -eq 2 || { error "usage: genevents cached head"; return 1; }
+	local cached="${1}"
+	local head="${2}"
+	git diff-tree --raw "${cached}" "${head}" | awk -f "${projroot}/lib/index.awk"
+}
 
-Options:
-    -c          Show configuration directories
-    -d          Enable debug output
-
-Arguments:
-    directory   Git repository directory (default: current)
-EOF
-	exit 1
+check() {
+	test $# -eq 1 || { error "usage: check cachepath"; return 1; }
+	local cachepath="${1}"
+	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{print $1, $2}' > "${cachepath}/index.txt"
 }
 
 main() {
@@ -98,6 +99,10 @@ main() {
 		esac
 	done
 	shift $((OPTIND - 1))
+
+	configdir="$(getcachedir)"
+	datadir="$(getdatadir)"
+	cachedir="$(getcachedir)"
 
 	if test "${showconfig}" = "1"
 	then
@@ -116,42 +121,33 @@ main() {
 		exit 1
 	fi
 
-	log "repo=${repo}"
 	cd "${repo}"
 	head="$(git rev-parse HEAD)"
+
+	log "repo=${repo}"
 	log "head=${head}"
 
 	cachepath="${cachedir}/${repo}"
-	cached="$(getcachedhead "${cachepath}" "${head}")"
+	headfile="${cachepath}/HEAD"
+
+	if test ! -f "${headfile}"
+	then
+		firstrun "${cachepath}"
+		echo "${head}" > "${headfile}"
+		return
+	fi
+
+	cached="$(cat "${headfile}")"
 	log "cached=${cached}"
 
 	if test "${cached}" = "${head}"
 	then
 		log "no changes since last run"
-		exit 0
+		return
 	fi
 
-	IFS=$'\n' readarray -t tree < <(git ls-tree -r --format='%(objectname) %(path)' HEAD)
-
-	if test "${debug}" = "2"
-	then
-		log "ntree=${#tree[@]}"
-		for t in "${tree[@]}"
-		do
-			log "${t}"
-		done
-	fi
-
-	indexfile="${cachepath}/index.txt"
-	if test -f "${indexfile}"
-	then
-		printf '%s\n' "${tree[@]}" | awk -f "${projroot}/lib/index.awk" "${indexfile}" -
-	else
-		printf '%s\n' "${tree[@]}" | awk '{printf "op=added path=\"%s\" hash=%s\n", $2, $1}'
-	fi
-
-	printf '%s\n' "${tree[@]}" | awk '{print $1, $2}' > "${indexfile}"
-	echo "${head}" > "${cachepath}/HEAD"
+	genevents "${cached}" "${head}"
+	echo "${head}" > "${headfile}"
 }
 
 main "$@"

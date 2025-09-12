@@ -1,24 +1,9 @@
-NR==FNR {
-	cache[$2] = $1
-	next
-}
-
 {
-	current[$2] = $1
-	if(cache[$2] != $1) {
-		printf "op=changed path=\"%s\" hash=%s\n", $2, $1
-	}
-}
+	if ($5 == "A") op = "added"
+	else if ($5 == "M") op = "changed"
+	else if ($5 == "D") op = "removed"
+	else next
 
-END {
-	for(file in current) {
-		if(!(file in cache)) {
-			printf "op=added path=\"%s\" hash=%s\n", file, current[file]
-		}
-	}
-	for(file in cache) {
-		if(!(file in current)) {
-			printf "op=removed path=\"%s\" hash=%s\n", file, cache[file]
-		}
-	}
+	hash = ($5 == "D") ? $3 : $4
+	printf "op=%s path=\"%s\" hash=%s\n", op, $6, hash
 }

@@ -7,9 +7,12 @@ set -o nounset
 scriptdir="$(realpath "$(dirname "${0}")")"
 projroot="${scriptdir}/.."
 
+echo '=== Setup ==='
+
 testdir="$(mktemp -d)"
 cachedir="$(mktemp -d)"
-echo "testdir=${testdir} cachedir=${cachedir}"
+echo "testdir=${testdir}"
+echo "cachedir=${cachedir}"
 
 cd "${testdir}"
 git init
@@ -24,7 +27,7 @@ git commit -m 'initial'
 export XDG_CACHE_HOME="${cachedir}"
 echo
 echo '=== Initial run ==='
-"${projroot}/bin/proto"
+"${projroot}/bin/proto" -d
 
 echo
 echo '=== Cache contents ==='
@@ -32,30 +35,44 @@ find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf
 
 echo
 echo '=== Second run ==='
-"${projroot}/bin/proto"
+"${projroot}/bin/proto" -d
 
+echo
+echo '=== Cache contents ==='
+find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf "%4s%s\n", "", $0}' {}
+
+echo
+echo '=== Modification ==='
 echo 'modified' > file1.txt
 git add file1.txt
 git commit -m 'modify file1'
 
 echo
-echo '=== After modification ==='
-"${projroot}/bin/proto"
+echo '=== Third run ==='
+"${projroot}/bin/proto" -d
 
 echo
-echo '=== Cache contents after modification ==='
+echo '=== Cache contents ==='
 find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf "%4s%s\n", "", $0}' {}
 
+echo
+echo '=== Removal ==='
 git rm file2.txt
 git commit -m 'remove file2'
 
 echo
-echo '=== After removal ==='
-"${projroot}/bin/proto"
+echo '=== Fourth run ==='
+"${projroot}/bin/proto" -d
 
 echo
-echo '=== Cache contents after removal ==='
+echo '=== Cache contents ==='
 find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf "%4s%s\n", "", $0}' {}
 
-cd /
+echo
+echo '=== Fifth run ==='
+"${projroot}/bin/proto" -d
+
+echo
+echo '=== Cleanup ==='
+echo
 rm -rf "${testdir}" "${cachedir}"
