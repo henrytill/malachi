@@ -123,7 +123,13 @@ main() {
 
 	cachepath="${cachedir}/${repo}"
 	cached="$(getcachedhead "${cachepath}" "${head}")"
-	echo "cached=${cached}"
+	log "cached=${cached}"
+
+	if test "${cached}" = "${head}"
+	then
+		log "no changes since last run"
+		exit 0
+	fi
 
 	IFS=$'\n' readarray -t tree < <(git ls-tree -r --format='%(objectname) %(path)' HEAD)
 
