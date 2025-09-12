@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+readonly PREFIXDEBUG="[DEBUG]"
+readonly PREFIXERROR="[ERROR]"
+readonly PREFIXLOG="[INFO]"
+
+debug=0
+showconfig=0
+
+cwd="$(realpath .)"
+scriptdir="$(realpath "$(dirname "${0}")")"
+projroot="${scriptdir}/.."
+
+source "${projroot}/lib/config.sh"
+
+log() {
+	if test "${debug}" = "1"
+	then
+		printf "%s %s\n" "${PREFIXDEBUG}" "${1}"
+	fi
+}
+
+error() {
+	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
+}
+
+command -v git >/dev/null 2>&1
+if test $? -ne 0
+then
+	error "git not found"
+	exit 1
+fi
+
+configdir="$(getcachedir)"
+datadir="$(getdatadir)"
+cachedir="$(getcachedir)"
+
+findrepo() {
+	test $# -gt 1 && { error "usage: findrepo [directory]"; return 1; }
+	local dir="${1:-${cwd}}"
+	dir="$(realpath "${dir}")"
+
+	while test "${dir}" != "/"
+	do
+		if test -d "${dir}/.git"
+		then
+			echo "${dir}"
+			return 0
+		fi
+
+		dir="$(dirname "${dir}")"
+	done
+
+	return 1
+}
+
+getcachedhead() {
+	test $# -eq 2 || { error "usage: getcachedhead cachepath head"; return 1; }
+	local cachepath="${1}"
+	local head="${2}"
+	local headfile="${cachepath}/HEAD"
+
+	if test -f "${headfile}"
+	then
+		cat "${headfile}"
+	else
+		mkdir -p "${cachepath}"
+		echo "${head}" > "${headfile}"
+		echo "${head}"
+	fi
+}
+
+usage() {
+	cat <<EOF >&2
+Usage: ${0} [-c] [-d] [directory]
+
+Options:
+    -c          Show configuration directories
+    -d          Enable debug output
+
+Arguments:
+    directory   Git repository directory (default: current)
+EOF
+	exit 1
+}
+
+main() {
+	while getopts "cd" opt
+	do
+		case "${opt}" in
+			c) showconfig=1 ;;
+			d) debug=1 ;;
+			*) usage ;;
+		esac
+	done
+	shift $((OPTIND - 1))
+
+	if test "${showconfig}" = "1"
+	then
+		echo "configdir=${configdir}"
+		echo "datadir=${datadir}"
+		echo "cachedir=${cachedir}"
+		exit 0
+	fi
+
+	targetdir="${1:-${cwd}}"
+
+	repo="$(findrepo "${targetdir}")"
+	if test $? -ne 0
+	then
+		error "no git directory"
+		exit 1
+	fi
+
+	echo "repo=${repo}"
+	cd "${repo}"
+	head="$(git rev-parse HEAD)"
+	echo "head=${head}"
+
+	cachepath="${cachedir}/${repo}"
+	cached="$(getcachedhead "${cachepath}" "${head}")"
+	echo "cached=${cached}"
+
+	IFS=$'\n' readarray -t tree < <(git ls-tree -r --format='%(objectname) %(path)' HEAD)
+
+	if test "${debug}" = "1"
+	then
+		log "tree elements: ${#tree[@]}"
+		for t in "${tree[@]}"
+		do
+			log "${t}"
+		done
+	fi
+
+	indexfile="${cachepath}/index.txt"
+	if test -f "${indexfile}"
+	then
+		printf '%s\n' "${tree[@]}" | awk -f "${projroot}/lib/index.awk" "${indexfile}" -
+	else
+		printf '%s\n' "${tree[@]}" | awk '{print "added:", $2}'
+	fi
+
+	printf '%s\n' "${tree[@]}" | awk '{print $1, $2}' > "${indexfile}"
+	echo "${head}" > "${cachepath}/HEAD"
+}
+
+main "$@"
