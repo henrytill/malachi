@@ -46,5 +46,16 @@ echo
 echo '=== Cache contents after modification ==='
 find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf "%4s%s\n", "", $0}' {}
 
+git rm file2.txt
+git commit -m 'remove file2'
+
+echo
+echo '=== After removal ==='
+"${projroot}/bin/proto"
+
+echo
+echo '=== Cache contents after removal ==='
+find "${cachedir}" -type f | xargs -I {} awk 'FNR==1{print FILENAME ":"} {printf "%4s%s\n", "", $0}' {}
+
 cd /
 rm -rf "${testdir}" "${cachedir}"
