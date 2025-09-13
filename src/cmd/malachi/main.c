@@ -1,11 +1,15 @@
 #include "project.h"
 
 #include <assert.h>
+#include <fcntl.h>
 #include <limits.h>
+#include <poll.h>
+#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <git2/common.h>
@@ -21,7 +25,12 @@ struct Opts {
 	char const *testname;
 };
 
+int debug = 0;
+
 char const *const appname = "malachi";
+
+static sig_atomic_t volatile running = 1;
+static sig_atomic_t volatile sigrecvd = 0;
 
 static char const *const commitstr =
 	strlen(MALACHI_COMMIT_SHORT_HASH) > 0
@@ -31,7 +40,7 @@ static char const *const commitstr =
 static void
 usage(char *argv[])
 {
-	eprintf("Usage: %s [-v] [-c] [-t [name]] [query]\n", argv[0]);
+	eprintf("Usage: %s [-v] [-d] [-c] [-t [name]]\n", argv[0]);
 }
 
 static int
@@ -77,6 +86,13 @@ configprint(Config const *config)
 	printf("cachedir=%s\n", config->cachedir);
 }
 
+static void
+sighandler(int sig)
+{
+	sigrecvd = sig;
+	running = 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -91,13 +107,16 @@ main(int argc, char *argv[])
 		int c = 0;
 
 		for(;;) {
-			c = getopt(argc, argv, "vct::");
+			c = getopt(argc, argv, "vdct::");
 			if(c == -1)
 				break;
 
 			switch(c) {
 			case 'v':
 				opts.version = 1;
+				break;
+			case 'd':
+				debug = 1;
 				break;
 			case 'c':
 				opts.config = 1;
@@ -149,20 +168,44 @@ main(int argc, char *argv[])
 			return EXIT_SUCCESS;
 		}
 
-		if(optind < argc) {
-			printf("non-option argv elements: ");
-			while(optind < argc)
-				printf("%s ", argv[optind++]);
-			printf("\n");
+		struct sigaction sa = {
+			.sa_handler = sighandler,
+			.sa_flags = 0,
+		};
+		sigemptyset(&sa.sa_mask);
+
+		if(sigaction(SIGINT, &sa, NULL) == -1) {
+			logerror("Failed to set SIGINT handler");
+			configfree(&config);
+			return EXIT_FAILURE;
 		}
 
-		{
-			char *cwd = realpath(".", NULL);
-			printf("cwd: %s\n", cwd);
-			if(cwd != NULL)
-				free(cwd);
+		if(sigaction(SIGTERM, &sa, NULL) == -1) {
+			logerror("Failed to set SIGTERM handler");
+			configfree(&config);
+			return EXIT_FAILURE;
 		}
 
+		loginfo("Starting daemon");
+		logdebug("Debug logging enabled");
+
+		while(running) {
+			logdebug("Event loop iteration");
+			sleep(1);
+		}
+
+		printf("\n");
+		switch (sigrecvd) {
+		case SIGINT:
+			loginfo("Received SIGINT, shutting down");
+			break;
+		case SIGTERM:
+			loginfo("Received SIGTERM, shutting down");
+			break;
+		default:
+			loginfo("Shutting down");
+			break;
+		}
 		configfree(&config);
 	}
 
