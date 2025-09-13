@@ -2,7 +2,7 @@ project(
     'malachi',
     'c',
     version: '0.1.0',
-    default_options: ['warning_level=2', 'c_std=c17'],
+    default_options: ['warning_level=2', 'c_std=gnu17'],
 )
 
 add_project_arguments('-D_XOPEN_SOURCE=600', language: 'c')
