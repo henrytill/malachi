@@ -26,15 +26,15 @@ dbcreate(Config const *config, Error *err)
 	db->conn = NULL;
 	db->path = NULL;
 
-	int rc = mkdirp(config->datadir, 0755);
+	int rc = mkdirp(config->cachedir, 0755);
 	if(rc != 0) {
 		err->rc = errno;
-		err->msg = "Failed to create data directory";
+		err->msg = "Failed to create cache directory";
 		free(db);
 		return NULL;
 	}
 
-	char *dbpath = joinpath2(config->datadir, "index.db");
+	char *dbpath = joinpath2(config->cachedir, "index.db");
 	if(!dbpath) {
 		err->rc = ENOMEM;
 		err->msg = "Failed to allocate database path";
@@ -167,12 +167,12 @@ dbreposet(Database *db, char const *repopath, char const *sha)
 }
 
 int
-statuswrite(char const *repopath, char const *sha)
+statuswrite(char const *runtimedir, char const *repopath, char const *sha)
 {
-	if(statusensure(repopath) != 0)
+	if(statusensure(runtimedir, repopath) != 0)
 		return -1;
 
-	char *statuspath = joinpath3("/run", appname, "repos");
+	char *statuspath = joinpath2(runtimedir, "repos");
 	if(!statuspath) {
 		logerror("Failed to allocate status base path");
 		return -1;
@@ -200,9 +200,9 @@ statuswrite(char const *repopath, char const *sha)
 }
 
 int
-statusensure(char const *repopath)
+statusensure(char const *runtimedir, char const *repopath)
 {
-	char *statusbase = joinpath3("/run", appname, "repos");
+	char *statusbase = joinpath2(runtimedir, "repos");
 	if(!statusbase) {
 		logerror("Failed to allocate status base path");
 		return -1;
@@ -229,7 +229,7 @@ statusensure(char const *repopath)
 	if(lastslash && lastslash != dirpart) {
 		*lastslash = '\0';
 
-		int rc = mkdirp(dirpart, 0755);
+		int rc = mkdirp(dirpart, 0700);
 		if(rc != 0) {
 			logerror("Failed to create status directory %s: %s", dirpart, strerror(errno));
 			free(dirpart);

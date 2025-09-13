@@ -23,6 +23,7 @@ struct Config {
 	char *configdir;
 	char *datadir;
 	char *cachedir;
+	char *runtimedir;
 };
 
 struct Filter {
@@ -51,6 +52,7 @@ char *platformstr(void);
 char *getconfigdir(Getenvfn getenv, char const *name);
 char *getdatadir(Getenvfn getenv, char const *name);
 char *getcachedir(Getenvfn getenv, char const *name);
+char *getruntimedir(Getenvfn getenv, char const *name);
 
 int configinit(Getenvfn getenv, Config *config, Error *err);
 void configfree(Config *config);
@@ -69,8 +71,8 @@ int dbensure(Database *db, Error *err);
 char *dbrepoget(Database *db, char const *repopath);
 int dbreposet(Database *db, char const *repopath, char const *sha);
 
-int statuswrite(char const *repopath, char const *sha);
-int statusensure(char const *repopath);
+int statuswrite(char const *runtimedir, char const *repopath, char const *sha);
+int statusensure(char const *runtimedir, char const *repopath);
 
 /* globals */
 

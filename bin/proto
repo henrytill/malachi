@@ -15,7 +15,20 @@ cwd="$(realpath .)"
 scriptdir="$(realpath "$(dirname "${0}")")"
 projroot="${scriptdir}/.."
 
-cachedrepos="/run/malachi/repos"
+# Match the C daemon's XDG runtime directory logic
+if test -n "${XDG_RUNTIME_DIR:-}"; then
+	runtimedir="${XDG_RUNTIME_DIR}/malachi"
+else
+	uid="$(id -u)"
+	runuser_dir="/run/user/${uid}"
+	if test -d "${runuser_dir}" && test -w "${runuser_dir}"; then
+		runtimedir="${runuser_dir}/malachi"
+	else
+		runtimedir="/tmp/malachi-${uid}"
+	fi
+fi
+
+cachedrepos="${runtimedir}/repos"
 
 command -v git >/dev/null 2>&1
 if test $? -ne 0
@@ -78,7 +91,7 @@ check() {
 sendcommand() {
 	test $# -eq 1 || { error "usage: sendcommand command"; return 1; }
 	local command="${1}"
-	local pipepath="/run/malachi/command"
+	local pipepath="${runtimedir}/command"
 
 	if test ! -p "${pipepath}"; then
 		log "daemon pipe not found at ${pipepath}, writing to stdout instead"

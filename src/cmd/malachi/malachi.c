@@ -101,6 +101,7 @@ configprint(Config const *config)
 	printf("configdir=%s\n", config->configdir);
 	printf("datadir=%s\n", config->datadir);
 	printf("cachedir=%s\n", config->cachedir);
+	printf("runtimedir=%s\n", config->runtimedir);
 }
 
 static void
@@ -359,7 +360,13 @@ run(Config *config)
 		return -1;
 	}
 
-	char *pipepath = joinpath3("/run", appname, "command");
+	rc = mkdirp(config->runtimedir, 0700);
+	if(rc == -1) {
+		logerror("Failed to create runtime directory: %s", strerror(errno));
+		goto out_dbdestroy_database;
+	}
+
+	char *pipepath = joinpath2(config->runtimedir, "command");
 	if(pipepath == NULL) {
 		logerror("Failed to allocate pipe path");
 		goto out_dbdestroy_database;

@@ -33,6 +33,18 @@ caches(Getenvfn getenv, char const *name)
 	return NULL;
 }
 
+static char *
+runtimedir(Getenvfn getenv, char const *name)
+{
+	assert(name != NULL);
+
+	char const *tmpdir = getenv("TMPDIR");
+	if(tmpdir != NULL)
+		return joinpath2(tmpdir, name);
+
+	return joinpath2("/tmp", name);
+}
+
 char *
 getconfigdir(Getenvfn getenv, char const *name)
 {
@@ -49,4 +61,10 @@ char *
 getcachedir(Getenvfn getenv, char const *name)
 {
 	return caches(getenv, name);
+}
+
+char *
+getruntimedir(Getenvfn getenv, char const *name)
+{
+	return runtimedir(getenv, name);
 }
