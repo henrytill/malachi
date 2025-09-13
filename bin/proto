@@ -15,7 +15,7 @@ cwd="$(realpath .)"
 scriptdir="$(realpath "$(dirname "${0}")")"
 projroot="${scriptdir}/.."
 
-source "${projroot}/lib/config.sh"
+cachedrepos="/run/malachi/repos"
 
 command -v git >/dev/null 2>&1
 if test $? -ne 0
@@ -26,10 +26,9 @@ fi
 
 usage() {
 	cat <<EOF >&2
-Usage: ${0} [-c] [-d] [directory]
+Usage: ${0} [-d] [directory]
 
 Options:
-    -c          Show configuration directories
     -d          Enable debug output
 
 Arguments:
@@ -41,7 +40,7 @@ EOF
 log() {
 	if test "${debug}" = "1"
 	then
-		printf "%s %s\n" "${PREFIXDEBUG}" "${1}"
+		printf "%s %s\n" "${PREFIXDEBUG}" "${1}" >&2
 	fi
 }
 
@@ -52,36 +51,21 @@ error() {
 findrepo() {
 	test $# -gt 1 && { error "usage: findrepo [directory]"; return 1; }
 	local dir="${1:-${cwd}}"
-	dir="$(realpath "${dir}")"
-
-	while test "${dir}" != "/"
-	do
-		if test -d "${dir}/.git"
-		then
-			echo "${dir}"
-			return 0
-		fi
-
-		dir="$(dirname "${dir}")"
-	done
-
-	return 1
+	git -C "${dir}" rev-parse --show-toplevel
 }
 
 firstrun() {
-	test $# -eq 2 || { error "usage: firstrun cachepath repo"; return 1; }
-	local cachepath="${1}"
-	local repo="${2}"
+	test $# -eq 1 || { error "usage: firstrun repo"; return 1; }
+	local repo="${1}"
 	log "first run - generating add events for all files"
-	mkdir -p "${cachepath}"
 	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk -v repo="${repo}" '{printf "repo=\"%s\" op=added path=\"%s\" hash=%s\n", repo, $2, $1}'
 }
 
 genevents() {
-	test $# -eq 3 || { error "usage: genevents cached head repo"; return 1; }
-	local cached="${1}"
-	local head="${2}"
-	local repo="${3}"
+	test $# -eq 3 || { error "usage: genevents repo cached head"; return 1; }
+	local repo="${1}"
+	local cached="${2}"
+	local head="${3}"
 	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -f "${projroot}/lib/index.awk"
 }
 
@@ -111,12 +95,9 @@ sendcommand() {
 }
 
 main() {
-	while getopts "cd" opt
+	while getopts "d" opt
 	do
 		case "${opt}" in
-		c)
-			showconfig=1
-			;;
 		d)
 			debug=1
 			;;
@@ -126,18 +107,6 @@ main() {
 		esac
 	done
 	shift $((OPTIND - 1))
-
-	configdir="$(getcachedir)"
-	datadir="$(getdatadir)"
-	cachedir="$(getcachedir)"
-
-	if test "${showconfig}" = "1"
-	then
-		echo "configdir=${configdir}"
-		echo "datadir=${datadir}"
-		echo "cachedir=${cachedir}"
-		exit 0
-	fi
 
 	targetdir="${1:-${cwd}}"
 
@@ -154,20 +123,20 @@ main() {
 	log "repo=${repo}"
 	log "head=${head}"
 
-	cachepath="${cachedir}/${repo}"
-	headfile="${cachepath}/HEAD"
+	cachefile="${cachedrepos}${repo}"
 
-	if test ! -f "${headfile}"
+	log "cachefile=${cachefile}"
+
+	if ! test -f ${cachefile}
 	then
-		firstrun "${cachepath}" "${repo}" | while read -r command; do
+		firstrun "${repo}" | while read -r command
+		do
 			sendcommand "${command}"
 		done
-		echo "${head}" > "${headfile}"
 		return
 	fi
 
-	cached="$(cat "${headfile}")"
-	log "cached=${cached}"
+	cached="$(cat "${cachefile}")"
 
 	if test "${cached}" = "${head}"
 	then
@@ -175,10 +144,10 @@ main() {
 		return
 	fi
 
-	genevents "${cached}" "${head}" "${repo}" | while read -r command; do
+	genevents "${repo}" "${cached}" "${head}" | while read -r command
+	do
 		sendcommand "${command}"
 	done
-	echo "${head}" > "${headfile}"
 }
 
 main "$@"
