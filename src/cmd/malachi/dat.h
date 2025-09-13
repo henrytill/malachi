@@ -38,3 +38,5 @@ struct Test {
 	char const *name;
 	int (*run)(void);
 };
+
+extern int debug;

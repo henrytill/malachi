@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 
 		rc = configinit(getenv, &config, &error);
 		if(rc != 0) {
-			eprintf("Failed to initialize config: %s\n", error.msg);
+			logerror("Failed to initialize config: %s", error.msg);
 			return EXIT_FAILURE;
 		}
 

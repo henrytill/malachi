@@ -1,6 +1,9 @@
 #pragma once
 
 int eprintf(char *fmt, ...);
+void loginfo(char const *fmt, ...);
+void logerror(char const *fmt, ...);
+void logdebug(char const *fmt, ...);
 
 char *joinpath2(char const *a, char const *b);
 char *joinpath3(char const *a, char const *b, char const *c);
