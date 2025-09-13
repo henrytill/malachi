@@ -69,24 +69,45 @@ findrepo() {
 }
 
 firstrun() {
-	test $# -eq 1 || { error "usage: firstrun cachepath"; return 1; }
+	test $# -eq 2 || { error "usage: firstrun cachepath repo"; return 1; }
 	local cachepath="${1}"
+	local repo="${2}"
 	log "first run - generating add events for all files"
 	mkdir -p "${cachepath}"
-	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{printf "op=added path=\"%s\" hash=%s\n", $2, $1}'
+	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk -v repo="${repo}" '{printf "repo=\"%s\" op=added path=\"%s\" hash=%s\n", repo, $2, $1}'
 }
 
 genevents() {
-	test $# -eq 2 || { error "usage: genevents cached head"; return 1; }
+	test $# -eq 3 || { error "usage: genevents cached head repo"; return 1; }
 	local cached="${1}"
 	local head="${2}"
-	git diff-tree --raw "${cached}" "${head}" | awk -f "${projroot}/lib/index.awk"
+	local repo="${3}"
+	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -f "${projroot}/lib/index.awk"
 }
 
 check() {
 	test $# -eq 1 || { error "usage: check cachepath"; return 1; }
 	local cachepath="${1}"
 	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{print $1, $2}' > "${cachepath}/index.txt"
+}
+
+sendcommand() {
+	test $# -eq 1 || { error "usage: sendcommand command"; return 1; }
+	local command="${1}"
+	local pipepath="/run/malachi/command"
+
+	if test ! -p "${pipepath}"; then
+		log "daemon pipe not found at ${pipepath}, writing to stdout instead"
+		echo "${command}"
+		return 0
+	fi
+
+	log "sending command: ${command}"
+	echo "${command}" > "${pipepath}" 2>/dev/null || {
+		error "failed to send command to daemon"
+		echo "${command}"
+		return 1
+	}
 }
 
 main() {
@@ -138,7 +159,9 @@ main() {
 
 	if test ! -f "${headfile}"
 	then
-		firstrun "${cachepath}"
+		firstrun "${cachepath}" "${repo}" | while read -r command; do
+			sendcommand "${command}"
+		done
 		echo "${head}" > "${headfile}"
 		return
 	fi
@@ -152,7 +175,9 @@ main() {
 		return
 	fi
 
-	genevents "${cached}" "${head}"
+	genevents "${cached}" "${head}" "${repo}" | while read -r command; do
+		sendcommand "${command}"
+	done
 	echo "${head}" > "${headfile}"
 }
 
