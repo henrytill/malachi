@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 
 enum {
-	EMISSINGDIR = 1,
+	Emissingdir = 1,
 };
 
 typedef struct Error Error;
@@ -74,5 +74,5 @@ int statusensure(char const *repopath);
 
 /* globals */
 
-extern int debug;
 extern char const *const appname;
+extern int debug;

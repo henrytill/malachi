@@ -20,17 +20,17 @@ enum {
 	MAXHASHLEN = 65,
 };
 
-int debug = 0;
-
 char const *const appname = "malachi";
 
-static sig_atomic_t volatile loopstat = 1;
-static sig_atomic_t volatile sigrecvd = 0;
+int debug = 0;
 
 static char const *const commitstr =
 	strlen(MALACHI_COMMIT_SHORT_HASH) > 0
 		? "-" MALACHI_COMMIT_SHORT_HASH
 		: "";
+
+static sig_atomic_t volatile loopstat = 1;
+static sig_atomic_t volatile sigrecvd = 0;
 
 struct Opts {
 	int version;

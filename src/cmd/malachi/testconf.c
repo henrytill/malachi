@@ -18,12 +18,12 @@ testconfmiss(void)
 	Config config = {0};
 	Error error = {0};
 	int rc = configinit(getenvmt, &config, &error);
-	if(rc != -EMISSINGDIR) {
-		eprintf("expected rc=%d, got rc=%d\n", -EMISSINGDIR, rc);
+	if(rc != -Emissingdir) {
+		eprintf("expected rc=%d, got rc=%d\n", -Emissingdir, rc);
 		return -1;
 	}
-	if(error.rc != -EMISSINGDIR) {
-		eprintf("expected error.rc=%d, got error.rc=%d\n", -EMISSINGDIR, error.rc);
+	if(error.rc != -Emissingdir) {
+		eprintf("expected error.rc=%d, got error.rc=%d\n", -Emissingdir, error.rc);
 		return -1;
 	}
 	if(strcmp(error.msg, "configdir is NULL") != 0) {

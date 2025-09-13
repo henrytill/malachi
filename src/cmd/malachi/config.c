@@ -10,27 +10,27 @@ configinit(Getenvfn getenv, Config *config, Error *err)
 	char *cachedir = getcachedir(getenv, appname);
 
 	if(configdir == NULL) {
-		err->rc = -EMISSINGDIR;
+		err->rc = -Emissingdir;
 		err->msg = "configdir is NULL";
 		free(datadir);
 		free(cachedir);
-		return -EMISSINGDIR;
+		return -Emissingdir;
 	}
 
 	if(datadir == NULL) {
-		err->rc = -EMISSINGDIR;
+		err->rc = -Emissingdir;
 		err->msg = "datadir is NULL";
 		free(configdir);
 		free(cachedir);
-		return -EMISSINGDIR;
+		return -Emissingdir;
 	}
 
 	if(cachedir == NULL) {
-		err->rc = -EMISSINGDIR;
+		err->rc = -Emissingdir;
 		err->msg = "cachedir is NULL";
 		free(configdir);
 		free(datadir);
-		return -EMISSINGDIR;
+		return -Emissingdir;
 	}
 
 	config->configdir = configdir;
