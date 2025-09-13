@@ -21,6 +21,8 @@ struct Opts {
 	char const *testname;
 };
 
+char const *const appname = "malachi";
+
 static char const *const commitstr =
 	strlen(MALACHI_COMMIT_SHORT_HASH) > 0
 		? "-" MALACHI_COMMIT_SHORT_HASH

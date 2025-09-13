@@ -4,14 +4,12 @@
 #include "dat.h"
 #include "fns.h"
 
-static char const *const name = "malachi";
-
 int
 configinit(Getenvfn getenv, Config *config, Error *err)
 {
-	char *configdir = getconfigdir(getenv, name);
-	char *datadir = getdatadir(getenv, name);
-	char *cachedir = getcachedir(getenv, name);
+	char *configdir = getconfigdir(getenv, appname);
+	char *datadir = getdatadir(getenv, appname);
+	char *cachedir = getcachedir(getenv, appname);
 
 	if(configdir == NULL) {
 		err->rc = -EMISSINGDIR;

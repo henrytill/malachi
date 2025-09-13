@@ -40,3 +40,4 @@ struct Test {
 };
 
 extern int debug;
+extern char const *const appname;
