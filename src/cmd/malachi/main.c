@@ -135,9 +135,12 @@ main(int argc, char *argv[])
 	}
 
 	{
+		__label__ cleanup;
+
 		extern int optind;
 
 		int rc = -1;
+		int ret = EXIT_FAILURE;
 		Config config = {0};
 		Error error = {0};
 
@@ -164,8 +167,8 @@ main(int argc, char *argv[])
 
 		if(opts.config) {
 			configprint(&config);
-			configfree(&config);
-			return EXIT_SUCCESS;
+			ret = EXIT_SUCCESS;
+			goto cleanup;
 		}
 
 		struct sigaction sa = {
@@ -176,14 +179,12 @@ main(int argc, char *argv[])
 
 		if(sigaction(SIGINT, &sa, NULL) == -1) {
 			logerror("Failed to set SIGINT handler");
-			configfree(&config);
-			return EXIT_FAILURE;
+			goto cleanup;
 		}
 
 		if(sigaction(SIGTERM, &sa, NULL) == -1) {
 			logerror("Failed to set SIGTERM handler");
-			configfree(&config);
-			return EXIT_FAILURE;
+			goto cleanup;
 		}
 
 		loginfo("Starting daemon");
@@ -195,7 +196,7 @@ main(int argc, char *argv[])
 		}
 
 		printf("\n");
-		switch (sigrecvd) {
+		switch(sigrecvd) {
 		case SIGINT:
 			loginfo("Received SIGINT, shutting down");
 			break;
@@ -206,8 +207,11 @@ main(int argc, char *argv[])
 			loginfo("Shutting down");
 			break;
 		}
-		configfree(&config);
-	}
 
-	return EXIT_SUCCESS;
+		ret = EXIT_SUCCESS;
+
+	cleanup:
+		configfree(&config);
+		return ret;
+	}
 }
