@@ -41,7 +41,7 @@ schema_content = fs.read('src/cmd/malachi/schema.sql')
 schema_content_escaped = '"' + schema_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 
 schema_h = configure_file(
-    input: 'include/schema.h.in',
+    input: 'src/cmd/malachi/schema.h.in',
     output: 'schema.h',
     configuration: {
         'MALACHI_SCHEMA_SQL': schema_content_escaped,
