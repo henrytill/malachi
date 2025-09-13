@@ -37,15 +37,13 @@ project_h = vcs_tag(
 )
 
 fs = import('fs')
-schema_content = fs.read('src/cmd/malachi/schema.sql')
-schema_content_escaped = '"' + schema_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
+schema = fs.read('src/cmd/malachi/schema.sql')
+schema_escaped = schema.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
 
 schema_h = configure_file(
     input: 'src/cmd/malachi/schema.h.in',
     output: 'schema.h',
-    configuration: {
-        'MALACHI_SCHEMA_SQL': schema_content_escaped,
-    },
+    configuration: {'MALACHI_SCHEMA_SQL': '"' + schema_escaped + '"'},
 )
 
 platform_sources = []
