@@ -26,7 +26,8 @@ dbcreate(Config const *config, Error *err)
 	db->conn = NULL;
 	db->path = NULL;
 
-	if(mkdirp(config->datadir, 0755) != 0) {
+	int rc = mkdirp(config->datadir, 0755);
+	if(rc != 0) {
 		err->rc = errno;
 		err->msg = "Failed to create data directory";
 		free(db);
@@ -41,7 +42,7 @@ dbcreate(Config const *config, Error *err)
 		return NULL;
 	}
 
-	int rc = sqlite3_open(dbpath, &db->conn);
+	rc = sqlite3_open(dbpath, &db->conn);
 	if(rc != SQLITE_OK) {
 		err->rc = rc;
 		err->msg = sqlite3_errmsg(db->conn);
@@ -52,7 +53,8 @@ dbcreate(Config const *config, Error *err)
 
 	db->path = dbpath;
 
-	if(dbensure(db, err) != 0) {
+	rc = dbensure(db, err);
+	if(rc != 0) {
 		dbdestroy(db);
 		return NULL;
 	}
@@ -227,7 +229,8 @@ statusensure(char const *repopath)
 	if(lastslash && lastslash != dirpart) {
 		*lastslash = '\0';
 
-		if(mkdirp(dirpart, 0755) != 0) {
+		int rc = mkdirp(dirpart, 0755);
+		if(rc != 0) {
 			logerror("Failed to create status directory %s: %s", dirpart, strerror(errno));
 			free(dirpart);
 			return -1;
