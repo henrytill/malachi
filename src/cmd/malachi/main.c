@@ -93,15 +93,100 @@ sighandler(int sig)
 	running = 0;
 }
 
+static int
+run(struct Opts *opts)
+{
+	extern int optind;
+
+	int rc = -1;
+	int ret = EXIT_FAILURE;
+	Config config = {0};
+	Database *database = NULL;
+	Error error = {0};
+
+	if(opts->test) {
+		int tr;
+		if(opts->testname)
+			tr = testone(opts->testname);
+		else
+			tr = testall();
+
+		return tr ? EXIT_FAILURE : EXIT_SUCCESS;
+	}
+
+	if(opts->version) {
+		rc = versionprint();
+		return rc ? EXIT_FAILURE : EXIT_SUCCESS;
+	}
+
+	rc = configinit(getenv, &config, &error);
+	if(rc != 0) {
+		logerror("Failed to initialize config: %s", error.msg);
+		return EXIT_FAILURE;
+	}
+
+	if(opts->config) {
+		configprint(&config);
+		ret = EXIT_SUCCESS;
+		goto out_configfree;
+	}
+
+	database = dbcreate(&config, &error);
+	if(!database) {
+		logerror("Failed to initialize database: %s", error.msg);
+		goto out_configfree;
+	}
+
+	struct sigaction sa = {
+		.sa_handler = sighandler,
+		.sa_flags = 0,
+	};
+	sigemptyset(&sa.sa_mask);
+
+	if(sigaction(SIGINT, &sa, NULL) == -1) {
+		logerror("Failed to set SIGINT handler");
+		goto out_dbdestroy;
+	}
+
+	if(sigaction(SIGTERM, &sa, NULL) == -1) {
+		logerror("Failed to set SIGTERM handler");
+		goto out_dbdestroy;
+	}
+
+	loginfo("Starting daemon");
+	logdebug("Debug logging enabled");
+
+	while(running) {
+		logdebug("Event loop iteration");
+		sleep(1);
+	}
+
+	printf("\n");
+	switch(sigrecvd) {
+	case SIGINT:
+		loginfo("Received SIGINT, shutting down");
+		break;
+	case SIGTERM:
+		loginfo("Received SIGTERM, shutting down");
+		break;
+	default:
+		loginfo("Shutting down");
+		break;
+	}
+
+	ret = EXIT_SUCCESS;
+
+out_dbdestroy:
+	dbdestroy(database);
+out_configfree:
+	configfree(&config);
+	return ret;
+}
+
 int
 main(int argc, char *argv[])
 {
 	struct Opts opts = {0};
-
-	if(argc == 1) {
-		usage(argv);
-		return EXIT_FAILURE;
-	}
 
 	{
 		int c = 0;
@@ -134,84 +219,5 @@ main(int argc, char *argv[])
 		}
 	}
 
-	{
-		__label__ cleanup;
-
-		extern int optind;
-
-		int rc = -1;
-		int ret = EXIT_FAILURE;
-		Config config = {0};
-		Error error = {0};
-
-		if(opts.test) {
-			int tr;
-			if(opts.testname)
-				tr = testone(opts.testname);
-			else
-				tr = testall();
-
-			return tr ? EXIT_FAILURE : EXIT_SUCCESS;
-		}
-
-		if(opts.version) {
-			rc = versionprint();
-			return rc ? EXIT_FAILURE : EXIT_SUCCESS;
-		}
-
-		rc = configinit(getenv, &config, &error);
-		if(rc != 0) {
-			logerror("Failed to initialize config: %s", error.msg);
-			return EXIT_FAILURE;
-		}
-
-		if(opts.config) {
-			configprint(&config);
-			ret = EXIT_SUCCESS;
-			goto cleanup;
-		}
-
-		struct sigaction sa = {
-			.sa_handler = sighandler,
-			.sa_flags = 0,
-		};
-		sigemptyset(&sa.sa_mask);
-
-		if(sigaction(SIGINT, &sa, NULL) == -1) {
-			logerror("Failed to set SIGINT handler");
-			goto cleanup;
-		}
-
-		if(sigaction(SIGTERM, &sa, NULL) == -1) {
-			logerror("Failed to set SIGTERM handler");
-			goto cleanup;
-		}
-
-		loginfo("Starting daemon");
-		logdebug("Debug logging enabled");
-
-		while(running) {
-			logdebug("Event loop iteration");
-			sleep(1);
-		}
-
-		printf("\n");
-		switch(sigrecvd) {
-		case SIGINT:
-			loginfo("Received SIGINT, shutting down");
-			break;
-		case SIGTERM:
-			loginfo("Received SIGTERM, shutting down");
-			break;
-		default:
-			loginfo("Shutting down");
-			break;
-		}
-
-		ret = EXIT_SUCCESS;
-
-	cleanup:
-		configfree(&config);
-		return ret;
-	}
+	return run(&opts);
 }

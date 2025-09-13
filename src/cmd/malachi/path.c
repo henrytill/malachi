@@ -1,6 +1,10 @@
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #include "dat.h"
 #include "fns.h"
@@ -40,5 +44,39 @@ joinpath4(char const *a, char const *b, char const *c, char const *d)
 		return NULL;
 
 	(void)snprintf(ret, len, "%s%c%s%c%s%c%s", a, separator, b, separator, c, separator, d);
+	return ret;
+}
+
+int
+mkdirp(char const *path, mode_t mode)
+{
+	size_t pathlen = strlen(path) + 1;
+	char *pathcopy = malloc(pathlen);
+	if(!pathcopy) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	memcpy(pathcopy, path, pathlen);
+
+	int ret = -1;
+
+	for(char *p = (*pathcopy == '/') ? pathcopy + 1 : pathcopy; *p; ++p) {
+		if(*p != '/')
+			continue;
+
+		*p = '\0';
+		if(mkdir(pathcopy, mode) != 0 && errno != EEXIST)
+			goto cleanup;
+		*p = '/';
+	}
+
+	if(mkdir(pathcopy, mode) != 0 && errno != EEXIST)
+		goto cleanup;
+
+	ret = 0;
+
+cleanup:
+	free(pathcopy);
 	return ret;
 }

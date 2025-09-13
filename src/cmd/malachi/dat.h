@@ -39,5 +39,7 @@ struct Test {
 	int (*run)(void);
 };
 
+typedef struct Database Database;
+
 extern int debug;
 extern char const *const appname;

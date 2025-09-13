@@ -36,6 +36,18 @@ project_h = vcs_tag(
     replace_string: '@MALACHI_COMMIT_SHORT_HASH@',
 )
 
+fs = import('fs')
+schema_content = fs.read('src/cmd/malachi/schema.sql')
+schema_content_escaped = '"' + schema_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
+
+schema_h = configure_file(
+    input: 'include/schema.h.in',
+    output: 'schema.h',
+    configuration: {
+        'MALACHI_SCHEMA_SQL': schema_content_escaped,
+    },
+)
+
 platform_sources = []
 if host_machine.system() == 'darwin'
     platform_sources += ['src/cmd/malachi/platmac.c']
@@ -59,6 +71,7 @@ malachi = executable(
     'malachi',
     sources: [
         'src/cmd/malachi/config.c',
+        'src/cmd/malachi/db.c',
         'src/cmd/malachi/filt.c',
         'src/cmd/malachi/main.c',
         'src/cmd/malachi/path.c',
@@ -68,6 +81,7 @@ malachi = executable(
         filter_sources,
         test_sources,
         project_h,
+        schema_h,
     ],
     dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
     install: true,

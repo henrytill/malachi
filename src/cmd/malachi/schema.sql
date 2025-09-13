@@ -51,13 +51,13 @@ CREATE VIRTUAL TABLE IF NOT EXISTS file_pages_fts USING fts5(
     content_rowid=id
 );
 
-CREATE TRIGGER file_objects_ai AFTER INSERT ON file_objects
+CREATE TRIGGER IF NOT EXISTS file_objects_ai AFTER INSERT ON file_objects
 BEGIN
     INSERT INTO file_objects_fts (rowid, file_path, content)
     VALUES (new.id, new.file_path, new.content);
 END;
 
-CREATE TRIGGER file_objects_au AFTER UPDATE ON file_objects
+CREATE TRIGGER IF NOT EXISTS file_objects_au AFTER UPDATE ON file_objects
 BEGIN
     UPDATE file_objects_fts SET
         file_path = new.file_path,
@@ -65,25 +65,25 @@ BEGIN
     WHERE rowid = old.id;
 END;
 
-CREATE TRIGGER file_objects_ad AFTER DELETE ON file_objects
+CREATE TRIGGER IF NOT EXISTS file_objects_ad AFTER DELETE ON file_objects
 BEGIN
     DELETE FROM file_objects_fts WHERE rowid = old.id;
 END;
 
-CREATE TRIGGER file_pages_ai AFTER INSERT ON file_pages
+CREATE TRIGGER IF NOT EXISTS file_pages_ai AFTER INSERT ON file_pages
 BEGIN
     INSERT INTO file_pages_fts (rowid, content)
     VALUES (new.id, new.content);
 END;
 
-CREATE TRIGGER file_pages_au AFTER UPDATE ON file_pages
+CREATE TRIGGER IF NOT EXISTS file_pages_au AFTER UPDATE ON file_pages
 BEGIN
     UPDATE file_pages_fts SET
         content = new.content
     WHERE rowid = old.id;
 END;
 
-CREATE TRIGGER file_pages_ad AFTER DELETE ON file_pages
+CREATE TRIGGER IF NOT EXISTS file_pages_ad AFTER DELETE ON file_pages
 BEGIN
     DELETE FROM file_pages_fts WHERE rowid = old.id;
 END;
