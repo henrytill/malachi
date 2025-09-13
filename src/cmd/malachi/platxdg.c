@@ -1,8 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 char *
 platformstr(void)

@@ -35,7 +35,7 @@ CheckOptions:
   - key: readability-identifier-naming.TypedefCase
     value: CamelCase
 
-ExcludeHeaderFilterRegex: "^src/cmd/malachi/.*\\.h$"
+HeaderFilterRegex: "^src/cmd/malachi/.*\\.h$"
 # Local Variables:
 # mode: yaml
 # End:

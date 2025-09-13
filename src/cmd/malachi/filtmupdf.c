@@ -1,9 +1,6 @@
 #include <mupdf/fitz.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 static char const *exts[] = {
 	".pdf",

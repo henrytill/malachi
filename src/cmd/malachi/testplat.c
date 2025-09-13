@@ -1,9 +1,7 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 static int
 testplatformstr(void)

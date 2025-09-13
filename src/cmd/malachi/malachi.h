@@ -2,6 +2,41 @@
 
 #include <sys/stat.h>
 
+enum {
+	EMISSINGDIR = 1,
+};
+
+typedef struct Error Error;
+typedef struct Config Config;
+typedef struct Filter Filter;
+typedef struct Test Test;
+typedef struct Database Database;
+
+typedef char *Getenvfn(char const *name);
+
+struct Error {
+	int rc;
+	char const *msg;
+};
+
+struct Config {
+	char *configdir;
+	char *datadir;
+	char *cachedir;
+};
+
+struct Filter {
+	char const *name;
+	char const **exts;
+	int (*extract)(char const *input, char **output);
+	char const *(*version)(void);
+};
+
+struct Test {
+	char const *name;
+	int (*run)(void);
+};
+
 int eprintf(char *fmt, ...);
 void loginfo(char const *fmt, ...);
 void logerror(char const *fmt, ...);
@@ -36,3 +71,8 @@ int dbreposet(Database *db, char const *repopath, char const *sha);
 
 int statuswrite(char const *repopath, char const *sha);
 int statusensure(char const *repopath);
+
+/* globals */
+
+extern int debug;
+extern char const *const appname;

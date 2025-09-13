@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 int testconfdef(void);
 int testplatspec(void);

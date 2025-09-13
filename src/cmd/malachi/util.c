@@ -1,9 +1,7 @@
-#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 int
 eprintf(char *fmt, ...)

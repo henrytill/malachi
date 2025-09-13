@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <string.h>
 
-#include "dat.h"
-#include "fns.h"
+#include "malachi.h"
 
 #define MAXFILTERS 16
 

@@ -70,10 +70,10 @@ endif
 malachi = executable(
     'malachi',
     sources: [
+        'src/cmd/malachi/malachi.c',
         'src/cmd/malachi/config.c',
         'src/cmd/malachi/db.c',
         'src/cmd/malachi/filt.c',
-        'src/cmd/malachi/main.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',
         'src/cmd/malachi/util.c',
