@@ -8,34 +8,10 @@ readonly PREFIXDEBUG="[DEBUG]"
 readonly PREFIXERROR="[ERROR]"
 readonly PREFIXLOG="[INFO]"
 
+readonly CWD="$(realpath .)"
+readonly SCRIPTDIR="$(realpath "$(dirname "${0}")")"
+
 debug=0
-showconfig=0
-
-cwd="$(realpath .)"
-scriptdir="$(realpath "$(dirname "${0}")")"
-projroot="${scriptdir}/.."
-
-# Match the C daemon's XDG runtime directory logic
-if test -n "${XDG_RUNTIME_DIR:-}"; then
-	runtimedir="${XDG_RUNTIME_DIR}/malachi"
-else
-	uid="$(id -u)"
-	runuser_dir="/run/user/${uid}"
-	if test -d "${runuser_dir}" && test -w "${runuser_dir}"; then
-		runtimedir="${runuser_dir}/malachi"
-	else
-		runtimedir="/tmp/malachi-${uid}"
-	fi
-fi
-
-cachedrepos="${runtimedir}/repos"
-
-command -v git >/dev/null 2>&1
-if test $? -ne 0
-then
-	error "git not found"
-	exit 1
-fi
 
 usage() {
 	cat <<EOF >&2
@@ -63,7 +39,7 @@ error() {
 
 findrepo() {
 	test $# -gt 1 && { error "usage: findrepo [directory]"; return 1; }
-	local dir="${1:-${cwd}}"
+	local dir="${1:-${CWD}}"
 	git -C "${dir}" rev-parse --show-toplevel
 }
 
@@ -79,7 +55,7 @@ genevents() {
 	local repo="${1}"
 	local cached="${2}"
 	local head="${3}"
-	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -f "${projroot}/lib/index.awk"
+	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -f "${SCRIPTDIR}/../lib/index.awk"
 }
 
 check() {
@@ -108,6 +84,13 @@ sendcommand() {
 }
 
 main() {
+	command -v git >/dev/null 2>&1
+	if test $? -ne 0
+	then
+		error "git not found"
+		exit 1
+	fi
+
 	while getopts "d" opt
 	do
 		case "${opt}" in
@@ -121,8 +104,21 @@ main() {
 	done
 	shift $((OPTIND - 1))
 
-	targetdir="${1:-${cwd}}"
+	if test -n "${XDG_RUNTIME_DIR:-}"
+	then
+		runtimedir="${XDG_RUNTIME_DIR}/malachi"
+	else
+		uid="$(id -u)"
+		runuser_dir="/run/user/${uid}"
+		if test -d "${runuser_dir}" && test -w "${runuser_dir}"
+		then
+			runtimedir="${runuser_dir}/malachi"
+		else
+			runtimedir="/tmp/malachi-${uid}"
+		fi
+	fi
 
+	targetdir="${1:-${CWD}}"
 	repo="$(findrepo "${targetdir}")"
 	if test $? -ne 0
 	then
@@ -136,6 +132,7 @@ main() {
 	log "repo=${repo}"
 	log "head=${head}"
 
+	cachedrepos="${runtimedir}/repos"
 	cachefile="${cachedrepos}${repo}"
 
 	log "cachefile=${cachefile}"
