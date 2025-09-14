@@ -1,5 +1,6 @@
 #include "project.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -221,40 +222,34 @@ handleline(char const *line)
 }
 
 static void
-processlines(FILE *pipefp, void (*f)(char const *line))
+readlines(int pipefd, char *buf, size_t bufsize, size_t *bufused, void (*f)(char const *line))
 {
-	char linebuf[LINEBUFLEN];
-	char *s = NULL;
+	size_t used = *bufused;
 
-	if(ferror(pipefp)) {
-		logerror("Pipe in bad state");
-		clearerr(pipefp);
+	ssize_t nreads = read(pipefd, buf + used, bufsize - used - 1);
+	if(nreads == 0) {
+		logdebug("Pipe EOF");
+		return;
+	}
+	if(nreads < 0 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
+		logerror("Read error: %s", strerror(errno));
 		return;
 	}
 
-	if(feof(pipefp))
-		return;
+	used += nreads;
+	buf[used] = '\0';
 
-	for(;;) {
-		// NOLINTNEXTLINE(clang-analyzer-unix.Stream)
-		s = fgets(linebuf, sizeof(linebuf), pipefp);
-		if(s == NULL && ferror(pipefp)) {
-			logerror("Error reading from pipe");
-			clearerr(pipefp);
-			return;
-		}
-		if(s == NULL && feof(pipefp))
-			return;
-		if(s == NULL)
-			continue;
-
-		linebuf[strcspn(linebuf, "\n")] = '\0';
-
-		if(strlen(linebuf) == 0)
-			continue;
-
-		f(linebuf);
+	char *p = NULL;
+	char *nl = NULL;
+	for(p = buf; (nl = memchr(p, '\n', used - (p - buf))); p = nl + 1) {
+		*nl = '\0';
+		if(strlen(p) > 0)
+			f(p);
 	}
+
+	size_t remaining = used - (p - buf);
+	memmove(buf, p, remaining);
+	*bufused = remaining;
 }
 
 static int
@@ -262,7 +257,8 @@ runloop(char const *pipepath)
 {
 	int ret = -1;
 	int pipefd = -1;
-	FILE *pipefp = NULL;
+	static char buf[4096];
+	static size_t bufused = 0;
 
 	struct pollfd pfd = {
 		.events = POLLIN,
@@ -278,7 +274,7 @@ runloop(char const *pipepath)
 			if(errno == EINTR)
 				continue;
 			logerror("poll failed: %s", strerror(errno));
-			goto out_fclose_pipefp;
+			goto out_close_pipefd;
 		}
 
 		if(rc == 0) {
@@ -286,21 +282,19 @@ runloop(char const *pipepath)
 			continue;
 		}
 
-		if(pfd.revents & POLLIN) {
-			processlines(pipefp, handleline);
-			continue;
-		}
-
-		if((pfd.revents & POLLHUP) && !(pfd.revents & POLLIN)) {
-			logdebug("Client disconnected, reopening pipe");
-			(void)fclose(pipefp);
-			close(pipefd);
-			goto init;
-		}
-
 		if(pfd.revents & POLLERR) {
 			logerror("Pipe error occurred");
-			goto out_fclose_pipefp;
+			goto out_close_pipefd;
+		}
+
+		if(pfd.revents & POLLIN) {
+			readlines(pipefd, buf, sizeof(buf), &bufused, handleline);
+		}
+
+		if(pfd.revents & POLLHUP) {
+			logdebug("Client disconnected, reopening pipe");
+			close(pipefd);
+			goto init;
 		}
 
 		continue;
@@ -308,23 +302,20 @@ runloop(char const *pipepath)
 	init:
 		pipefd = open(pipepath, O_RDONLY | O_NONBLOCK);
 		if(pipefd == -1) {
+			if(errno == EINTR) {
+				logdebug("Signal received during pipe open, exiting");
+				return 0;
+			}
 			logerror("Failed to open command pipe: %s", strerror(errno));
 			return -1;
 		}
 
+		bufused = 0; // Reset buffer on pipe reopen
 		pfd.fd = pipefd;
-
-		pipefp = fdopen(pipefd, "r");
-		if(!pipefp) {
-			logerror("Failed to open pipe stream: %s", strerror(errno));
-			goto out_close_pipefd;
-		}
 	}
 
 	ret = 0;
 
-out_fclose_pipefp:
-	(void)fclose(pipefp);
 out_close_pipefd:
 	close(pipefd);
 	return ret;
