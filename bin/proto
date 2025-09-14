@@ -64,24 +64,6 @@ check() {
 	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{print $1, $2}' > "${cachepath}/index.txt"
 }
 
-sendcommand() {
-	test $# -eq 1 || { error "usage: sendcommand command"; return 1; }
-	local command="${1}"
-	local pipepath="${runtimedir}/command"
-
-	if test ! -p "${pipepath}"; then
-		log "daemon pipe not found at ${pipepath}, writing to stdout instead"
-		echo "${command}"
-		return 0
-	fi
-
-	log "sending command: ${command}"
-	echo "${command}" > "${pipepath}" 2>/dev/null || {
-		error "failed to send command to daemon"
-		echo "${command}"
-		return 1
-	}
-}
 
 main() {
 	command -v git >/dev/null 2>&1
@@ -139,10 +121,15 @@ main() {
 
 	if ! test -f ${cachefile}
 	then
-		firstrun "${repo}" | while read -r command
-		do
-			sendcommand "${command}"
-		done
+		if test -p "${runtimedir}/command"; then
+			firstrun "${repo}" > "${runtimedir}/command" 2>/dev/null || {
+				error "failed to send batch commands to daemon"
+				firstrun "${repo}"
+			}
+		else
+			log "daemon pipe not found, writing to stdout instead"
+			firstrun "${repo}"
+		fi
 		return
 	fi
 
@@ -154,10 +141,15 @@ main() {
 		return
 	fi
 
-	genevents "${repo}" "${cached}" "${head}" | while read -r command
-	do
-		sendcommand "${command}"
-	done
+	if test -p "${runtimedir}/command"; then
+		genevents "${repo}" "${cached}" "${head}" > "${runtimedir}/command" 2>/dev/null || {
+			error "failed to send batch commands to daemon"
+			genevents "${repo}" "${cached}" "${head}"
+		}
+	else
+		log "daemon pipe not found, writing to stdout instead"
+		genevents "${repo}" "${cached}" "${head}"
+	fi
 }
 
 main "$@"
