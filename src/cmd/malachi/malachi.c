@@ -3,23 +3,16 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <git2/common.h>
 #include <sqlite3.h>
 
 #include "malachi.h"
-
-enum {
-	LINEBUFLEN = 1024,
-	MAXHASHLEN = 65,
-};
 
 char const *const appname = "malachi";
 
@@ -38,21 +31,6 @@ struct Opts {
 	int config;
 	int test;
 	char const *testname;
-};
-
-enum {
-	Opunknown = 0,
-	Opadded,
-	Opchanged,
-	Opremoved,
-	Opshutdown,
-};
-
-struct Command {
-	int op;
-	char repo[PATH_MAX];
-	char path[PATH_MAX];
-	char hash[MAXHASHLEN];
 };
 
 static void
@@ -113,71 +91,6 @@ sighandler(int sig)
 }
 
 static int
-parseop(char const *opstr)
-{
-	if(strcmp(opstr, "added") == 0)
-		return Opadded;
-
-	if(strcmp(opstr, "changed") == 0)
-		return Opchanged;
-
-	if(strcmp(opstr, "removed") == 0)
-		return Opremoved;
-
-	if(strcmp(opstr, "shutdown") == 0)
-		return Opshutdown;
-
-	return Opunknown;
-}
-
-static int
-parseline(char const *line, struct Command *cmd)
-{
-	memset(cmd, 0, sizeof(*cmd));
-
-	char *dupline = strdup(line);
-	if(!dupline)
-		return -1;
-
-	char *p;
-	char *token = strtok_r(dupline, " \t\n", &p);
-
-	while(token) {
-		char *eq = strchr(token, '=');
-		if(!eq) {
-			token = strtok_r(NULL, " \t\n", &p);
-			continue;
-		}
-
-		*eq = '\0';
-		char *key = token;
-		char *value = eq + 1;
-
-		if(value[0] == '"') {
-			value++;
-			char *endq = strrchr(value, '"');
-			if(endq)
-				*endq = '\0';
-		}
-
-		if(strcmp(key, "op") == 0) {
-			cmd->op = parseop(value);
-		} else if(strcmp(key, "repo") == 0) {
-			strncpy(cmd->repo, value, sizeof(cmd->repo) - 1);
-		} else if(strcmp(key, "path") == 0) {
-			strncpy(cmd->path, value, sizeof(cmd->path) - 1);
-		} else if(strcmp(key, "hash") == 0) {
-			strncpy(cmd->hash, value, sizeof(cmd->hash) - 1);
-		}
-
-		token = strtok_r(NULL, " \t\n", &p);
-	}
-
-	free(dupline);
-	return 0;
-}
-
-static int
 handlecommand(struct Command const *cmd)
 {
 	switch(cmd->op) {
@@ -209,56 +122,47 @@ handlecommand(struct Command const *cmd)
 }
 
 static void
-handleline(char const *line)
+readcommands(int pipefd, Parser *parser)
 {
-	struct Command cmd;
-	int parsed = parseline(line, &cmd);
-	if(parsed != 0)
-		logerror("Failed to parse line: %s", line);
-
-	int shutdown = handlecommand(&cmd);
-	if(shutdown == 1)
-		loopstat = 0;
-}
-
-static void
-readlines(int pipefd, char *buf, size_t bufsize, size_t *bufused, void (*f)(char const *line))
-{
-	size_t used = *bufused;
-
-	ssize_t nreads = read(pipefd, buf + used, bufsize - used - 1);
-	if(nreads == 0) {
-		logdebug("Pipe EOF");
+	ssize_t nread = parserinput(parser, pipefd);
+	if(nread == -Enospace) {
+		logerror("Parser buffer full, processing pending commands");
+	} else if(nread == 0) {
+		/* EOF - no more data available */
 		return;
-	}
-	if(nreads < 0 && (errno != EAGAIN && errno != EWOULDBLOCK)) {
+	} else if(nread < 0) {
 		logerror("Read error: %s", strerror(errno));
 		return;
 	}
 
-	used += nreads;
-	buf[used] = '\0';
+	struct Command cmd;
+	int result;
 
-	char *p = NULL;
-	char *nl = NULL;
-	for(p = buf; (nl = memchr(p, '\n', used - (p - buf))); p = nl + 1) {
-		*nl = '\0';
-		if(strlen(p) > 0)
-			f(p);
+	for(;;) {
+		result = parsecommand(parser, &cmd);
+		if(result <= 0)
+			break;
+		handlecommand(&cmd);
 	}
 
-	size_t remaining = used - (p - buf);
-	memmove(buf, p, remaining);
-	*bufused = remaining;
+	if(result == 0) {
+		/* Incomplete command in buffer - normal, wait for more data */
+	} else if(result < 0) {
+		logerror("Malformed record skipped, continuing");
+	}
 }
 
 static int
-runloop(char const *pipepath)
+runloop(char const *pipepath) /* NOLINT(readability-function-cognitive-complexity) */
 {
 	int ret = -1;
 	int pipefd = -1;
-	static char buf[4096];
-	static size_t bufused = 0;
+
+	Parser *parser = parsercreate((size_t)MAXRECORDSIZE * 2);
+	if(!parser) {
+		logerror("Failed to create parser");
+		return -1;
+	}
 
 	struct pollfd pfd = {
 		.events = POLLIN,
@@ -288,7 +192,7 @@ runloop(char const *pipepath)
 		}
 
 		if(pfd.revents & POLLIN) {
-			readlines(pipefd, buf, sizeof(buf), &bufused, handleline);
+			readcommands(pipefd, parser);
 		}
 
 		if(pfd.revents & POLLHUP) {
@@ -304,13 +208,13 @@ runloop(char const *pipepath)
 		if(pipefd == -1) {
 			if(errno == EINTR) {
 				logdebug("Signal received during pipe open, exiting");
-				return 0;
+				ret = 0;
+				goto out_parserdestroy_parser;
 			}
 			logerror("Failed to open command pipe: %s", strerror(errno));
-			return -1;
+			goto out_parserdestroy_parser;
 		}
-
-		bufused = 0; // Reset buffer on pipe reopen
+		parserreset(parser);
 		pfd.fd = pipefd;
 	}
 
@@ -318,6 +222,8 @@ runloop(char const *pipepath)
 
 out_close_pipefd:
 	close(pipefd);
+out_parserdestroy_parser:
+	parserdestroy(parser);
 	return ret;
 }
 

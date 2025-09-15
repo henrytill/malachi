@@ -1,4 +1,5 @@
-#include <mupdf/fitz.h>
+#include <mupdf/fitz.h> /* beware of <mupdf/fitz/system.h>  */
+#undef nelem
 
 #include "malachi.h"
 

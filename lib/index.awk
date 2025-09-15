@@ -5,5 +5,5 @@
 	else next
 
 	hash = ($5 == "D") ? $3 : $4
-	printf "repo=\"%s\" op=%s path=\"%s\" hash=%s\n", repo, op, $6, hash
+	printf "%s\x1F%s\x1F%s\x1F%s\x1E", op, repo, $6, hash
 }

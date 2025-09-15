@@ -1,9 +1,30 @@
 #pragma once
 
+#include <limits.h>
+#include <stddef.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+
+#define nelem(x) (sizeof(x) / sizeof((x)[0]))
 
 enum {
-	Emissingdir = 1,
+	MAXHASHLEN = 65,
+	MAXOPSIZE = 16,
+	MAXFIELDS = 4,
+	MAXRECORDSIZE = MAXOPSIZE + (2 * PATH_MAX) + MAXHASHLEN + MAXFIELDS,
+};
+
+enum {
+	Emissingdir = 2,
+	Enospace = 3,
+};
+
+enum {
+	Opunknown = 0,
+	Opadded,
+	Opchanged,
+	Opremoved,
+	Opshutdown,
 };
 
 typedef struct Error Error;
@@ -11,6 +32,8 @@ typedef struct Config Config;
 typedef struct Filter Filter;
 typedef struct Test Test;
 typedef struct Database Database;
+typedef struct Parser Parser;
+typedef struct Command Command;
 
 typedef char *Getenvfn(char const *name);
 
@@ -36,6 +59,13 @@ struct Filter {
 struct Test {
 	char const *name;
 	int (*run)(void);
+};
+
+struct Command {
+	int op;
+	char repo[PATH_MAX];
+	char path[PATH_MAX];
+	char hash[MAXHASHLEN];
 };
 
 int eprintf(char *fmt, ...);
@@ -73,6 +103,12 @@ int dbreposet(Database *db, char const *repopath, char const *sha);
 
 int statuswrite(char const *runtimedir, char const *repopath, char const *sha);
 int statusensure(char const *runtimedir, char const *repopath);
+
+Parser *parsercreate(size_t bufsize);
+void parserdestroy(Parser *p);
+void parserreset(Parser *p);
+ssize_t parserinput(Parser *p, int fd);
+int parsecommand(Parser *p, Command *cmd);
 
 /* globals */
 

@@ -72,6 +72,7 @@ malachi = executable(
         'src/cmd/malachi/config.c',
         'src/cmd/malachi/db.c',
         'src/cmd/malachi/filt.c',
+        'src/cmd/malachi/parser.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',
         'src/cmd/malachi/util.c',

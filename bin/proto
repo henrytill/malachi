@@ -47,7 +47,7 @@ firstrun() {
 	test $# -eq 1 || { error "usage: firstrun repo"; return 1; }
 	local repo="${1}"
 	log "first run - generating add events for all files"
-	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk -v repo="${repo}" '{printf "repo=\"%s\" op=added path=\"%s\" hash=%s\n", repo, $2, $1}'
+	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk -v repo="${repo}" '{printf "added\x1F%s\x1F%s\x1F%s\x1E", repo, $2, $1}'
 }
 
 genevents() {
