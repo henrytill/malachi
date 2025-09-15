@@ -4,30 +4,65 @@ malachi \- full-text search indexer for Git repositories
 .SH SYNOPSIS
 .B malachi
 [
-.B -vct
-]
-[
-.I query
+.B -vdct
 ]
 .SH DESCRIPTION
 .I Malachi
-is a full-text search indexer for Git repositories.
+is a full-text search indexer daemon for Git repositories. It creates searchable indexes of repository content while leveraging Git's immutable object model for efficient caching and incremental updates.
 .PP
 If no arguments are given,
 .I malachi
-prints usage information.
+starts as a daemon and listens for indexing commands via a named pipe.
+.PP
+The daemon uses SQLite with FTS5 for full-text search indexing and supports content filters for rich document types including PDFs via libmupdf.
 .PP
 The optional flags are:
 .TP
 .B -v
-Print version information.
+Print version information including libgit2, SQLite, and filter versions.
+.TP
+.B -d
+Enable debug output when running the daemon.
 .TP
 .B -c
-Print configuration paths (config, data, and cache directories).
+Print configuration paths (config, data, cache, and runtime directories).
 .TP
 .B -t
 Run tests. If followed by a test name, run only that test.
+.SH DAEMON OPERATION
+The daemon creates a named pipe at
+.I runtimedir/command
+for receiving indexing commands and maintains status files under
+.I runtimedir/repos/
+that mirror the filesystem structure of indexed repositories.
 .PP
-Search functionality is pending implementation.
+The runtime directory location is platform-dependent: on Linux it follows XDG conventions, checking
+.I $XDG_RUNTIME_DIR/malachi,
+.I /run/user/$UID/malachi,
+and
+.I /tmp/malachi-$UID.
+On macOS it uses
+.I $TMPDIR/malachi
+or
+.I /tmp/malachi.
+.PP
+Commands follow ndb-style syntax:
+.PP
+.RS
+repo="/path/to/repo" op=added path="file.txt" hash=abc123
+.RE
+.PP
+Supported operations are
+.I added,
+.I changed,
+.I removed,
+and
+.I shutdown.
+.SH COMPANION TOOLS
+The
+.B proto
+script in the
+.I bin/
+directory provides Git change detection and generates appropriate indexing commands for the daemon.
 .SH SOURCE
 .B src/cmd/malachi
