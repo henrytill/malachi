@@ -61,36 +61,14 @@ parserinput(Parser *p, int fd)
 	return nread;
 }
 
-static Opcode
-parseop(size_t oplen, char const opstr[oplen])
+static int
+findop(size_t oplen, char const opstr[oplen])
 {
 	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0)
-			return ops[i].op;
-	}
-	return Opunknown;
-}
-
-static int
-getnfields(size_t oplen, char const opstr[oplen])
-{
-	for(size_t i = 0; i < NELEM(ops); ++i) {
-		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0) {
-			size_t const nfields = ops[i].nfields;
-			return (assert(nfields <= INT_MAX), (int)nfields);
-		}
+			return (assert(i <= INT_MAX), (int)i);
 	}
 	return -1;
-}
-
-static struct Fieldspec const *
-getfieldspecs(Opcode op)
-{
-	for(size_t i = 0; i < NELEM(ops); ++i) {
-		if(ops[i].op == op)
-			return ops[i].fields;
-	}
-	return NULL;
 }
 
 static int
@@ -119,13 +97,17 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 	if(fieldcount < 1)
 		return -1;
 
-	int const nfields = getnfields(fields[0].len, fields[0].pos);
-	if(nfields < 0 || fieldcount != nfields + 1) /* +1 for operation field */
+	int const opindex = findop(fields[0].len, fields[0].pos);
+	if(opindex < 0)
 		return -1;
 
-	cmd->op = parseop(fields[0].len, fields[0].pos);
+	int const nfields = (assert(ops[opindex].nfields <= INT_MAX), (int)ops[opindex].nfields);
+	if(fieldcount != nfields + 1) /* +1 for operation field */
+		return -1;
 
-	struct Fieldspec const *const fieldspecs = getfieldspecs(cmd->op);
+	cmd->op = ops[opindex].op;
+
+	struct Fieldspec const *const fieldspecs = ops[opindex].fields;
 	if(fieldspecs == NULL)
 		return 0;
 
@@ -135,8 +117,7 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 		assert(offset + destsize <= sizeof(*cmd));
 		char *const dest = (char *)cmd + offset;
 
-		size_t const len = fields[i + 1].len;
-		int const sourcelen = (assert(len <= INT_MAX), (int)len);
+		int const sourcelen = (assert(fields[i + 1].len <= INT_MAX), (int)fields[i + 1].len);
 		char const *const source = fields[i + 1].pos;
 
 		int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
