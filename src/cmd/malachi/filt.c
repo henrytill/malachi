@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "malachi.h"
 
 #define MAXFILTERS 16

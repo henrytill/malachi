@@ -2,6 +2,7 @@
 
 #include <limits.h>
 #include <stddef.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -106,7 +107,7 @@ static struct {
 	size_t const nfields;
 	struct Fieldspec const *const fields;
 } const ops[] = {
-#define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
+#define OP(opcode, name, nfields, fieldspecs) {opcode, strlen(name), name, nfields, fieldspecs}
 	OP(Opadded, "added", 4, filefields),
 	OP(Opchanged, "changed", 4, filefields),
 	OP(Opremoved, "removed", 4, filefields),
