@@ -77,8 +77,8 @@ getnfields(size_t oplen, char const opstr[oplen])
 {
 	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0) {
-			assert(ops[i].nfields <= INT_MAX);
-			return (int)ops[i].nfields;
+			size_t const nfields = ops[i].nfields;
+			return (assert(nfields <= INT_MAX), (int)nfields);
 		}
 	}
 	return -1;
@@ -133,13 +133,14 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 			size_t const destsize = fieldspecs[i].size;
 			assert(offset + destsize <= sizeof(*cmd));
 			char *const dest = (char *)cmd + offset;
-			char const *const destname = fieldspecs[i].name;
 
-			int const sourcelen = (assert(fields[i + 1].len <= INT_MAX), (int)fields[i + 1].len);
+			size_t const len = fields[i + 1].len;
+			int const sourcelen = (assert(len <= INT_MAX), (int)len);
 			char const *const source = fields[i + 1].pos;
 
 			int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
 			if(n >= (assert(destsize <= INT_MAX), (int)destsize)) {
+				char const *const destname = fieldspecs[i].name;
 				logerror("%s too long: %d bytes", destname, sourcelen);
 				return -1;
 			}
@@ -174,10 +175,8 @@ parsecommand(Parser *p, Command *cmd)
 
 	*rs = '\0';
 	rc = parserecord(p->buf, cmd);
-	if(rc != 0) {
-		/* Restore separator and skip malformed record */
-		*rs = '\x1E';
-	}
+	if(rc != 0)
+		*rs = '\x1E'; /* Restore separator and skip malformed record */
 
 compact:
 	/* Move remaining data to start of buffer */
