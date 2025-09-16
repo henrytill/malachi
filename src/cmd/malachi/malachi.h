@@ -66,17 +66,22 @@ enum Opcode {
 
 struct Command {
 	Opcode op;
-	char root[PATH_MAX];
-	char roothash[MAXHASHLEN];
-	char leaf[PATH_MAX];
-	char leafhash[MAXHASHLEN];
+	union {
+		struct {
+			char root[PATH_MAX];
+			char roothash[MAXHASHLEN];
+			char leaf[PATH_MAX];
+			char leafhash[MAXHASHLEN];
+		} fileop;
+		/* shutdown needs no fields */
+	};
 };
 
-#define FILEFIELDS               \
-	X(root, "Root path")     \
-	X(roothash, "Root hash") \
-	X(leaf, "Leaf path")     \
-	X(leafhash, "Leaf hash")
+#define FILEFIELDS                      \
+	X(fileop.root, "Root path")     \
+	X(fileop.roothash, "Root hash") \
+	X(fileop.leaf, "Leaf path")     \
+	X(fileop.leafhash, "Leaf hash")
 
 struct Fieldspec {
 	size_t const offset;

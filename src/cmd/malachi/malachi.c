@@ -84,24 +84,24 @@ handlecommand(struct Command const *cmd)
 	switch(cmd->op) {
 	case Opadded:
 		loginfo("Adding leaf: %s in root %s (roothash: %s, leafhash: %s)",
-			cmd->leaf,
-			cmd->root,
-			cmd->roothash,
-			cmd->leafhash);
+			cmd->fileop.leaf,
+			cmd->fileop.root,
+			cmd->fileop.roothash,
+			cmd->fileop.leafhash);
 		return 0;
 	case Opchanged:
 		loginfo("Updating leaf: %s in root %s (roothash: %s, leafhash: %s)",
-			cmd->leaf,
-			cmd->root,
-			cmd->roothash,
-			cmd->leafhash);
+			cmd->fileop.leaf,
+			cmd->fileop.root,
+			cmd->fileop.roothash,
+			cmd->fileop.leafhash);
 		return 0;
 	case Opremoved:
 		loginfo("Removing leaf: %s from root %s (roothash: %s, leafhash: %s)",
-			cmd->leaf,
-			cmd->root,
-			cmd->roothash,
-			cmd->leafhash);
+			cmd->fileop.leaf,
+			cmd->fileop.root,
+			cmd->fileop.roothash,
+			cmd->fileop.leafhash);
 		return 0;
 	case Opshutdown:
 		loginfo("Shutdown requested");
