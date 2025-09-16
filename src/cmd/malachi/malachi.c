@@ -274,7 +274,6 @@ run(Config *config)
 	if(rc != 0)
 		goto out_unlink_pipepath;
 
-	printf("\n");
 	switch(sigrecvd) {
 	case SIGINT:
 		loginfo("Received SIGINT, shutting down");
