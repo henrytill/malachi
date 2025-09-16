@@ -95,22 +95,25 @@ handlecommand(struct Command const *cmd)
 {
 	switch(cmd->op) {
 	case Opadded:
-		loginfo("Adding file: %s in repository %s (hash: %s)",
+		loginfo("Adding file: %s in repository %s (repohash: %s, pathhash: %s)",
 			cmd->path,
 			cmd->repo,
-			cmd->hash);
+			cmd->repohash,
+			cmd->pathhash);
 		return 0;
 	case Opchanged:
-		loginfo("Updating file: %s in repository %s (hash: %s)",
+		loginfo("Updating file: %s in repository %s (repohash: %s, pathhash: %s)",
 			cmd->path,
 			cmd->repo,
-			cmd->hash);
+			cmd->repohash,
+			cmd->pathhash);
 		return 0;
 	case Opremoved:
-		loginfo("Removing file: %s from repository %s (hash: %s)",
+		loginfo("Removing file: %s from repository %s (repohash: %s, pathhash: %s)",
 			cmd->path,
 			cmd->repo,
-			cmd->hash);
+			cmd->repohash,
+			cmd->pathhash);
 		return 0;
 	case Opshutdown:
 		loginfo("Shutdown requested");

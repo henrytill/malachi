@@ -44,10 +44,11 @@ findrepo() {
 }
 
 firstrun() {
-	test $# -eq 1 || { error "usage: firstrun repo"; return 1; }
+	test $# -eq 2 || { error "usage: firstrun repo head"; return 1; }
 	local repo="${1}"
+	local head="${2}"
 	log "first run - generating add events for all files"
-	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk -v repo="${repo}" '{printf "added\x1F%s\x1F%s\x1F%s\x1E", repo, $2, $1}'
+	git ls-tree -r --format="%(objectname) %(path)" "${head}" | awk -v repo="${repo}" -v repohash="${head}" '{printf "added\x1F%s\x1F%s\x1F%s\x1F%s\x1E", repo, repohash, $2, $1}'
 }
 
 genevents() {
@@ -55,7 +56,7 @@ genevents() {
 	local repo="${1}"
 	local cached="${2}"
 	local head="${3}"
-	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -f "${SCRIPTDIR}/../lib/index.awk"
+	git diff-tree --raw "${cached}" "${head}" | awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/index.awk"
 }
 
 check() {
@@ -122,13 +123,13 @@ main() {
 	if ! test -f ${cachefile}
 	then
 		if test -p "${runtimedir}/command"; then
-			firstrun "${repo}" > "${runtimedir}/command" 2>/dev/null || {
+			firstrun "${repo}" "${head}" > "${runtimedir}/command" 2>/dev/null || {
 				error "failed to send batch commands to daemon"
-				firstrun "${repo}"
+				firstrun "${repo}" "${head}"
 			}
 		else
 			log "daemon pipe not found, writing to stdout instead"
-			firstrun "${repo}"
+			firstrun "${repo}" "${head}"
 		fi
 		return
 	fi

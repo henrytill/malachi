@@ -68,10 +68,11 @@ struct Fieldspec {
 	char const *name;
 };
 
-#define FILEFIELDS                 \
-	X(repo, "Repository path") \
-	X(path, "File path")       \
-	X(hash, "Hash")
+#define FILEFIELDS                     \
+	X(repo, "Repository path")     \
+	X(repohash, "Repository hash") \
+	X(path, "File path")           \
+	X(pathhash, "File hash")
 
 #define X(field, desc) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
 FILEFIELDS
@@ -91,9 +92,9 @@ static struct {
 	struct Fieldspec const *fields;
 } const ops[] = {
 #define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
-	OP(Opadded, "added", 3, filefields),
-	OP(Opchanged, "changed", 3, filefields),
-	OP(Opremoved, "removed", 3, filefields),
+	OP(Opadded, "added", 4, filefields),
+	OP(Opchanged, "changed", 4, filefields),
+	OP(Opremoved, "removed", 4, filefields),
 	OP(Opshutdown, "shutdown", 0, NULL),
 #undef OP
 };

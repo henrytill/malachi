@@ -4,6 +4,6 @@
 	else if ($5 == "D") op = "removed"
 	else next
 
-	hash = ($5 == "D") ? $3 : $4
-	printf "%s\x1F%s\x1F%s\x1F%s\x1E", op, repo, $6, hash
+	pathhash = ($5 == "D") ? $3 : $4
+	printf "%s\x1F%s\x1F%s\x1F%s\x1F%s\x1E", op, repo, repohash, $6, pathhash
 }

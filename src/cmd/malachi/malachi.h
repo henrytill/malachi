@@ -12,8 +12,8 @@
 enum {
 	MAXHASHLEN = 65,
 	MAXOPSIZE = 16,
-	MAXFIELDS = 4,
-	MAXRECORDSIZE = MAXOPSIZE + (2 * PATH_MAX) + MAXHASHLEN + MAXFIELDS,
+	MAXFIELDS = 5,
+	MAXRECORDSIZE = MAXOPSIZE + (2 * PATH_MAX) + (2 * MAXHASHLEN) + MAXFIELDS,
 };
 
 enum {
@@ -66,8 +66,9 @@ struct Test {
 struct Command {
 	int op;
 	char repo[PATH_MAX];
+	char repohash[MAXHASHLEN];
 	char path[PATH_MAX];
-	char hash[MAXHASHLEN];
+	char pathhash[MAXHASHLEN];
 };
 
 int eprintf(char *fmt, ...);
