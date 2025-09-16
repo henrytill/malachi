@@ -1,6 +1,6 @@
 .TH MALACHI 1
 .SH NAME
-malachi \- full-text search indexer for Git repositories
+malachi \- full-text search indexer for content-addressable systems
 .SH SYNOPSIS
 .B malachi
 [
@@ -8,18 +8,18 @@ malachi \- full-text search indexer for Git repositories
 ]
 .SH DESCRIPTION
 .I Malachi
-is a full-text search indexer daemon for Git repositories. It creates searchable indexes of repository content while leveraging Git's immutable object model for efficient caching and incremental updates.
+is a full-text search indexer daemon for content-addressable systems. It creates searchable indexes of merkle tree content while leveraging immutable hashing for efficient caching and incremental updates.
 .PP
 If no arguments are given,
 .I malachi
 starts as a daemon and listens for indexing commands via a named pipe.
 .PP
-The daemon uses SQLite with FTS5 for full-text search indexing and supports content filters for rich document types including PDFs via libmupdf.
+The daemon uses SQLite with FTS5 for full-text search indexing and supports pluggable content filters for various document types.
 .PP
 The optional flags are:
 .TP
 .B -v
-Print version information including libgit2, SQLite, and filter versions.
+Print version information.
 .TP
 .B -d
 Enable debug output when running the daemon.
@@ -33,8 +33,8 @@ Run tests. If followed by a test name, run only that test.
 The daemon creates a named pipe at
 .I runtimedir/command
 for receiving indexing commands and maintains status files under
-.I runtimedir/repos/
-that mirror the filesystem structure of indexed repositories.
+.I runtimedir/roots/
+that mirror the filesystem structure of indexed content trees.
 .PP
 The runtime directory location is platform-dependent: on Linux it follows XDG conventions, checking
 .I $XDG_RUNTIME_DIR/malachi,
@@ -46,10 +46,10 @@ On macOS it uses
 or
 .I /tmp/malachi.
 .PP
-Commands follow ndb-style syntax:
+Commands use ASCII separator format with positional fields:
 .PP
 .RS
-repo="/path/to/repo" op=added path="file.txt" hash=abc123
+added\\x1F/path/to/root\\x1Froothash\\x1Ffile.txt\\x1Fleafhash\\x1E
 .RE
 .PP
 Supported operations are
@@ -63,6 +63,6 @@ The
 .B proto
 script in the
 .I bin/
-directory provides Git change detection and generates appropriate indexing commands for the daemon.
+directory provides Git repository support, detecting changes and generating appropriate indexing commands for the daemon. Other content-addressable systems can be supported through similar client scripts.
 .SH SOURCE
 .B src/cmd/malachi
