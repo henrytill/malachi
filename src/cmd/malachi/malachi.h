@@ -21,20 +21,13 @@ enum {
 	Enospace = 3,
 };
 
-enum {
-	Opunknown = 0,
-	Opadded,
-	Opchanged,
-	Opremoved,
-	Opshutdown,
-};
-
 typedef struct Error Error;
 typedef struct Config Config;
 typedef struct Filter Filter;
 typedef struct Test Test;
 typedef struct Database Database;
 typedef struct Parser Parser;
+typedef enum Opcode Opcode;
 typedef struct Command Command;
 
 typedef char *Getenvfn(char const *name);
@@ -63,12 +56,57 @@ struct Test {
 	int (*run)(void);
 };
 
+enum Opcode {
+	Opunknown = 0,
+	Opadded,
+	Opchanged,
+	Opremoved,
+	Opshutdown,
+};
+
 struct Command {
-	int op;
+	Opcode op;
 	char root[PATH_MAX];
 	char roothash[MAXHASHLEN];
 	char leaf[PATH_MAX];
 	char leafhash[MAXHASHLEN];
+};
+
+#define FILEFIELDS               \
+	X(root, "Root path")     \
+	X(roothash, "Root hash") \
+	X(leaf, "Leaf path")     \
+	X(leafhash, "Leaf hash")
+
+struct Fieldspec {
+	size_t const offset;
+	size_t const bufsize;
+	char const *const name;
+};
+
+#define X(field, desc) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
+FILEFIELDS
+#undef X
+
+static struct Fieldspec const filefields[] = {
+#define X(field, desc) {offsetof(Command, field), sizeof(((Command *)0)->field), desc},
+	FILEFIELDS
+#undef X
+};
+
+static struct {
+	Opcode const op;
+	size_t const namelen;
+	char const *const name;
+	size_t const nfields;
+	struct Fieldspec const *const fields;
+} const ops[] = {
+#define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
+	OP(Opadded, "added", 4, filefields),
+	OP(Opchanged, "changed", 4, filefields),
+	OP(Opremoved, "removed", 4, filefields),
+	OP(Opshutdown, "shutdown", 0, NULL),
+#undef OP
 };
 
 int eprintf(char *fmt, ...);

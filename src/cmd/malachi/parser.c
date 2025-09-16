@@ -62,49 +62,12 @@ parserinput(Parser *p, int fd)
 	return nread;
 }
 
-struct Fieldspec {
-	size_t offset;
-	size_t bufsize;
-	char const *name;
-};
-
-#define FILEFIELDS               \
-	X(root, "Root path")     \
-	X(roothash, "Root hash") \
-	X(leaf, "Leaf path")     \
-	X(leafhash, "Leaf hash")
-
-#define X(field, desc) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
-FILEFIELDS
-#undef X
-
-static struct Fieldspec const filefields[] = {
-#define X(field, desc) {offsetof(Command, field), sizeof(((Command *)0)->field), desc},
-	FILEFIELDS
-#undef X
-};
-
-static struct {
-	int opcode;
-	size_t namelen;
-	char const *name;
-	size_t nfields;
-	struct Fieldspec const *fields;
-} const ops[] = {
-#define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
-	OP(Opadded, "added", 4, filefields),
-	OP(Opchanged, "changed", 4, filefields),
-	OP(Opremoved, "removed", 4, filefields),
-	OP(Opshutdown, "shutdown", 0, NULL),
-#undef OP
-};
-
-static int
+static Opcode
 parseop(size_t oplen, char const opstr[oplen])
 {
 	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0)
-			return ops[i].opcode;
+			return ops[i].op;
 	}
 	return Opunknown;
 }
@@ -122,10 +85,10 @@ getnfields(size_t oplen, char const opstr[oplen])
 }
 
 static struct Fieldspec const *
-getfieldspecs(int opcode)
+getfieldspecs(Opcode op)
 {
 	for(size_t i = 0; i < NELEM(ops); ++i) {
-		if(ops[i].opcode == opcode)
+		if(ops[i].op == op)
 			return ops[i].fields;
 	}
 	return NULL;
