@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +11,8 @@ static char const separator = '/';
 char *
 joinpath2(char const *a, char const *b)
 {
-	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s", a, separator, b);
+	int const n = snprintf(NULL, 0, "%s%c%s", a, separator, b);
+	size_t len = (assert(n >= 0), (size_t)n);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
 	if(ret == NULL)
 		return NULL;
@@ -22,7 +24,8 @@ joinpath2(char const *a, char const *b)
 char *
 joinpath3(char const *a, char const *b, char const *c)
 {
-	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s", a, separator, b, separator, c);
+	int const n = snprintf(NULL, 0, "%s%c%s%c%s", a, separator, b, separator, c);
+	size_t len = (assert(n >= 0), (size_t)n);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
 	if(ret == NULL)
 		return NULL;
@@ -34,7 +37,8 @@ joinpath3(char const *a, char const *b, char const *c)
 char *
 joinpath4(char const *a, char const *b, char const *c, char const *d)
 {
-	size_t len = (size_t)snprintf(NULL, 0, "%s%c%s%c%s%c%s", a, separator, b, separator, c, separator, d);
+	int const n = snprintf(NULL, 0, "%s%c%s%c%s%c%s", a, separator, b, separator, c, separator, d);
+	size_t len = (assert(n >= 0), (size_t)n);
 	char *ret = calloc(++len, sizeof(*ret)); // incr for terminator
 	if(ret == NULL)
 		return NULL;

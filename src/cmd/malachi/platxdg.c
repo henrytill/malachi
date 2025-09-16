@@ -74,7 +74,8 @@ xdgruntimedir(Getenvfn getenv, char const *name)
 		uid_t uid = getuid();
 
 		{
-			size_t len = (size_t)snprintf(NULL, 0, "/run/user/%u", uid);
+			int const n = snprintf(NULL, 0, "/run/user/%u", uid);
+			size_t len = (assert(n >= 0), (size_t)n);
 			char *runuserpath = calloc(++len, sizeof(*runuserpath));
 			if(runuserpath == NULL)
 				return NULL;
@@ -92,7 +93,8 @@ xdgruntimedir(Getenvfn getenv, char const *name)
 		}
 
 		{
-			size_t len = (size_t)snprintf(NULL, 0, "/tmp/%s-%u", name, uid);
+			int const n = snprintf(NULL, 0, "/tmp/%s-%u", name, uid);
+			size_t len = (assert(n >= 0), (size_t)n);
 			char *tmpname = calloc(++len, sizeof(*tmpname));
 			if(tmpname == NULL)
 				return NULL;
