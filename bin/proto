@@ -115,7 +115,7 @@ main() {
 	log "repo=${repo}"
 	log "head=${head}"
 
-	cachedrepos="${runtimedir}/repos"
+	cachedrepos="${runtimedir}/roots"
 	cachefile="${cachedrepos}${repo}"
 
 	log "cachefile=${cachefile}"

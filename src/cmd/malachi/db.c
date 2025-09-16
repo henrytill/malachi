@@ -172,7 +172,7 @@ statuswrite(char const *runtimedir, char const *repopath, char const *sha)
 	if(statusensure(runtimedir, repopath) != 0)
 		return -1;
 
-	char *statuspath = joinpath2(runtimedir, "repos");
+	char *statuspath = joinpath2(runtimedir, "roots");
 	if(!statuspath) {
 		logerror("Failed to allocate status base path");
 		return -1;
@@ -202,7 +202,7 @@ statuswrite(char const *runtimedir, char const *repopath, char const *sha)
 int
 statusensure(char const *runtimedir, char const *repopath)
 {
-	char *statusbase = joinpath2(runtimedir, "repos");
+	char *statusbase = joinpath2(runtimedir, "roots");
 	if(!statusbase) {
 		logerror("Failed to allocate status base path");
 		return -1;
