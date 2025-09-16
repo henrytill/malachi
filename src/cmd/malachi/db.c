@@ -95,7 +95,7 @@ dbensure(Database *db, Error *err)
 char *
 dbrepoget(Database *db, char const *repopath)
 {
-	char const *sql = "SELECT head_sha FROM repositories WHERE path = ?";
+	char const *sql = "SELECT root_hash FROM roots WHERE root_path = ?";
 	sqlite3_stmt *stmt;
 
 	int rc = sqlite3_prepare_v2(db->conn, sql, -1, &stmt, NULL);
@@ -132,7 +132,7 @@ dbrepoget(Database *db, char const *repopath)
 int
 dbreposet(Database *db, char const *repopath, char const *sha)
 {
-	char const *sql = "INSERT OR REPLACE INTO repositories (path, head_sha, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+	char const *sql = "INSERT OR REPLACE INTO roots (root_path, root_hash, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
 	sqlite3_stmt *stmt;
 
 	int rc = sqlite3_prepare_v2(db->conn, sql, -1, &stmt, NULL);
