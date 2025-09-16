@@ -127,23 +127,24 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 	cmd->op = parseop(fields[0].len, fields[0].pos);
 
 	struct Fieldspec const *const fieldspecs = getfieldspecs(cmd->op);
-	if(fieldspecs) {
-		for(int i = 0; i < nfields; ++i) {
-			size_t const offset = fieldspecs[i].offset;
-			size_t const destsize = fieldspecs[i].size;
-			assert(offset + destsize <= sizeof(*cmd));
-			char *const dest = (char *)cmd + offset;
+	if(fieldspecs == NULL)
+		return 0;
 
-			size_t const len = fields[i + 1].len;
-			int const sourcelen = (assert(len <= INT_MAX), (int)len);
-			char const *const source = fields[i + 1].pos;
+	for(int i = 0; i < nfields; ++i) {
+		size_t const offset = fieldspecs[i].offset;
+		size_t const destsize = fieldspecs[i].size;
+		assert(offset + destsize <= sizeof(*cmd));
+		char *const dest = (char *)cmd + offset;
 
-			int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
-			if(n >= (assert(destsize <= INT_MAX), (int)destsize)) {
-				char const *const destname = fieldspecs[i].name;
-				logerror("%s too long: %d bytes", destname, sourcelen);
-				return -1;
-			}
+		size_t const len = fields[i + 1].len;
+		int const sourcelen = (assert(len <= INT_MAX), (int)len);
+		char const *const source = fields[i + 1].pos;
+
+		int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
+		if(n >= (assert(destsize <= INT_MAX), (int)destsize)) {
+			char const *const destname = fieldspecs[i].name;
+			logerror("%s too long: %d bytes", destname, sourcelen);
+			return -1;
 		}
 	}
 
