@@ -68,11 +68,11 @@ struct Fieldspec {
 	char const *name;
 };
 
-#define FILEFIELDS                     \
-	X(repo, "Repository path")     \
-	X(repohash, "Repository hash") \
-	X(path, "File path")           \
-	X(pathhash, "File hash")
+#define FILEFIELDS               \
+	X(root, "Root path")     \
+	X(roothash, "Root hash") \
+	X(leaf, "Leaf path")     \
+	X(leafhash, "Leaf hash")
 
 #define X(field, desc) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
 FILEFIELDS

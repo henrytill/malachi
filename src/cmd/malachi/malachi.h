@@ -65,10 +65,10 @@ struct Test {
 
 struct Command {
 	int op;
-	char repo[PATH_MAX];
-	char repohash[MAXHASHLEN];
-	char path[PATH_MAX];
-	char pathhash[MAXHASHLEN];
+	char root[PATH_MAX];
+	char roothash[MAXHASHLEN];
+	char leaf[PATH_MAX];
+	char leafhash[MAXHASHLEN];
 };
 
 int eprintf(char *fmt, ...);
