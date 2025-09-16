@@ -64,9 +64,10 @@ parserinput(Parser *p, int fd)
 static int
 findop(size_t oplen, char const opstr[oplen])
 {
-	for(size_t i = 0; i < NELEM(ops); ++i) {
+	int const nops = (assert(NELEM(ops) <= INT_MAX), (int)NELEM(ops));
+	for(int i = 0; i < nops; ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0)
-			return (assert(i <= INT_MAX), (int)i);
+			return i;
 	}
 	return -1;
 }
