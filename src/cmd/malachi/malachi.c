@@ -6,10 +6,10 @@
 #include <poll.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <git2/common.h>
 #include <sqlite3.h>
 
 #include "malachi.h"
@@ -47,18 +47,6 @@ versionprint(void)
 		MALACHI_VERSION_MINOR,
 		MALACHI_VERSION_PATCH,
 		commitstr);
-
-	{
-		int major = 0;
-		int minor = 0;
-		int rev = 0;
-		int const rc = git_libgit2_version(&major, &minor, &rev);
-		if(rc != 0) {
-			eprintf("Failed to get libgit2 version\n");
-			return -1;
-		}
-		printf("libgit2=%d.%d.%d\n", major, minor, rev);
-	}
 
 	printf("sqlite=%s\n", sqlite3_libversion());
 
