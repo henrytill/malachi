@@ -5,7 +5,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define nelem(x) (sizeof(x) / sizeof((x)[0]))
+#define STATIC_ASSERT(expr) _Static_assert((expr), #expr)
+
+#define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
 enum {
 	MAXHASHLEN = 65,

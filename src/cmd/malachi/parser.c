@@ -68,8 +68,6 @@ struct Fieldspec {
 	char const *name;
 };
 
-#define STATIC_ASSERT(expr) _Static_assert((expr), #expr)
-
 #define FILEFIELDS                 \
 	X(repo, "Repository path") \
 	X(path, "File path")       \
@@ -103,7 +101,7 @@ static struct {
 static int
 parseop(size_t oplen, char const opstr[oplen])
 {
-	for(size_t i = 0; i < nelem(ops); ++i) {
+	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0)
 			return ops[i].opcode;
 	}
@@ -113,7 +111,7 @@ parseop(size_t oplen, char const opstr[oplen])
 static int
 getnfields(size_t oplen, char const opstr[oplen])
 {
-	for(size_t i = 0; i < nelem(ops); ++i) {
+	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0) {
 			assert(ops[i].nfields <= INT_MAX);
 			return (int)ops[i].nfields;
@@ -125,7 +123,7 @@ getnfields(size_t oplen, char const opstr[oplen])
 static struct Fieldspec const *
 getfieldspecs(int opcode)
 {
-	for(size_t i = 0; i < nelem(ops); ++i) {
+	for(size_t i = 0; i < NELEM(ops); ++i) {
 		if(ops[i].opcode == opcode)
 			return ops[i].fields;
 	}
@@ -145,8 +143,7 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 	int fieldcount = 0;
 	char const *pos = record;
 
-	_Static_assert(SIZE_MAX >> 1 == LONG_MAX || SIZE_MAX == LONG_MAX,
-		"positive long values must fit into size_t");
+	STATIC_ASSERT(SIZE_MAX >> 1 == LONG_MAX || SIZE_MAX == LONG_MAX);
 
 	for(int i = 0; i < MAXFIELDS && *pos; ++i) {
 		fields[i].pos = pos;
