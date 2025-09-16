@@ -137,7 +137,7 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 			char const *const source = fields[i + 1].pos;
 
 			int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
-			if(n >= (int)fieldspecs[i].bufsize) {
+			if(n >= (int)destsize) {
 				logerror("%s too long: %d bytes", destname, sourcelen);
 				return -1;
 			}
