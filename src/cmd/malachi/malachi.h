@@ -77,24 +77,24 @@ struct Command {
 	};
 };
 
-#define FILEFIELDS                      \
-	X(fileop.root, "Root path")     \
-	X(fileop.roothash, "Root hash") \
-	X(fileop.leaf, "Leaf path")     \
-	X(fileop.leafhash, "Leaf hash")
+#define FILEFIELDS         \
+	X(fileop.root)     \
+	X(fileop.roothash) \
+	X(fileop.leaf)     \
+	X(fileop.leafhash)
 
 struct Fieldspec {
 	size_t const offset;
-	size_t const bufsize;
+	size_t const size;
 	char const *const name;
 };
 
-#define X(field, desc) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
+#define X(field) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
 FILEFIELDS
 #undef X
 
 static struct Fieldspec const filefields[] = {
-#define X(field, desc) {offsetof(Command, field), sizeof(((Command *)0)->field), desc},
+#define X(field) {offsetof(Command, field), sizeof(((Command *)0)->field), #field},
 	FILEFIELDS
 #undef X
 };

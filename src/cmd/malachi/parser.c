@@ -130,7 +130,7 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 	if(fieldspecs) {
 		for(int i = 0; i < nfields; ++i) {
 			char *const dest = (char *)cmd + fieldspecs[i].offset;
-			size_t const destsize = fieldspecs[i].bufsize;
+			size_t const destsize = fieldspecs[i].size;
 			char const *const destname = fieldspecs[i].name;
 
 			int const sourcelen = (assert(fields[i + 1].len <= INT_MAX), (int)fields[i + 1].len);
