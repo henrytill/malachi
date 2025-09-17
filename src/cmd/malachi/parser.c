@@ -133,7 +133,7 @@ parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cog
 }
 
 int
-parsecommand(Parser *p, Command *cmd)
+parsecommand(Parser *p, Command *cmd, int *generation)
 {
 	size_t remaining = 0;
 	assert(p->bufused <= p->bufsize);
@@ -141,16 +141,31 @@ parsecommand(Parser *p, Command *cmd)
 	if(p->bufused == 0)
 		return 0; /* No data */
 
+	char *gs = memchr(p->buf, '\x1D', p->bufused);
 	char *rs = memchr(p->buf, '\x1E', p->bufused);
+	char *separator = NULL;
+	size_t prefixlen = 0;
+
+	/* If GS comes before RS (or RS not found), handle GS */
+	if(gs && (!rs || gs < rs)) {
+		separator = gs;
+		prefixlen = gs - p->buf;
+		assert(prefixlen < p->bufused);
+		(*generation)++;
+		/* No record to parse for GS */
+		goto compact;
+	}
+
 	if(!rs)
 		return 0; /* Incomplete record */
 
-	size_t recordlen = rs - p->buf;
-	assert(recordlen < p->bufused);
+	separator = rs;
+	prefixlen = rs - p->buf;
+	assert(prefixlen < p->bufused);
 
 	int rc;
-	if(recordlen > MAXRECORDSIZE) {
-		logerror("Record too large: %zu bytes, discarding", recordlen);
+	if(prefixlen > MAXRECORDSIZE) {
+		logerror("Record too large: %zu bytes, discarding", prefixlen);
 		rc = -1;
 		goto compact;
 	}
@@ -162,10 +177,10 @@ parsecommand(Parser *p, Command *cmd)
 
 compact:
 	/* Move remaining data to start of buffer */
-	remaining = p->bufused - (recordlen + 1);
-	memmove(p->buf, rs + 1, remaining);
+	remaining = p->bufused - (prefixlen + 1);
+	memmove(p->buf, separator + 1, remaining);
 	p->bufused = remaining;
 	assert(p->bufused <= p->bufsize);
 
-	return (rc == 0) ? 1 : -1;
+	return (separator == gs) ? 0 : ((rc == 0) ? 1 : -1);
 }

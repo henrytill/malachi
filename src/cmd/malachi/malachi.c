@@ -112,7 +112,7 @@ handlecommand(struct Command const *cmd)
 }
 
 static void
-readcommands(int pipefd, Parser *parser)
+readcommands(int pipefd, Parser *parser, int *generation)
 {
 	ssize_t nread = parserinput(parser, pipefd);
 	if(nread == -Enospace) {
@@ -129,7 +129,7 @@ readcommands(int pipefd, Parser *parser)
 	int result;
 
 	for(;;) {
-		result = parsecommand(parser, &cmd);
+		result = parsecommand(parser, &cmd, generation);
 		if(result <= 0)
 			break;
 		handlecommand(&cmd);
@@ -147,6 +147,8 @@ runloop(char const *pipepath) /* NOLINT(readability-function-cognitive-complexit
 {
 	int ret = -1;
 	int pipefd = -1;
+
+	int generation = 0;
 
 	Parser *parser = parsercreate((size_t)MAXRECORDSIZE * 2);
 	if(!parser) {
@@ -182,7 +184,7 @@ runloop(char const *pipepath) /* NOLINT(readability-function-cognitive-complexit
 		}
 
 		if(pfd.revents & POLLIN) {
-			readcommands(pipefd, parser);
+			readcommands(pipefd, parser, &generation);
 		}
 
 		if(pfd.revents & POLLHUP) {

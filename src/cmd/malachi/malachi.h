@@ -155,7 +155,7 @@ Parser *parsercreate(size_t bufsize);
 void parserdestroy(Parser *p);
 void parserreset(Parser *p);
 ssize_t parserinput(Parser *p, int fd);
-int parsecommand(Parser *p, Command *cmd);
+int parsecommand(Parser *p, Command *cmd, int *generation);
 
 /* globals */
 

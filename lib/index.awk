@@ -7,3 +7,7 @@
 	pathhash = ($5 == "D") ? $3 : $4
 	printf "%s\x1F%s\x1F%s\x1F%s\x1F%s\x1E", op, repo, repohash, $6, pathhash
 }
+
+END {
+	printf "\x1D"
+}
