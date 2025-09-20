@@ -182,5 +182,9 @@ compact:
 	p->bufused = remaining;
 	assert(p->bufused <= p->bufsize);
 
-	return (separator == gs) ? 0 : ((rc == 0) ? 1 : -1);
+	if(separator == gs)
+		return 0;
+	if(rc == 0)
+		return 1;
+	return -1;
 }
