@@ -18,7 +18,7 @@ char const *const appname = "malachi";
 int debug = 0;
 
 static char const *const commitstr =
-	strlen(MALACHI_COMMIT_SHORT_HASH) > 0
+	sizeof(MALACHI_COMMIT_SHORT_HASH) - 1 > 0
 		? "-" MALACHI_COMMIT_SHORT_HASH
 		: "";
 

@@ -28,7 +28,6 @@ typedef struct Filter Filter;
 typedef struct Test Test;
 typedef struct Database Database;
 typedef struct Parser Parser;
-typedef enum Opcode Opcode;
 typedef struct Command Command;
 
 typedef char *Getenvfn(char const *name);
@@ -57,13 +56,13 @@ struct Test {
 	int (*run)(void);
 };
 
-enum Opcode {
+typedef enum Opcode {
 	Opunknown = 0,
 	Opadded,
 	Opchanged,
 	Opremoved,
 	Opshutdown,
-};
+} Opcode;
 
 struct Command {
 	Opcode op;
@@ -107,7 +106,7 @@ static struct {
 	size_t const nfields;
 	struct Fieldspec const *const fields;
 } const ops[] = {
-#define OP(opcode, name, nfields, fieldspecs) {opcode, strlen(name), name, nfields, fieldspecs}
+#define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
 	OP(Opadded, "added", 4, filefields),
 	OP(Opchanged, "changed", 4, filefields),
 	OP(Opremoved, "removed", 4, filefields),
