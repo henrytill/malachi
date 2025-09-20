@@ -8,7 +8,7 @@
 char *
 platformstr(void)
 {
-	return "Linux";
+	return "XDG";
 }
 
 static char *
