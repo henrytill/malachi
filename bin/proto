@@ -6,10 +6,12 @@ set -o nounset
 
 readonly PREFIXDEBUG="[DEBUG]"
 readonly PREFIXERROR="[ERROR]"
-readonly PREFIXLOG="[INFO]"
 
-readonly CWD="$(realpath .)"
-readonly SCRIPTDIR="$(realpath "$(dirname "${0}")")"
+CWD="$(realpath .)"
+SCRIPTDIR="$(dirname "$(realpath "${0}")")"
+
+readonly CWD
+readonly SCRIPTDIR
 
 debug=0
 
@@ -49,7 +51,7 @@ firstrun() {
 	local head="${2}"
 	log "first run - generating add events for all files"
 	git ls-tree -r --format="%(objectname) %(path)" "${head}" \
-		| awk -v repo="${repo}" -v repohash="${head}" '{printf "added\x1F%s\x1F%s\x1F%s\x1F%s\x1E", repo, repohash, $2, $1} END {printf "\x1D"}'
+		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/firstrun.awk"
 }
 
 genevents() {
@@ -58,15 +60,8 @@ genevents() {
 	local cached="${2}"
 	local head="${3}"
 	git diff-tree --raw "${cached}" "${head}" \
-		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/index.awk"
+		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/genevents.awk"
 }
-
-check() {
-	test $# -eq 1 || { error "usage: check cachepath"; return 1; }
-	local cachepath="${1}"
-	git ls-tree -r --format="%(objectname) %(path)" HEAD | awk '{print $1, $2}' > "${cachepath}/index.txt"
-}
-
 
 main() {
 	command -v git >/dev/null 2>&1
@@ -122,13 +117,11 @@ main() {
 
 	log "cachefile=${cachefile}"
 
-	if ! test -f ${cachefile}
+	if ! test -f "${cachefile}"
 	then
-		if test -p "${runtimedir}/command"; then
-			firstrun "${repo}" "${head}" > "${runtimedir}/command" 2>/dev/null || {
-				error "failed to send batch commands to daemon"
-				firstrun "${repo}" "${head}"
-			}
+		if test -p "${runtimedir}/command"
+		then
+			firstrun "${repo}" "${head}" > "${runtimedir}/command"
 		else
 			log "daemon pipe not found, writing to stdout instead"
 			firstrun "${repo}" "${head}"
@@ -144,11 +137,9 @@ main() {
 		return
 	fi
 
-	if test -p "${runtimedir}/command"; then
-		genevents "${repo}" "${cached}" "${head}" > "${runtimedir}/command" 2>/dev/null || {
-			error "failed to send batch commands to daemon"
-			genevents "${repo}" "${cached}" "${head}"
-		}
+	if test -p "${runtimedir}/command"
+	then
+		genevents "${repo}" "${cached}" "${head}" > "${runtimedir}/command"
 	else
 		log "daemon pipe not found, writing to stdout instead"
 		genevents "${repo}" "${cached}" "${head}"
