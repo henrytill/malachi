@@ -62,7 +62,7 @@ parserinput(Parser *p, int fd)
 }
 
 static int
-findop(size_t oplen, char const opstr[oplen])
+findop(size_t oplen, char const *opstr)
 {
 	STATIC_ASSERT(NELEM(ops) <= INT_MAX);
 	int const nops = (int)NELEM(ops);
