@@ -29,7 +29,7 @@ EOF
 }
 
 log() {
-	if test "${debug}" = "1"
+	if test "${debug}" -eq 1
 	then
 		printf "%s %s\n" "${PREFIXDEBUG}" "${1}" >&2
 	fi
@@ -39,9 +39,29 @@ error() {
 	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
 }
 
+getruntimedir() {
+	if test -n "${XDG_RUNTIME_DIR:-}"
+	then
+		echo "${XDG_RUNTIME_DIR}/malachi"
+		return
+	fi
+
+	local uid
+	uid="$(id -u)"
+	local runuserdir="/run/user/${uid}"
+
+	if test -d "${runuserdir}" && test -w "${runuserdir}"
+	then
+		echo "${runuserdir}/malachi"
+		return
+	fi
+
+	echo "${TMPDIR:-/tmp}/malachi-${uid}"
+}
+
 findrepo() {
-	test $# -gt 1 && { error "usage: findrepo [directory]"; return 1; }
-	local dir="${1:-${CWD}}"
+	test $# -eq 1 || { error "usage: findrepo directory"; return 1; }
+	local dir="${1}"
 	git -C "${dir}" rev-parse --show-toplevel
 }
 
@@ -50,7 +70,7 @@ firstrun() {
 	local repo="${1}"
 	local head="${2}"
 	log "first run - generating add events for all files"
-	git ls-tree -r --format="%(objectname) %(path)" "${head}" \
+	git -C "${repo}" ls-tree -r --format="%(objectname) %(path)" "${head}" \
 		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/firstrun.awk"
 }
 
@@ -59,11 +79,16 @@ genevents() {
 	local repo="${1}"
 	local cached="${2}"
 	local head="${3}"
-	git diff-tree --raw "${cached}" "${head}" \
+	git -C "${repo}" diff-tree --raw "${cached}" "${head}" \
 		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/genevents.awk"
 }
 
 main() {
+	local runtimedir
+	local repo
+	local head
+	local cached
+
 	command -v git >/dev/null 2>&1
 	if test $? -ne 0
 	then
@@ -84,44 +109,31 @@ main() {
 	done
 	shift $((OPTIND - 1))
 
-	if test -n "${XDG_RUNTIME_DIR:-}"
-	then
-		runtimedir="${XDG_RUNTIME_DIR}/malachi"
-	else
-		uid="$(id -u)"
-		runuser_dir="/run/user/${uid}"
-		if test -d "${runuser_dir}" && test -w "${runuser_dir}"
-		then
-			runtimedir="${runuser_dir}/malachi"
-		else
-			runtimedir="/tmp/malachi-${uid}"
-		fi
-	fi
+	runtimedir="$(getruntimedir)"
+	log "runtimedir=${runtimedir}"
 
-	targetdir="${1:-${CWD}}"
-	repo="$(findrepo "${targetdir}")"
+	repo="$(findrepo "${1:-${CWD}}")"
 	if test $? -ne 0
 	then
 		error "no git directory"
 		exit 1
 	fi
 
-	cd "${repo}"
-	head="$(git rev-parse HEAD)"
+	head="$(git -C "${repo}" rev-parse HEAD)"
 
 	log "repo=${repo}"
 	log "head=${head}"
 
-	cachedrepos="${runtimedir}/roots"
-	cachefile="${cachedrepos}${repo}"
-
+	local cachefile="${runtimedir}/roots${repo}"
+	local commandpipe="${runtimedir}/command"
 	log "cachefile=${cachefile}"
+	log "commandpipe=${commandpipe}"
 
 	if ! test -f "${cachefile}"
 	then
-		if test -p "${runtimedir}/command"
+		if test -p "${commandpipe}"
 		then
-			firstrun "${repo}" "${head}" > "${runtimedir}/command"
+			firstrun "${repo}" "${head}" > "${commandpipe}"
 		else
 			log "daemon pipe not found, writing to stdout instead"
 			firstrun "${repo}" "${head}"
@@ -137,9 +149,9 @@ main() {
 		return
 	fi
 
-	if test -p "${runtimedir}/command"
+	if test -p "${commandpipe}"
 	then
-		genevents "${repo}" "${cached}" "${head}" > "${runtimedir}/command"
+		genevents "${repo}" "${cached}" "${head}" > "${commandpipe}"
 	else
 		log "daemon pipe not found, writing to stdout instead"
 		genevents "${repo}" "${cached}" "${head}"
