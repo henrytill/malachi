@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o pipefail
 set -o nounset
 
@@ -39,9 +38,23 @@ error() {
 	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
 }
 
+die() {
+	error "${1}"
+	exit 1
+}
+
 logvar() {
 	test $# -eq 1 || error "usage: logvar varname"
 	log "${1}=${!1}"
+}
+
+checkdir() {
+	test $# -eq 1 || error "usage: checkdir varname"
+	local varname="${1}"
+	local value="${!varname}"
+
+	test -n "${value}" || die "failed to initialize ${varname}"
+	test -d "${value}" || die "${varname} is not a directory: ${value}"
 }
 
 getruntimedir() {
@@ -67,7 +80,7 @@ getruntimedir() {
 findrepo() {
 	test $# -eq 1 || { error "usage: findrepo directory"; return 1; }
 	local dir="${1}"
-	git -C "${dir}" rev-parse --show-toplevel
+	git -C "${dir}" rev-parse --show-toplevel 2>/dev/null
 }
 
 firstrun() {
@@ -94,12 +107,8 @@ main() {
 	local head
 	local cached
 
-	command -v git >/dev/null 2>&1
-	if test $? -ne 0
-	then
-		error "git not found"
-		exit 1
-	fi
+	checkdir CWD
+	checkdir SCRIPTDIR
 
 	while getopts "d" opt
 	do
@@ -114,18 +123,13 @@ main() {
 	done
 	shift $((OPTIND - 1))
 
+	command -v git >/dev/null 2>&1 || die "git not found"
+
 	runtimedir="$(getruntimedir)"
 	logvar runtimedir
 
-	repo="$(findrepo "${1:-${CWD}}")"
-	if test $? -ne 0
-	then
-		error "no git directory"
-		exit 1
-	fi
-
+	repo="$(findrepo "${1:-${CWD}}")" || die "no git directory"
 	head="$(git -C "${repo}" rev-parse HEAD)"
-
 	logvar repo
 	logvar head
 
