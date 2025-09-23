@@ -39,6 +39,11 @@ error() {
 	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
 }
 
+logvar() {
+	test $# -eq 1 || error "usage: logvar varname"
+	log "${1}=${!1}"
+}
+
 getruntimedir() {
 	if test -n "${XDG_RUNTIME_DIR:-}"
 	then
@@ -110,7 +115,7 @@ main() {
 	shift $((OPTIND - 1))
 
 	runtimedir="$(getruntimedir)"
-	log "runtimedir=${runtimedir}"
+	logvar runtimedir
 
 	repo="$(findrepo "${1:-${CWD}}")"
 	if test $? -ne 0
@@ -121,13 +126,13 @@ main() {
 
 	head="$(git -C "${repo}" rev-parse HEAD)"
 
-	log "repo=${repo}"
-	log "head=${head}"
+	logvar repo
+	logvar head
 
 	local cachefile="${runtimedir}/roots${repo}"
 	local commandpipe="${runtimedir}/command"
-	log "cachefile=${cachefile}"
-	log "commandpipe=${commandpipe}"
+	logvar cachefile
+	logvar commandpipe
 
 	if ! test -f "${cachefile}"
 	then
