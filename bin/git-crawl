@@ -16,13 +16,10 @@ debug=0
 
 usage() {
 	cat <<EOF >&2
-Usage: ${0} [-d] [directory]
+Usage: ${0} [-d]
 
 Options:
     -d          Enable debug output
-
-Arguments:
-    directory   Git repository directory (default: current)
 EOF
 	exit 1
 }
@@ -103,6 +100,7 @@ genevents() {
 
 main() {
 	local runtimedir
+	local worktree
 	local repo
 	local head
 	local cached
@@ -128,7 +126,8 @@ main() {
 	runtimedir="$(getruntimedir)"
 	logvar runtimedir
 
-	repo="$(findrepo "${1:-${CWD}}")" || die "no git directory"
+	worktree=${GIT_WORK_TREE:-${CWD}}
+	repo="$(findrepo "${worktree}")" || die "no git directory"
 	head="$(git -C "${repo}" rev-parse HEAD)"
 	logvar repo
 	logvar head
