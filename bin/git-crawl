@@ -1,169 +1,161 @@
-#!/usr/bin/env bash
+#!/usr/bin/env perl
 
-set -o pipefail
-set -o nounset
+use strict;
+use warnings;
 
-readonly PREFIXDEBUG="[DEBUG]"
-readonly PREFIXERROR="[ERROR]"
+use Cwd;
+use File::Basename;
+use Getopt::Std;
+use Git;
 
-CWD="$(realpath .)"
-SCRIPTDIR="$(dirname "$(realpath "${0}")")"
+my $debug = 0;
 
-readonly CWD
-readonly SCRIPTDIR
-
-debug=0
-
-usage() {
-	cat <<EOF >&2
-Usage: ${0} [-d]
+sub usage {
+	print STDERR <<EOF;
+Usage: $0 [-d]
 
 Options:
     -d          Enable debug output
 EOF
-	exit 1
+	exit 1;
 }
 
-log() {
-	if test "${debug}" -eq 1
-	then
-		printf "%s %s\n" "${PREFIXDEBUG}" "${1}" >&2
-	fi
+sub dbg {
+	my $msg = shift;
+	print STDERR "[DEBUG] $msg\n" if $debug;
 }
 
-error() {
-	printf "%s %s\n" "${PREFIXERROR}" "${1}" >&2
+sub getruntimedir {
+	my $uid = $<;
+	my $runtimedir = $ENV{XDG_RUNTIME_DIR} || "/run/user/$uid";
+	if (-d $runtimedir && -w $runtimedir) {
+		return "$runtimedir/malachi";
+	}
+	my $tmpdir = $ENV{TMPDIR} || "/tmp";
+	return "$tmpdir/malachi-$uid";
 }
 
-die() {
-	error "${1}"
-	exit 1
+sub firstrun {
+	@_ >= 2 or die "usage: firstrun gitrepo head [filehandle]";
+	my ($gitrepo, $head, $fh) = @_;
+	$fh //= \*STDOUT;
+
+	dbg("first run - generating add events for all files");
+	my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
+	my ($pipe, $c) = $gitrepo->command_output_pipe('ls-tree', '-r', '--format=%(path) %(objectname)', $head);
+	while (my $line = <$pipe>) {
+		chomp $line;
+		my ($path, $hash) = split / /, $line, 2;
+		printf $fh "added\x1F%s\x1F%s\x1F%s\x1F%s\x1E", $repo, $head, $path, $hash;
+	}
+	$gitrepo->command_close_pipe($pipe, $c);
+	print $fh "\x1D";
 }
 
-logvar() {
-	test $# -eq 1 || error "usage: logvar varname"
-	log "${1}=${!1}"
+sub genevents {
+	@_ >= 3 or die "usage: genevents gitrepo cached head [filehandle]";
+	my ($gitrepo, $cached, $head, $fh) = @_;
+	$fh //= \*STDOUT;
+
+	my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
+	my ($pipe, $c) = $gitrepo->command_output_pipe('diff-tree', '--raw', $cached, $head);
+	while (my $line = <$pipe>) {
+		chomp $line;
+
+		my @fields = split /\t/, $line, 2;
+		next unless @fields == 2;
+
+		my $info = $fields[0];
+		my $path = $fields[1];
+
+		my @parts = split / /, $info;
+		next unless @parts >= 5;
+
+		my $status = $parts[4];
+		my $op;
+		if ($status eq "A") {
+			$op = "added";
+		} elsif ($status eq "M") {
+			$op = "changed";
+		} elsif ($status eq "D") {
+			$op = "removed";
+		} else {
+			next;
+		}
+
+		my $pathhash = ($status eq "D") ? $parts[2] : $parts[3];
+		printf $fh "%s\x1F%s\x1F%s\x1F%s\x1F%s\x1E", $op, $repo, $head, $path, $pathhash;
+	}
+	$gitrepo->command_close_pipe($pipe, $c);
+	print $fh "\x1D";
 }
 
-checkdir() {
-	test $# -eq 1 || error "usage: checkdir varname"
-	local varname="${1}"
-	local value="${!varname}"
+sub main {
+	my %opts;
+	getopts('d', \%opts) or usage();
+	$debug = 1 if $opts{d};
 
-	test -n "${value}" || die "failed to initialize ${varname}"
-	test -d "${value}" || die "${varname} is not a directory: ${value}"
+	my $runtimedir = getruntimedir;
+	dbg("runtimedir=$runtimedir");
+
+	my $worktree = $ENV{GIT_WORK_TREE} || cwd();
+
+	my ($gitrepo, $repo);
+	eval {
+		$gitrepo = Git->repository(Directory => $worktree);
+		$repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
+	};
+	if ($@) {
+		die "no git directory";
+	}
+
+	my $head = $gitrepo->command_oneline('rev-parse', 'HEAD');
+	dbg("repo=$repo");
+	dbg("head=$head");
+
+	my $cachefile = "$runtimedir/roots$repo";
+	my $commandpipe = "$runtimedir/command";
+	dbg("cachefile=$cachefile");
+	dbg("commandpipe=$commandpipe");
+
+	unless (-f $cachefile) {
+		if (-p $commandpipe) {
+			open my $fh, '>', $commandpipe or die "open $commandpipe: $!";
+			firstrun($gitrepo, $head, $fh);
+			close $fh;
+			return;
+		}
+
+		dbg("daemon pipe not found, writing to stdout instead");
+		firstrun($gitrepo, $head);
+		return;
+	}
+
+	my $cached;
+	{
+		open my $fh, '<', $cachefile or die "open $cachefile: $!";
+		$cached = <$fh>;
+		chomp $cached;
+	}
+
+	if ($cached eq $head) {
+		dbg("no changes since last run");
+		return;
+	}
+
+	if (-p $commandpipe) {
+		open my $fh, '>', $commandpipe or die "open $commandpipe: $!";
+		genevents($gitrepo, $cached, $head, $fh);
+		close $fh;
+		return;
+	}
+
+	dbg("daemon pipe not found, writing to stdout instead");
+	genevents($gitrepo, $cached, $head);
 }
 
-getruntimedir() {
-	if test -n "${XDG_RUNTIME_DIR:-}"
-	then
-		echo "${XDG_RUNTIME_DIR}/malachi"
-		return
-	fi
+main() unless caller;
 
-	local uid
-	uid="$(id -u)"
-	local runuserdir="/run/user/${uid}"
-
-	if test -d "${runuserdir}" && test -w "${runuserdir}"
-	then
-		echo "${runuserdir}/malachi"
-		return
-	fi
-
-	echo "${TMPDIR:-/tmp}/malachi-${uid}"
-}
-
-findrepo() {
-	test $# -eq 1 || { error "usage: findrepo directory"; return 1; }
-	local dir="${1}"
-	git -C "${dir}" rev-parse --show-toplevel 2>/dev/null
-}
-
-firstrun() {
-	test $# -eq 2 || { error "usage: firstrun repo head"; return 1; }
-	local repo="${1}"
-	local head="${2}"
-	log "first run - generating add events for all files"
-	git -C "${repo}" ls-tree -r --format="%(objectname) %(path)" "${head}" \
-		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/firstrun.awk"
-}
-
-genevents() {
-	test $# -eq 3 || { error "usage: genevents repo cached head"; return 1; }
-	local repo="${1}"
-	local cached="${2}"
-	local head="${3}"
-	git -C "${repo}" diff-tree --raw "${cached}" "${head}" \
-		| awk -v repo="${repo}" -v repohash="${head}" -f "${SCRIPTDIR}/../lib/genevents.awk"
-}
-
-main() {
-	local runtimedir
-	local worktree
-	local repo
-	local head
-	local cached
-
-	checkdir CWD
-	checkdir SCRIPTDIR
-
-	while getopts "d" opt
-	do
-		case "${opt}" in
-		d)
-			debug=1
-			;;
-		*)
-			usage
-			;;
-		esac
-	done
-	shift $((OPTIND - 1))
-
-	command -v git >/dev/null 2>&1 || die "git not found"
-
-	runtimedir="$(getruntimedir)"
-	logvar runtimedir
-
-	worktree=${GIT_WORK_TREE:-${CWD}}
-	repo="$(findrepo "${worktree}")" || die "no git directory"
-	head="$(git -C "${repo}" rev-parse HEAD)"
-	logvar repo
-	logvar head
-
-	local cachefile="${runtimedir}/roots${repo}"
-	local commandpipe="${runtimedir}/command"
-	logvar cachefile
-	logvar commandpipe
-
-	if ! test -f "${cachefile}"
-	then
-		if test -p "${commandpipe}"
-		then
-			firstrun "${repo}" "${head}" > "${commandpipe}"
-		else
-			log "daemon pipe not found, writing to stdout instead"
-			firstrun "${repo}" "${head}"
-		fi
-		return
-	fi
-
-	cached="$(cat "${cachefile}")"
-
-	if test "${cached}" = "${head}"
-	then
-		log "no changes since last run"
-		return
-	fi
-
-	if test -p "${commandpipe}"
-	then
-		genevents "${repo}" "${cached}" "${head}" > "${commandpipe}"
-	else
-		log "daemon pipe not found, writing to stdout instead"
-		genevents "${repo}" "${cached}" "${head}"
-	fi
-}
-
-main "$@"
+# Local Variables:
+# indent-tabs-mode: t
+# End:
