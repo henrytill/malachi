@@ -59,11 +59,11 @@ configfree(Config *config)
 	void *ptrs[] = {config->configdir, config->datadir, config->cachedir, config->runtimedir};
 	int freed[] = {0, 0, 0, 0};
 
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < 4; ++i) {
 		if(freed[i] || ptrs[i] == NULL)
 			continue;
 
-		for(int j = i + 1; j < 4; j++) {
+		for(int j = i + 1; j < 4; ++j) {
 			if(ptrs[i] == ptrs[j]) {
 				freed[j] = 1;
 			}
