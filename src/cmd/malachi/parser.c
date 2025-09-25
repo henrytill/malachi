@@ -74,7 +74,7 @@ findop(size_t oplen, char const *opstr)
 }
 
 static int
-parserecord(char const *record, Command *cmd) /* NOLINT(readability-function-cognitive-complexity) */
+parserecord(char const *record, Command *cmd)
 {
 	memset(cmd, 0, sizeof(*cmd));
 

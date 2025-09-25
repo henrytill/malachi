@@ -143,7 +143,7 @@ readcommands(int pipefd, Parser *parser, int *generation)
 }
 
 static int
-runloop(char const *pipepath) /* NOLINT(readability-function-cognitive-complexity) */
+runloop(char const *pipepath)
 {
 	int ret = -1;
 	int pipefd = -1;
