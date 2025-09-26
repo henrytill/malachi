@@ -101,5 +101,9 @@ malachi = executable(
     install: true,
 )
 
+if not get_option('prefix').startswith(meson.current_source_dir())
+    install_data('bin/git-crawl', install_dir: get_option('bindir'))
+endif
+
 test('config_test', malachi, args: ['-tconfig'])
 test('platform_test', malachi, args: ['-tplatform'])
