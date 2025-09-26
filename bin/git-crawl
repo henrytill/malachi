@@ -131,12 +131,11 @@ sub main {
 		return;
 	}
 
-	my $cached;
-	{
+	my $cached = do {
 		open my $fh, '<', $cachefile or die "open $cachefile: $!";
-		$cached = <$fh>;
-		chomp $cached;
-	}
+		chomp(my $line = <$fh>);
+		$line
+	};
 
 	if ($cached eq $head) {
 		dbg("no changes since last run");
