@@ -36,7 +36,7 @@ for receiving indexing commands and maintains status files under
 .I runtimedir/roots/
 that mirror the filesystem structure of indexed content trees.
 .PP
-The runtime directory location is platform-dependent: on Linux it follows XDG conventions, checking
+The runtime directory location is platform-dependent: on Unixen it follows XDG conventions, checking
 .I $XDG_RUNTIME_DIR/malachi,
 .I /run/user/$UID/malachi,
 and
@@ -60,7 +60,7 @@ and
 .I shutdown.
 .SH COMPANION TOOLS
 The
-.B proto
+.B git-crawl
 script in the
 .I bin/
 directory provides Git repository support, detecting changes and generating appropriate indexing commands for the daemon. Other content-addressable systems can be supported through similar client scripts.
