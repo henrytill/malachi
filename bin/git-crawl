@@ -95,26 +95,21 @@ sub main {
 	getopts('d', \%opts) or usage();
 	$debug = 1 if $opts{d};
 
-	my $runtimedir = getruntimedir;
-	dbg("runtimedir=$runtimedir");
-
-	my $worktree = $ENV{GIT_WORK_TREE} || cwd();
-
-	my ($gitrepo, $repo);
-	eval {
-		$gitrepo = Git->repository(Directory => $worktree);
-		$repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
-	};
-	if ($@) {
-		die "no git directory";
-	}
+	my ($gitrepo, $repo) = eval {
+		my $d = $ENV{GIT_WORK_TREE} || cwd();
+		my $g = Git->repository(Directory => $d);
+		my $r = $g->wc_path() || dirname($g->repo_path());
+		($g, $r)
+	} or die "no git directory";
+	dbg("repo=$repo");
 
 	my $head = $gitrepo->command_oneline('rev-parse', 'HEAD');
-	dbg("repo=$repo");
 	dbg("head=$head");
 
+	my $runtimedir = getruntimedir;
 	my $cachefile = "$runtimedir/roots$repo";
 	my $commandpipe = "$runtimedir/command";
+	dbg("runtimedir=$runtimedir");
 	dbg("cachefile=$cachefile");
 	dbg("commandpipe=$commandpipe");
 
