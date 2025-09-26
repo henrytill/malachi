@@ -28,6 +28,7 @@
             name = "malachi-src";
           };
           nativeBuildInputs = with final; [
+            makeWrapper
             meson
             ninja
             pkg-config
@@ -40,6 +41,16 @@
             sed -i 's/@MALACHI_COMMIT_SHORT_HASH@/"${self.shortRev or self.dirtyShortRev or ""}"/g' include/project.h.in
           '';
           doCheck = true;
+          postFixup =
+            let
+              binPath = final.lib.makeBinPath [ final.git ];
+              perlPath = final.perlPackages.makePerlPath [ final.git ];
+            in
+            ''
+              wrapProgram $out/bin/git-crawl \
+                --prefix PATH : "${binPath}" \
+                --prefix PERL5LIB : "${perlPath}"
+            '';
         };
       };
     in
