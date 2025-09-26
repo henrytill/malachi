@@ -106,7 +106,7 @@ sub main {
 	my $head = $gitrepo->command_oneline('rev-parse', 'HEAD');
 	dbg("head=$head");
 
-	my $runtimedir = getruntimedir;
+	my $runtimedir = getruntimedir();
 	my $cachefile = "$runtimedir/roots$repo";
 	my $commandpipe = "$runtimedir/command";
 	dbg("runtimedir=$runtimedir");
