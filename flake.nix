@@ -1,5 +1,4 @@
 {
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -38,7 +37,9 @@
             sqlite
           ];
           preConfigure = ''
-            sed -i 's/@MALACHI_COMMIT_SHORT_HASH@/"${self.shortRev or self.dirtyShortRev or ""}"/g' include/project.h.in
+            sed -i 's/@MALACHI_COMMIT_SHORT_HASH@/"${
+              self.shortRev or self.dirtyShortRev or ""
+            }"/g' include/project.h.in
           '';
           doCheck = true;
           postFixup =
