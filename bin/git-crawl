@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use feature 'signatures';
 
 use Cwd;
 use File::Basename;
@@ -20,12 +21,13 @@ EOF
 	exit 1;
 }
 
-sub dbg {
-	my $msg = shift;
+sub dbg($msg)
+{
 	print STDERR "[DEBUG] $msg\n" if $debug;
 }
 
-sub getruntimedir {
+sub getruntimedir()
+{
 	my $uid = $<;
 	my $runtimedir = $ENV{XDG_RUNTIME_DIR} || "/run/user/$uid";
 	if (-d $runtimedir && -w $runtimedir) {
@@ -35,11 +37,8 @@ sub getruntimedir {
 	return "$tmpdir/malachi-$uid";
 }
 
-sub firstrun {
-	@_ >= 2 or die "usage: firstrun gitrepo head [filehandle]";
-	my ($gitrepo, $head, $fh) = @_;
-	$fh //= \*STDOUT;
-
+sub firstrun($gitrepo, $head, $fh = \*STDOUT)
+{
 	dbg("first run - generating add events for all files");
 	my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
 	my ($pipe, $c) = $gitrepo->command_output_pipe('ls-tree', '-r', '--format=%(path) %(objectname)', $head);
@@ -52,11 +51,8 @@ sub firstrun {
 	print $fh "\x1D";
 }
 
-sub genevents {
-	@_ >= 3 or die "usage: genevents gitrepo cached head [filehandle]";
-	my ($gitrepo, $cached, $head, $fh) = @_;
-	$fh //= \*STDOUT;
-
+sub genevents($gitrepo, $cached, $head, $fh = \*STDOUT)
+{
 	my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
 	my ($pipe, $c) = $gitrepo->command_output_pipe('diff-tree', '--raw', $cached, $head);
 	while (my $line = <$pipe>) {
@@ -90,7 +86,8 @@ sub genevents {
 	print $fh "\x1D";
 }
 
-sub main {
+sub main()
+{
 	my %opts;
 	getopts('d', \%opts) or usage();
 	$debug = 1 if $opts{d};
