@@ -170,7 +170,7 @@ runloop(char const *pipepath)
 			if(errno == EINTR)
 				continue;
 			logerror("poll failed: %s", strerror(errno));
-			goto out_close_pipefd;
+			goto closepipefd;
 		}
 
 		if(rc == 0) {
@@ -180,7 +180,7 @@ runloop(char const *pipepath)
 
 		if(pfd.revents & POLLERR) {
 			logerror("Pipe error occurred");
-			goto out_close_pipefd;
+			goto closepipefd;
 		}
 
 		if(pfd.revents & POLLIN) {
@@ -201,10 +201,10 @@ runloop(char const *pipepath)
 			if(errno == EINTR) {
 				logdebug("Signal received during pipe open, exiting");
 				ret = 0;
-				goto out_parserdestroy_parser;
+				goto destroyparser;
 			}
 			logerror("Failed to open command pipe: %s", strerror(errno));
-			goto out_parserdestroy_parser;
+			goto destroyparser;
 		}
 		parserreset(parser);
 		pfd.fd = pipefd;
@@ -212,9 +212,9 @@ runloop(char const *pipepath)
 
 	ret = 0;
 
-out_close_pipefd:
+closepipefd:
 	close(pipefd);
-out_parserdestroy_parser:
+destroyparser:
 	parserdestroy(parser);
 	return ret;
 }
@@ -252,19 +252,19 @@ run(Config *config)
 	rc = mkdirp(config->runtimedir, 0700);
 	if(rc == -1) {
 		logerror("Failed to create runtime directory: %s", strerror(errno));
-		goto out_dbdestroy_database;
+		goto destroydatabase;
 	}
 
 	char *pipepath = joinpath2(config->runtimedir, "command");
 	if(pipepath == NULL) {
 		logerror("Failed to allocate pipe path");
-		goto out_dbdestroy_database;
+		goto destroydatabase;
 	}
 
 	rc = mkfifo(pipepath, 0622);
 	if(rc == -1) {
 		logerror("Failed to mkfifo: %s", strerror(errno));
-		goto out_free_pipepath;
+		goto freepipepath;
 	}
 
 	loginfo("Starting daemon");
@@ -273,7 +273,7 @@ run(Config *config)
 
 	rc = runloop(pipepath);
 	if(rc != 0)
-		goto out_unlink_pipepath;
+		goto unlinkpipepath;
 
 	switch(sigrecvd) {
 	case SIGINT:
@@ -289,11 +289,11 @@ run(Config *config)
 
 	ret = 0;
 
-out_unlink_pipepath:
+unlinkpipepath:
 	unlink(pipepath);
-out_free_pipepath:
+freepipepath:
 	free(pipepath);
-out_dbdestroy_database:
+destroydatabase:
 	dbdestroy(database);
 	return ret;
 }
@@ -364,14 +364,14 @@ main(int argc, char *argv[])
 		if(opts.config) {
 			configprint(&config);
 			ret = EXIT_SUCCESS;
-			goto out_configfree;
+			goto freeconfig;
 		}
 	}
 
 	rc = run(&config);
 	ret = (rc == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-out_configfree:
+freeconfig:
 	configfree(&config);
 	return ret;
 }
