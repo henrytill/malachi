@@ -132,7 +132,10 @@ readcommands(int pipefd, Parser *parser, int *generation)
 		result = parsecommand(parser, &cmd, generation);
 		if(result <= 0)
 			break;
-		handlecommand(&cmd);
+
+		result = handlecommand(&cmd);
+		if(result < 0)
+			break;
 	}
 
 	if(result == 0) {
