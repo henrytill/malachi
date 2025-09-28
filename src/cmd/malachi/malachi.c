@@ -177,7 +177,6 @@ runloop(char const *pipepath)
 		}
 
 		if(rc == 0) {
-			logdebug(".");
 			continue;
 		}
 
