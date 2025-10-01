@@ -11,7 +11,7 @@ use Git;
 
 my $debug = 0;
 
-sub usage {
+sub usage() {
     print STDERR <<EOF;
 Usage: $0 [-d]
 
