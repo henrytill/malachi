@@ -6,6 +6,7 @@ use feature 'signatures';
 
 use Cwd;
 use File::Basename;
+use File::Spec;
 use Getopt::Std;
 use Git;
 
@@ -27,12 +28,12 @@ sub dbg($msg) {
 
 sub getruntimedir() {
     my $uid = $<;
-    my $runtimedir = $ENV{XDG_RUNTIME_DIR} || "/run/user/$uid";
+    my $runtimedir =
+        $ENV{XDG_RUNTIME_DIR} || File::Spec->catdir(File::Spec->rootdir(), 'run', 'user', $uid);
     if (-d $runtimedir && -w $runtimedir) {
-        return "$runtimedir/malachi";
+        return File::Spec->catdir($runtimedir, 'malachi');
     }
-    my $tmpdir = $ENV{TMPDIR} || "/tmp";
-    return "$tmpdir/malachi-$uid";
+    return File::Spec->catdir(File::Spec->tmpdir(), "malachi-$uid");
 }
 
 sub firstrun($gitrepo, $head, $fh = \*STDOUT) {
@@ -103,8 +104,8 @@ sub main() {
     dbg("head=$head");
 
     my $runtimedir = getruntimedir();
-    my $cachefile = "$runtimedir/roots$repo";
-    my $commandpipe = "$runtimedir/command";
+    my $cachefile = File::Spec->catfile($runtimedir, 'roots' . $repo);
+    my $commandpipe = File::Spec->catfile($runtimedir, 'command');
     dbg("runtimedir=$runtimedir");
     dbg("cachefile=$cachefile");
     dbg("commandpipe=$commandpipe");
