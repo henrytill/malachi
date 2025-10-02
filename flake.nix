@@ -46,13 +46,13 @@
           doCheck = true;
           postFixup =
             let
-              binPath = final.lib.makeBinPath [ final.git ];
-              perlPath = final.perlPackages.makePerlPath [ final.git ];
+              binPath = final.lib.makeBinPath [
+                final.git
+                final.python3
+              ];
             in
             ''
-              wrapProgram $out/bin/git-crawl \
-                --prefix PATH : "${binPath}" \
-                --prefix PERL5LIB : "${perlPath}"
+              wrapProgram $out/bin/git-crawl --prefix PATH : "${binPath}"
             '';
         };
       };

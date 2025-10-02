@@ -11,20 +11,6 @@ if get_option('optimization') != '0'
     add_project_arguments('-D_FORTIFY_SOURCE=2', language: 'c')
 endif
 
-perl = find_program('perl', required: false)
-if perl.found()
-    perl_modules = ['Cwd', 'File::Basename', 'Getopt::Std', 'Git']
-
-    foreach module : perl_modules
-        result = run_command(perl, '-e', 'use @0@;'.format(module), check: false)
-        if result.returncode() == 0
-            message('Perl module @0@ found: YES'.format(module))
-        else
-            warning('Perl module @0@ found: NO'.format(module))
-        endif
-    endforeach
-endif
-
 mupdf_dep = dependency('mupdf', required: false)
 
 sqlite_dep = dependency('sqlite3', required: true)
