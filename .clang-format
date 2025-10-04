@@ -42,4 +42,3 @@ UseTab: ForContinuationAndIndentation
 
 # This does horrible things to nested designated initializers when set
 AlignArrayOfStructures: None
-
