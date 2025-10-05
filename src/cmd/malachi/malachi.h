@@ -11,15 +11,15 @@
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
 enum {
-	MAXHASHLEN = 65,
-	MAXOPSIZE = 16,
-	MAXFIELDS = 5,
-	MAXRECORDSIZE = MAXOPSIZE + (2 * PATH_MAX) + (2 * MAXHASHLEN) + MAXFIELDS,
+  MAXHASHLEN = 65,
+  MAXOPSIZE = 16,
+  MAXFIELDS = 5,
+  MAXRECORDSIZE = MAXOPSIZE + (2 * PATH_MAX) + (2 * MAXHASHLEN) + MAXFIELDS,
 };
 
 enum {
-	Emissingdir = 2,
-	Enospace = 3,
+  Emissingdir = 2,
+  Enospace = 3,
 };
 
 typedef struct Error Error;
@@ -33,60 +33,60 @@ typedef struct Command Command;
 typedef char *Getenvfn(char const *name);
 
 struct Error {
-	int rc;
-	char const *msg;
+  int rc;
+  char const *msg;
 };
 
 struct Config {
-	char *configdir;
-	char *datadir;
-	char *cachedir;
-	char *runtimedir;
+  char *configdir;
+  char *datadir;
+  char *cachedir;
+  char *runtimedir;
 };
 
 struct Filter {
-	char const *name;
-	char const **exts;
-	int (*extract)(char const *input, char **output);
-	char const *(*version)(void);
+  char const *name;
+  char const **exts;
+  int (*extract)(char const *input, char **output);
+  char const *(*version)(void);
 };
 
 struct Test {
-	char const *name;
-	int (*run)(void);
+  char const *name;
+  int (*run)(void);
 };
 
 typedef enum Opcode {
-	Opunknown = 0,
-	Opadded,
-	Opchanged,
-	Opremoved,
-	Opshutdown,
+  Opunknown = 0,
+  Opadded,
+  Opchanged,
+  Opremoved,
+  Opshutdown,
 } Opcode;
 
 struct Command {
-	Opcode op;
-	union {
-		struct {
-			char root[PATH_MAX];
-			char roothash[MAXHASHLEN];
-			char leaf[PATH_MAX];
-			char leafhash[MAXHASHLEN];
-		} fileop;
-		/* shutdown needs no fields */
-	};
+  Opcode op;
+  union {
+    struct {
+      char root[PATH_MAX];
+      char roothash[MAXHASHLEN];
+      char leaf[PATH_MAX];
+      char leafhash[MAXHASHLEN];
+    } fileop;
+    /* shutdown needs no fields */
+  };
 };
 
-#define FILEFIELDS         \
-	X(fileop.root)     \
-	X(fileop.roothash) \
-	X(fileop.leaf)     \
-	X(fileop.leafhash)
+#define FILEFIELDS   \
+  X(fileop.root)     \
+  X(fileop.roothash) \
+  X(fileop.leaf)     \
+  X(fileop.leafhash)
 
 struct Fieldspec {
-	size_t const offset;
-	size_t const size;
-	char const *const name;
+  size_t const offset;
+  size_t const size;
+  char const *const name;
 };
 
 #define X(field) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
@@ -95,22 +95,22 @@ FILEFIELDS
 
 static struct Fieldspec const filefields[] = {
 #define X(field) {offsetof(Command, field), sizeof(((Command *)0)->field), #field},
-	FILEFIELDS
+  FILEFIELDS
 #undef X
 };
 
 static struct {
-	Opcode const op;
-	size_t const namelen;
-	char const *const name;
-	size_t const nfields;
-	struct Fieldspec const *const fields;
+  Opcode const op;
+  size_t const namelen;
+  char const *const name;
+  size_t const nfields;
+  struct Fieldspec const *const fields;
 } const ops[] = {
 #define OP(opcode, name, nfields, fieldspecs) {opcode, sizeof(name) - 1, name, nfields, fieldspecs}
-	OP(Opadded, "added", 4, filefields),
-	OP(Opchanged, "changed", 4, filefields),
-	OP(Opremoved, "removed", 4, filefields),
-	OP(Opshutdown, "shutdown", 0, NULL),
+  OP(Opadded, "added", 4, filefields),
+  OP(Opchanged, "changed", 4, filefields),
+  OP(Opremoved, "removed", 4, filefields),
+  OP(Opshutdown, "shutdown", 0, NULL),
 #undef OP
 };
 
