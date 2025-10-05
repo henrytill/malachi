@@ -1,5 +1,4 @@
-AccessModifierOffset: -8
-AlignAfterOpenBracket: DontAlign
+AccessModifierOffset: -2
 AlignConsecutiveMacros: true
 AlignOperands: true
 AlignTrailingComments: true
@@ -13,32 +12,28 @@ AllowShortLambdasOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 BasedOnStyle: LLVM
-BinPackArguments: false
-BinPackParameters: false
-BreakAfterReturnType: AllDefinitions
 BreakBeforeBinaryOperators: NonAssignment
-BreakBeforeBraces: WebKit
+BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: BeforeComma
 ColumnLimit: 0
-ConstructorInitializerIndentWidth: 8
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 2
 DerivePointerAlignment: false
 FixNamespaceComments: true
 IndentCaseLabels: false
 IndentCaseBlocks: false
 IndentPPDirectives: AfterHash
-IndentWidth: 8
-ObjCBlockIndentWidth: 8
+IndentWidth: 2
+ObjCBlockIndentWidth: 2
 PointerAlignment: Right
 QualifierAlignment: Right
 ReflowComments: true
 SortIncludes: true
-SpaceBeforeParens: Custom
-SpaceBeforeParensOptions:
-  AfterControlStatements: false
 SpacesBeforeTrailingComments: 1
-UseTab: ForContinuationAndIndentation
 
 # This does horrible things to nested designated initializers when set
 AlignArrayOfStructures: None
+
+# Rustish multi-line arguments and parameters
+BinPackArguments: false
+BinPackParameters: false
+AlignAfterOpenBracket: BlockIndent
