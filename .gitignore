@@ -1,3 +1,5 @@
 /build*/
 /subprojects/packagecache/
 /result*
+dist/
+__pycache__/

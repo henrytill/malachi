@@ -19,41 +19,17 @@
       ...
     }:
     let
+      src = builtins.path {
+        path = ./.;
+        name = "malachi-src";
+      };
       overlay = final: prev: {
-        malachi = final.stdenv.mkDerivation {
+        malachi = final.python3Packages.buildPythonApplication {
           name = "malachi";
-          src = builtins.path {
-            path = ./.;
-            name = "malachi-src";
-          };
-          nativeBuildInputs = with final; [
-            makeWrapper
-            meson
-            ninja
-            pkg-config
-          ];
-          buildInputs = with final; [
-            mupdf
-            sqlite
-          ];
-          preConfigure =
-            let
-              rev = self.shortRev or self.dirtyShortRev;
-            in
-            ''
-              sed -i 's|@MALACHI_COMMIT_SHORT_HASH@|"${rev}"|g' include/project.h.in
-            '';
-          doCheck = true;
-          postFixup =
-            let
-              binPath = final.lib.makeBinPath [
-                final.git
-                final.python3
-              ];
-            in
-            ''
-              wrapProgram $out/bin/git-crawl --prefix PATH : "${binPath}"
-            '';
+          pyproject = true;
+          build-system = with final.python3Packages; [ flit-core ];
+          inherit src;
+          dependencies = with final.python3Packages; [ platformdirs ];
         };
       };
     in
@@ -66,8 +42,10 @@
         };
       in
       {
-        packages.malachi = pkgs.malachi;
-        packages.default = self.packages.${system}.malachi;
+        packages = rec {
+          malachi = pkgs.malachi;
+          default = malachi;
+        };
       }
     );
 }

@@ -1,3 +1,21 @@
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "malachi"
+authors = [{name = "Henry Till", email = "henrytill@gmail.com"}]
+readme = "README.md"
+dynamic = ["version", "description"]
+dependencies = ["platformdirs>=4.3.7"]
+
+[project.optional-dependencies]
+dev = ["black>=25.1.0", "flake8>=7.1.1", "isort>=6.0.1", "mypy>=1.15.0", "pylint>=3.3.4"]
+
+[project.scripts]
+git-crawl = "malachi.client.git:main"
+malachi = "malachi.daemon:main"
+
 [tool.isort]
 profile = "black"
 

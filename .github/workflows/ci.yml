@@ -10,25 +10,17 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        compiler: [gcc, clang]
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -yqq && sudo apt-get install -yqq --no-install-recommends \
-            libmupdf-dev libfreetype-dev libsqlite3-dev \
-            meson ninja-build
-      - uses: hendrikmuhs/ccache-action@v1.2
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.compiler }}
-      - run: meson setup build
-        env:
-          CC: ccache ${{ matrix.compiler }}
-      - run: ninja -C build
-      - run: ninja -C build test
-      - run: build/malachi -v
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -e .
+      - run: python3 -m unittest discover -s tests -v
+      - run: malachi -v
   linux-flake:
     runs-on: ubuntu-latest
     steps:
@@ -39,12 +31,11 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          brew install meson mupdf
-      - run: cc --version
-      - run: meson setup build
-      - run: ninja -C build
-      - run: ninja -C build test
-      - run: build/malachi -v
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -e .
+      - run: python3 -m unittest discover -s tests -v
+      - run: malachi -v

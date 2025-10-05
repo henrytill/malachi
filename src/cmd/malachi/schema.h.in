@@ -1,7 +1,0 @@
-#pragma once
-
-// clang-format off
-
-#define MALACHI_SCHEMA_SQL @MALACHI_SCHEMA_SQL@
-
-// clang-format on
