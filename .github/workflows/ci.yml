@@ -18,6 +18,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - run: ./run.py generate
       - run: pip install -e .
       - run: python3 -m unittest discover -s tests -v
       - run: malachi -v
@@ -36,6 +37,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - run: ./run.py generate
       - run: pip install -e .
       - run: python3 -m unittest discover -s tests -v
       - run: malachi -v

@@ -3,3 +3,4 @@
 /result*
 dist/
 __pycache__/
+/malachi/__init__.py

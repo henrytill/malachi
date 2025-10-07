@@ -30,6 +30,8 @@
           build-system = with final.python3Packages; [ flit-core ];
           inherit src;
           dependencies = with final.python3Packages; [ platformdirs ];
+          patchPhase = "patchShebangs run.py";
+          preConfigure = "./run.py generate -g ${self.shortRev or self.dirtyShortRev}";
         };
       };
     in
