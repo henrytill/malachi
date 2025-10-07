@@ -39,8 +39,41 @@ class Database:
 
     def setrepohash(self, repopath: str, sha: str):
         self.conn.execute(
-            "INSERT OR REPLACE INTO roots (root_path, root_hash, updated_at) "
-            "VALUES (?, ?, CURRENT_TIMESTAMP)",
+            "INSERT INTO roots (root_path, root_hash, updated_at) "
+            "VALUES (?, ?, CURRENT_TIMESTAMP) "
+            "ON CONFLICT(root_path) DO UPDATE SET "
+            "root_hash = excluded.root_hash, updated_at = CURRENT_TIMESTAMP",
             (repopath, sha),
+        )
+        self.conn.commit()
+
+    def getrepoid(self, repopath: str) -> Optional[int]:
+        cursor = self.conn.execute(
+            "SELECT id FROM roots WHERE root_path = ?", (repopath,)
+        )
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def addleaf(self, root_id: int, path: str, hash: str, size: int = 0):
+        self.conn.execute(
+            "INSERT OR IGNORE INTO leaves "
+            "(root_id, leaf_path, leaf_hash, leaf_size) "
+            "VALUES (?, ?, ?, ?)",
+            (root_id, path, hash, size),
+        )
+        self.conn.commit()
+
+    def updateleaf(self, root_id: int, path: str, hash: str, size: int = 0):
+        self.conn.execute(
+            "UPDATE leaves SET leaf_hash = ?, leaf_size = ? "
+            "WHERE root_id = ? AND leaf_path = ?",
+            (hash, size, root_id, path),
+        )
+        self.conn.commit()
+
+    def removeleaf(self, root_id: int, path: str):
+        self.conn.execute(
+            "DELETE FROM leaves WHERE root_id = ? AND leaf_path = ?",
+            (root_id, path),
         )
         self.conn.commit()

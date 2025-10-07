@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 import tempfile
 import threading
 import time
@@ -26,7 +28,8 @@ class TestIntegration(unittest.TestCase):
             pipepath = self.config.runtimedir / "command"
             if pipepath.exists():
                 with open(pipepath, "w", encoding="utf-8") as f:
-                    f.write("shutdown\x1e")
+                    json.dump({"op": "shutdown"}, f)
+                    f.write("\n")
             self.daemon_thread.join(timeout=2)
         self.tmpdir.cleanup()
 
@@ -45,10 +48,11 @@ class TestIntegration(unittest.TestCase):
             time.sleep(0.1)
         self.fail("Daemon failed to start")
 
-    def send_command(self, command: str):
+    def send_command(self, command: dict):
         pipepath = self.config.runtimedir / "command"
         with open(pipepath, "w", encoding="utf-8") as f:
-            f.write(command)
+            json.dump(command, f)
+            f.write("\n")
 
     def test_daemon_starts_and_stops(self):
         self.start_daemon()
@@ -57,77 +61,167 @@ class TestIntegration(unittest.TestCase):
         pipepath = self.config.runtimedir / "command"
         self.assertTrue(pipepath.exists())
 
-        self.send_command("shutdown\x1e")
+        self.send_command({"op": "shutdown"})
         self.daemon_thread.join(timeout=2)
         self.assertFalse(self.daemon_thread.is_alive())
 
-    def test_added_command_creates_status_file(self):
+    def create_git_repo(self, path: Path, files: dict):
+        """Create a git repo with specified files."""
+        path.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init"], cwd=path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.com"],
+            cwd=path,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test User"],
+            cwd=path,
+            check=True,
+            capture_output=True,
+        )
+
+        for filename, content in files.items():
+            filepath = path / filename
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            filepath.write_text(content)
+
+        subprocess.run(["git", "add", "."], cwd=path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Initial commit"],
+            cwd=path,
+            check=True,
+            capture_output=True,
+        )
+
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+
+    def test_add_repo_with_git(self):
         self.start_daemon()
         self.assertTrue(self.daemon_started.wait(timeout=5))
 
-        self.send_command(
-            "added\x1f/home/user/project\x1fabc123\x1fREADME.md\x1fdef456\x1e\x1d"
+        repo_path = Path(self.tmpdir.name) / "test_repo"
+        head_sha = self.create_git_repo(
+            repo_path, {"README.md": "# Test", "src/main.py": "print('hello')"}
         )
-        time.sleep(0.1)
 
-        statusfile = self.config.runtimedir / "roots" / "home/user/project"
-        self.assertTrue(statusfile.exists())
-        self.assertEqual(statusfile.read_text().strip(), "abc123")
-
-    def test_changed_command_updates_status_file(self):
-        self.start_daemon()
-        self.assertTrue(self.daemon_started.wait(timeout=5))
-
-        self.send_command(
-            "added\x1f/home/user/project\x1fold_sha\x1fREADME.md\x1fdef456\x1e\x1d"
-        )
-        time.sleep(0.1)
-
-        self.send_command(
-            "changed\x1f/home/user/project\x1fnew_sha\x1fREADME.md\x1fdef456\x1e\x1d"
-        )
-        time.sleep(0.1)
-
-        statusfile = self.config.runtimedir / "roots" / "home/user/project"
-        self.assertEqual(statusfile.read_text().strip(), "new_sha")
-
-    def test_database_stores_repo_hash(self):
-        self.start_daemon()
-        self.assertTrue(self.daemon_started.wait(timeout=5))
-
-        self.send_command(
-            "added\x1f/home/user/project\x1ftest_sha\x1fREADME.md\x1fdef456\x1e\x1d"
-        )
-        time.sleep(0.1)
+        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        time.sleep(0.2)
 
         from malachi.database import Database
 
         with Database(self.config) as db:
-            sha = db.getrepohash("/home/user/project")
-            self.assertEqual(sha, "test_sha")
+            stored_sha = db.getrepohash(str(repo_path))
+            self.assertEqual(stored_sha, head_sha)
 
-    def test_multiple_commands_in_sequence(self):
+            root_id = db.getrepoid(str(repo_path))
+            self.assertIsNotNone(root_id)
+
+            cursor = db.conn.execute(
+                "SELECT leaf_path FROM leaves WHERE root_id = ? ORDER BY leaf_path",
+                (root_id,),
+            )
+            paths = [row[0] for row in cursor.fetchall()]
+            self.assertEqual(paths, ["README.md", "src/main.py"])
+
+        statusfile = self.config.runtimedir / "roots" / repo_path.relative_to("/")
+        self.assertTrue(statusfile.exists())
+        self.assertEqual(statusfile.read_text().strip(), head_sha)
+
+    def test_add_repo_incremental_update(self):
         self.start_daemon()
         self.assertTrue(self.daemon_started.wait(timeout=5))
 
-        commands = [
-            "added\x1f/repo1\x1fsha1\x1ffile1.txt\x1fhash1\x1e",
-            "added\x1f/repo2\x1fsha2\x1ffile2.txt\x1fhash2\x1e",
-            "changed\x1f/repo1\x1fsha1_updated\x1ffile1.txt\x1fhash1_new\x1e",
-            "\x1d",  # Generation separator to trigger commit
-        ]
+        repo_path = Path(self.tmpdir.name) / "test_repo"
+        initial_sha = self.create_git_repo(repo_path, {"file1.txt": "initial"})
 
-        for cmd in commands:
-            self.send_command(cmd)
-            time.sleep(0.05)
+        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        time.sleep(0.2)
 
-        time.sleep(0.1)
+        from malachi.database import Database
 
-        status1 = self.config.runtimedir / "roots" / "repo1"
-        status2 = self.config.runtimedir / "roots" / "repo2"
+        with Database(self.config) as db:
+            root_id = db.getrepoid(str(repo_path))
+            cursor = db.conn.execute(
+                "SELECT leaf_path FROM leaves WHERE root_id = ?",
+                (root_id,),
+            )
+            initial_files = [row[0] for row in cursor.fetchall()]
+            self.assertEqual(
+                initial_files,
+                ["file1.txt"],
+                "Initial indexing should have indexed file1.txt",
+            )
 
-        self.assertEqual(status1.read_text().strip(), "sha1_updated")
-        self.assertEqual(status2.read_text().strip(), "sha2")
+        (repo_path / "file2.txt").write_text("new file")
+        subprocess.run(
+            ["git", "add", "file2.txt"], cwd=repo_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "Add file2"],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+        )
+
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repo_path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        new_sha = result.stdout.strip()
+
+        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        time.sleep(0.2)
+
+        from malachi.database import Database
+
+        with Database(self.config) as db:
+            stored_sha = db.getrepohash(str(repo_path))
+            self.assertEqual(stored_sha, new_sha)
+            self.assertNotEqual(stored_sha, initial_sha)
+
+            root_id = db.getrepoid(str(repo_path))
+            cursor = db.conn.execute(
+                "SELECT leaf_path FROM leaves WHERE root_id = ? ORDER BY leaf_path",
+                (root_id,),
+            )
+            paths = [row[0] for row in cursor.fetchall()]
+            self.assertEqual(paths, ["file1.txt", "file2.txt"])
+
+    def test_add_repo_already_current(self):
+        self.start_daemon()
+        self.assertTrue(self.daemon_started.wait(timeout=5))
+
+        repo_path = Path(self.tmpdir.name) / "test_repo"
+        head_sha = self.create_git_repo(repo_path, {"file.txt": "content"})
+
+        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        time.sleep(0.2)
+
+        from malachi.database import Database
+
+        with Database(self.config) as db:
+            first_sha = db.getrepohash(str(repo_path))
+
+        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        time.sleep(0.2)
+
+        with Database(self.config) as db:
+            second_sha = db.getrepohash(str(repo_path))
+
+        self.assertEqual(first_sha, second_sha)
+        self.assertEqual(first_sha, head_sha)
 
 
 if __name__ == "__main__":

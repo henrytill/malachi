@@ -1,59 +1,48 @@
 import argparse
+import json
 import logging
 import os
 import platform
 import select
+import shutil
 import signal
 import sqlite3
+import subprocess
 import sys
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from malachi import __version__
 from malachi.config import Config
 from malachi.database import Database
 from malachi.status import writestatus
 
-MAXHASHLEN = 65
 MAXOPSIZE = 16
-MAXFIELDS = 5
-MAXRECORDSIZE = (
-    MAXOPSIZE + (2 * os.pathconf("/", "PC_PATH_MAX")) + (2 * MAXHASHLEN) + MAXFIELDS
+MAXHASHLEN = 65
+MAXUUIDLEN = 40
+MAXQUERYLEN = 4096
+MAXJSONOVERHEAD = 200
+MAXLINESIZE = (
+    MAXOPSIZE
+    + (2 * os.pathconf("/", "PC_PATH_MAX"))
+    + (2 * MAXHASHLEN)
+    + MAXUUIDLEN
+    + MAXQUERYLEN
+    + MAXJSONOVERHEAD
 )
-
-
-class Opcode(Enum):
-    """Command operation types."""
-
-    UNKNOWN = 0
-    ADDED = 1
-    CHANGED = 2
-    REMOVED = 3
-    SHUTDOWN = 4
-
-
-@dataclass
-class FileOp:
-    """File operation fields."""
-
-    root: str
-    roothash: str
-    leaf: str
-    leafhash: str
 
 
 @dataclass
 class Command:
-    """IPC command structure."""
+    """JSONL command structure."""
 
-    op: Opcode
-    fileop: Optional[FileOp] = None
+    op: str
+    data: dict[str, Any]
 
 
 class Parser:
-    """ASCII separator protocol parser."""
+    """JSONL protocol parser."""
 
     def __init__(self, bufsize: int):
         self.bufsize = bufsize
@@ -76,133 +65,218 @@ class Parser:
         self.buf.extend(data)
         return len(data)
 
-    def _lookup_op(self, name: str) -> Opcode:
-        """Lookup operation by name."""
-        ops = {
-            "added": Opcode.ADDED,
-            "changed": Opcode.CHANGED,
-            "removed": Opcode.REMOVED,
-            "shutdown": Opcode.SHUTDOWN,
-        }
-        return ops.get(name, Opcode.UNKNOWN)
-
-    def _parse_record(self, record: str) -> Optional[Command]:
-        """Parse individual record string."""
-        fields = record.split("\x1f")
-
-        if not fields:
-            return None
-
-        opname = fields[0]
-        opcode = self._lookup_op(opname)
-
-        if opcode == Opcode.UNKNOWN:
-            logging.error("Unknown operation: %s", opname)
-            return None
-
-        if opcode == Opcode.SHUTDOWN:
-            if len(fields) != 1:
-                logging.error("shutdown expects 0 data fields, got %d", len(fields) - 1)
-                return None
-            return Command(op=opcode)
-
-        if opcode in (Opcode.ADDED, Opcode.CHANGED, Opcode.REMOVED):
-            if len(fields) != 5:
-                logging.error(
-                    "%s expects 4 data fields, got %d", opname, len(fields) - 1
-                )
-                return None
-
-            fileop = FileOp(
-                root=fields[1],
-                roothash=fields[2],
-                leaf=fields[3],
-                leafhash=fields[4],
-            )
-            return Command(op=opcode, fileop=fileop)
-
-        return None
-
-    def parse_command(self, on_generation=None) -> Optional[Command]:
-        """Parse next command from buffer. Calls on_generation() when GS found."""
+    def parse_command(self) -> Optional[Command]:
+        """Parse next JSONL command from buffer."""
         if not self.buf:
             return None
 
-        gs_pos = self.buf.find(b"\x1d")
-        rs_pos = self.buf.find(b"\x1e")
-
-        if gs_pos != -1 and (rs_pos == -1 or gs_pos < rs_pos):
-            self.buf = self.buf[gs_pos + 1 :]
-            if on_generation:
-                on_generation()
+        newline_pos = self.buf.find(b"\n")
+        if newline_pos == -1:
             return None
 
-        if rs_pos == -1:
+        line = self.buf[:newline_pos].decode("utf-8")
+        self.buf = self.buf[newline_pos + 1 :]
+
+        try:
+            data = json.loads(line)
+            if not isinstance(data, dict):
+                logging.error(
+                    "Command must be JSON object, got %s", type(data).__name__
+                )
+                return None
+
+            op = data.get("op")
+            if not op:
+                logging.error("Command missing 'op' field")
+                return None
+
+            return Command(op=op, data=data)
+        except json.JSONDecodeError as e:
+            logging.error("Invalid JSON: %s", e)
             return None
 
-        record = self.buf[:rs_pos].decode("utf-8")
-        self.buf = self.buf[rs_pos + 1 :]
 
-        return self._parse_record(record)
+def get_git_head(repo_path: str) -> Optional[str]:
+    """Get current HEAD commit hash."""
+    git = shutil.which("git")
+    if not git:
+        logging.error("git command not found")
+        return None
+
+    try:
+        result = subprocess.run(
+            [git, "-C", repo_path, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to get HEAD for %s: %s", repo_path, e)
+        return None
 
 
-def handle_command(cmd: Command, pending_commands: list) -> bool:
+def index_repository_initial(db: Database, repo_path: str, head_hash: str) -> bool:
+    """Index all files in repository for first time."""
+    git = shutil.which("git")
+    if not git:
+        logging.error("git command not found")
+        return False
+
+    try:
+        db.setrepohash(repo_path, head_hash)
+
+        root_id = db.getrepoid(repo_path)
+        if root_id is None:
+            logging.error("Failed to get repo ID for %s", repo_path)
+            return False
+
+        result = subprocess.run(
+            [
+                git,
+                "-C",
+                repo_path,
+                "ls-tree",
+                "-r",
+                "--format=%(path) %(objectname) %(objectsize)",
+                head_hash,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        for line in result.stdout.splitlines():
+            parts = line.split(" ", 2)
+            if len(parts) != 3:
+                continue
+            path, objhash, size = parts
+            db.addleaf(root_id, path, objhash, int(size))
+
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to index repository %s: %s", repo_path, e)
+        return False
+
+
+def index_repository_incremental(
+    db: Database, repo_path: str, old_hash: str, new_hash: str
+) -> bool:
+    """Update index with changes between two commits."""
+    git = shutil.which("git")
+    if not git:
+        logging.error("git command not found")
+        return False
+
+    try:
+        result = subprocess.run(
+            [git, "-C", repo_path, "diff-tree", "--raw", old_hash, new_hash],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        root_id = db.getrepoid(repo_path)
+        if root_id is None:
+            logging.error("Failed to get repo ID for %s", repo_path)
+            return False
+
+        for line in result.stdout.splitlines():
+            fields = line.split("\t", 1)
+            if len(fields) != 2:
+                continue
+
+            info, path = fields
+            parts = info.split()
+            if len(parts) < 5:
+                continue
+
+            status = parts[4]
+            objhash = parts[2] if status == "D" else parts[3]
+
+            if status == "A":
+                db.addleaf(root_id, path, objhash)
+            elif status == "M":
+                db.updateleaf(root_id, path, objhash)
+            elif status == "D":
+                db.removeleaf(root_id, path)
+
+        db.setrepohash(repo_path, new_hash)
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to update repository %s: %s", repo_path, e)
+        return False
+
+
+def handle_command(cmd: Command, db: Database, config: Config) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:
-        case Opcode.ADDED:
-            logging.info(
-                "Adding leaf: %s in root %s (roothash: %s, leafhash: %s)",
-                cmd.fileop.leaf,
-                cmd.fileop.root,
-                cmd.fileop.roothash,
-                cmd.fileop.leafhash,
-            )
-            pending_commands.append(cmd)
+        case "add-repo":
+            path = cmd.data.get("path")
+            if not path:
+                logging.error("add-repo missing 'path' field")
+                return False
+
+            logging.info("Add repository: %s", path)
+
+            head_hash = get_git_head(path)
+            if not head_hash:
+                return False
+
+            cached_hash = db.getrepohash(path)
+
+            if cached_hash is None:
+                logging.info("Initial indexing of %s at %s", path, head_hash)
+                index_repository_initial(db, path, head_hash)
+                writestatus(config.runtimedir, path, head_hash)
+            elif cached_hash != head_hash:
+                logging.info("Updating %s from %s to %s", path, cached_hash, head_hash)
+                index_repository_incremental(db, path, cached_hash, head_hash)
+                writestatus(config.runtimedir, path, head_hash)
+            else:
+                logging.info("Repository %s already up to date at %s", path, head_hash)
+
             return False
-        case Opcode.CHANGED:
-            logging.info(
-                "Updating leaf: %s in root %s (roothash: %s, leafhash: %s)",
-                cmd.fileop.leaf,
-                cmd.fileop.root,
-                cmd.fileop.roothash,
-                cmd.fileop.leafhash,
-            )
-            pending_commands.append(cmd)
+        case "remove-repo":
+            path = cmd.data.get("path")
+            if not path:
+                logging.error("remove-repo missing 'path' field")
+                return False
+            logging.info("Remove repository: %s", path)
             return False
-        case Opcode.REMOVED:
-            logging.info(
-                "Removing leaf: %s from root %s (roothash: %s, leafhash: %s)",
-                cmd.fileop.leaf,
-                cmd.fileop.root,
-                cmd.fileop.roothash,
-                cmd.fileop.leafhash,
-            )
-            pending_commands.append(cmd)
+        case "query":
+            query_id = cmd.data.get("query_id")
+            terms = cmd.data.get("terms")
+            if not query_id or not terms:
+                logging.error("query missing 'query_id' or 'terms' field")
+                return False
+            repo_filter = cmd.data.get("repo_filter")
+            logging.info("Query: %s (id=%s, filter=%s)", terms, query_id, repo_filter)
             return False
-        case Opcode.SHUTDOWN:
+        case "shutdown":
             logging.info("Shutdown requested")
             return True
         case _:
-            logging.error("Unknown operation")
+            logging.error("Unknown operation: %s", cmd.op)
             return False
 
 
-def read_commands(
-    pipefd: int, parser: Parser, pending_commands: list, on_generation
-) -> bool:
+def read_commands(pipefd: int, parser: Parser, db: Database, config: Config) -> bool:
     """Read and process commands. Returns True to shutdown."""
     try:
         nread = parser.input(pipefd)
         if nread == 0:
             return False
     except BufferError:
-        logging.error("Parser buffer full, processing pending commands")
+        logging.error("Parser buffer full")
     except OSError as e:
         logging.error("Read error: %s", e)
         return False
 
-    while (cmd := parser.parse_command(on_generation)) is not None:
-        if handle_command(cmd, pending_commands):
+    while (cmd := parser.parse_command()) is not None:
+        if handle_command(cmd, db, config):
             return True
 
     return False
@@ -210,27 +284,7 @@ def read_commands(
 
 def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> int:
     """Main event loop."""
-    parser = Parser(MAXRECORDSIZE * 2)
-    pending_commands = []
-
-    def commit_pending():
-        """Commit all pending commands on generation boundary."""
-        if not pending_commands:
-            return
-
-        # Extract unique roots and their final roothash (last command wins)
-        roots = {}
-        for cmd in pending_commands:
-            if cmd.fileop:
-                roots[cmd.fileop.root] = cmd.fileop.roothash
-
-        # Batch update database and status files
-        for root, roothash in roots.items():
-            db.setrepohash(root, roothash)
-            writestatus(config.runtimedir, root, roothash)
-
-        pending_commands.clear()
-
+    parser = Parser(MAXLINESIZE * 2)
     poll_obj = select.poll()
     pipefd = None
     shutdown_requested = False
@@ -262,9 +316,7 @@ def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> i
                 return -1
 
             if event & select.POLLIN:
-                if shutdown_requested := read_commands(
-                    fd, parser, pending_commands, commit_pending
-                ):
+                if shutdown_requested := read_commands(fd, parser, db, config):
                     break
 
             if event & select.POLLHUP:
@@ -280,8 +332,6 @@ def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> i
     if pipefd is not None:
         poll_obj.unregister(pipefd)
         os.close(pipefd)
-
-    commit_pending()
 
     return 0
 
