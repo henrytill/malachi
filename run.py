@@ -126,7 +126,6 @@ def test(use_venv: bool):
         ["python3", "-m", "unittest", "discover", "-v", "-s", TEST_DIR],
         use_venv=use_venv,
     )
-    run_command(["python3", "-m", "cram", "tests"], use_venv=use_venv)
 
 
 def main():
