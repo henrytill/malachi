@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import platform
-import select
+import selectors
 import shutil
 import signal
 import sqlite3
@@ -285,13 +285,13 @@ def read_commands(pipefd: int, parser: Parser, db: Database, config: Config) -> 
 def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> int:
     """Main event loop."""
     parser = Parser(MAXLINESIZE * 2)
-    poll_obj = select.poll()
+    sel = selectors.DefaultSelector()
     pipefd = None
     shutdown_requested = False
 
     def open_pipe():
         fd = os.open(pipepath, os.O_RDONLY | os.O_NONBLOCK)
-        poll_obj.register(fd, select.POLLIN)
+        sel.register(fd, selectors.EVENT_READ)
         parser.reset()
         return fd
 
@@ -301,37 +301,52 @@ def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> i
         logging.error("Failed to open command pipe: %s", e)
         return -1
 
-    while not shutdown_requested and not should_shutdown():
-        try:
-            events = poll_obj.poll(1000)
-        except InterruptedError:
-            continue
+    try:
+        while not shutdown_requested and not should_shutdown():
+            try:
+                events = sel.select(timeout=1.0)
+            except InterruptedError:
+                continue
 
-        for fd, event in events:
-            if event & select.POLLERR:
-                logging.error("Pipe error occurred")
-                if pipefd is not None:
-                    poll_obj.unregister(pipefd)
-                    os.close(pipefd)
-                return -1
+            for key, mask in events:
+                fd = key.fd
 
-            if event & select.POLLIN:
-                if shutdown_requested := read_commands(fd, parser, db, config):
+                if mask & selectors.EVENT_READ:
+                    nread = 0
+                    try:
+                        nread = parser.input(fd)
+                    except BufferError:
+                        logging.error("Parser buffer full")
+                        continue
+                    except OSError as e:
+                        logging.error("Read error: %s", e)
+                        nread = 0
+
+                    if nread == 0:
+                        logging.debug("Client disconnected, reopening pipe")
+                        sel.unregister(fd)
+                        os.close(pipefd)
+                        try:
+                            pipefd = open_pipe()
+                        except OSError as e:
+                            logging.error("Failed to reopen pipe: %s", e)
+                            return -1
+                    else:
+                        while (cmd := parser.parse_command()) is not None:
+                            if handle_command(cmd, db, config):
+                                shutdown_requested = True
+                                break
+
+                if shutdown_requested:
                     break
-
-            if event & select.POLLHUP:
-                logging.debug("Client disconnected, reopening pipe")
-                poll_obj.unregister(pipefd)
-                os.close(pipefd)
-                try:
-                    pipefd = open_pipe()
-                except OSError as e:
-                    logging.error("Failed to reopen pipe: %s", e)
-                    return -1
-
-    if pipefd is not None:
-        poll_obj.unregister(pipefd)
-        os.close(pipefd)
+    finally:
+        if pipefd is not None:
+            try:
+                sel.unregister(pipefd)
+            except (KeyError, ValueError):
+                pass
+            os.close(pipefd)
+        sel.close()
 
     return 0
 
