@@ -32,6 +32,18 @@ MAXLINESIZE = (
     + MAXJSONOVERHEAD
 )
 
+_git_path: Optional[str] = None
+
+
+def git_path() -> Optional[str]:
+    """Get cached git executable path."""
+    global _git_path
+    if _git_path is None:
+        _git_path = shutil.which("git")
+        if _git_path is None:
+            logging.error("git command not found")
+    return _git_path
+
 
 @dataclass
 class Command:
@@ -98,9 +110,8 @@ class Parser:
 
 def get_git_head(repo_path: str) -> Optional[str]:
     """Get current HEAD commit hash."""
-    git = shutil.which("git")
+    git = git_path()
     if not git:
-        logging.error("git command not found")
         return None
 
     try:
@@ -118,9 +129,8 @@ def get_git_head(repo_path: str) -> Optional[str]:
 
 def index_repository_initial(db: Database, repo_path: str, head_hash: str) -> bool:
     """Index all files in repository for first time."""
-    git = shutil.which("git")
+    git = git_path()
     if not git:
-        logging.error("git command not found")
         return False
 
     try:
@@ -164,9 +174,8 @@ def index_repository_incremental(
     db: Database, repo_path: str, old_hash: str, new_hash: str
 ) -> bool:
     """Update index with changes between two commits."""
-    git = shutil.which("git")
+    git = git_path()
     if not git:
-        logging.error("git command not found")
         return False
 
     try:
