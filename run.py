@@ -103,10 +103,7 @@ def create_env():
 
 def check(use_venv: bool):
     logger.info("Running type checks...")
-    run(
-        ["python3", "-m", "mypy", "--no-color-output", PACKAGE_NAME, TEST_DIR],
-        use_venv=use_venv,
-    )
+    run(["python3", "-m", "mypy", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
 
 
 def lint(use_venv: bool):
