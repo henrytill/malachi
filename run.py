@@ -48,7 +48,7 @@ def run(cmd: list[str], use_venv: bool = False):
         sys.exit(result.returncode)
 
 
-def generate_version(git_ref: Optional[str] = None):
+def generate(git_ref: Optional[str] = None):
     base_version = "0.1.0"
     version = base_version
 
@@ -90,7 +90,7 @@ def create_env():
         sys.exit(1)
 
     logger.info("Creating new virtual environment...")
-    generate_version()
+    generate()
     venv.create(venv_path, with_pip=True)
 
     python = get_python(True)
@@ -161,7 +161,7 @@ def main():
 
     match command:
         case CommandType.GENERATE:
-            generate_version(args.git_ref)
+            generate(args.git_ref)
         case CommandType.CREATE_ENV:
             create_env()
         case CommandType.CHECK:
