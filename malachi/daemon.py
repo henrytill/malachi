@@ -191,6 +191,7 @@ def index_repository_incremental(
             logging.error("Failed to get repo ID for %s", repo_path)
             return False
 
+        changes = []
         for line in result.stdout.splitlines():
             fields = line.split("\t", 1)
             if len(fields) != 2:
@@ -203,9 +204,31 @@ def index_repository_incremental(
 
             status = parts[4]
             objhash = parts[2] if status == "D" else parts[3]
+            changes.append((status, path, objhash))
 
+        hashes_needing_size = [
+            objhash for status, _, objhash in changes if status in ("A", "M")
+        ]
+
+        sizes = {}
+        if hashes_needing_size:
+            batch_input = "\n".join(hashes_needing_size)
+            size_result = subprocess.run(
+                [git, "-C", repo_path, "cat-file", "--batch-check"],
+                input=batch_input,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            for line in size_result.stdout.splitlines():
+                parts = line.split()
+                if len(parts) == 3:
+                    sizes[parts[0]] = int(parts[2])
+
+        for status, path, objhash in changes:
             if status == "A":
-                db.addleaf(root_id, path, objhash)
+                size = sizes.get(objhash, 0)
+                db.addleaf(root_id, path, objhash, size)
             elif status == "M":
                 db.updateleaf(root_id, path, objhash)
             elif status == "D":
@@ -238,11 +261,15 @@ def handle_command(cmd: Command, db: Database, config: Config) -> bool:
 
             if cached_hash is None:
                 logging.info("Initial indexing of %s at %s", path, head_hash)
-                index_repository_initial(db, path, head_hash)
+                if not index_repository_initial(db, path, head_hash):
+                    logging.error("Failed to index repository %s", path)
+                    return False
                 writestatus(config.runtimedir, path, head_hash)
             elif cached_hash != head_hash:
                 logging.info("Updating %s from %s to %s", path, cached_hash, head_hash)
-                index_repository_incremental(db, path, cached_hash, head_hash)
+                if not index_repository_incremental(db, path, cached_hash, head_hash):
+                    logging.error("Failed to update repository %s", path)
+                    return False
                 writestatus(config.runtimedir, path, head_hash)
             else:
                 logging.info("Repository %s already up to date at %s", path, head_hash)
