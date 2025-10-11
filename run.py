@@ -38,7 +38,7 @@ def get_python(use_venv: bool) -> str:
     return sys.executable
 
 
-def run_command(cmd: list[str], use_venv: bool = False):
+def run(cmd: list[str], use_venv: bool = False):
     python = get_python(use_venv)
     if cmd[0] in ("python3", "python"):
         cmd[0] = python
@@ -96,14 +96,14 @@ def create_env():
     python = get_python(True)
     logger.info(f"Using Python: {python}")
 
-    run_command([python, "-m", "pip", "install", "--upgrade", "pip"], use_venv=True)
-    run_command([python, "-m", "pip", "install", "-e", ".[dev]"], use_venv=True)
+    run([python, "-m", "pip", "install", "--upgrade", "pip"], use_venv=True)
+    run([python, "-m", "pip", "install", "-e", ".[dev]"], use_venv=True)
     logger.info("Environment created successfully")
 
 
 def check(use_venv: bool):
     logger.info("Running type checks...")
-    run_command(
+    run(
         ["python3", "-m", "mypy", "--no-color-output", PACKAGE_NAME, TEST_DIR],
         use_venv=use_venv,
     )
@@ -111,18 +111,18 @@ def check(use_venv: bool):
 
 def lint(use_venv: bool):
     logger.info("Running linters...")
-    run_command(["python3", "-m", "pylint", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
+    run(["python3", "-m", "pylint", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
 
 
 def format_code(use_venv: bool):
     logger.info("Formatting code...")
-    run_command(["python3", "-m", "isort", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
-    run_command(["python3", "-m", "black", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
+    run(["python3", "-m", "isort", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
+    run(["python3", "-m", "black", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
 
 
 def test(use_venv: bool):
     logger.info("Running tests...")
-    run_command(
+    run(
         ["python3", "-m", "unittest", "discover", "-v", "-s", TEST_DIR],
         use_venv=use_venv,
     )
