@@ -108,7 +108,7 @@ class Parser:
             return None
 
 
-def get_git_head(repo_path: str) -> Optional[str]:
+def get_git_head(repo_path: Path) -> Optional[str]:
     """Get current HEAD commit hash."""
     git = git_path()
     if not git:
@@ -127,7 +127,7 @@ def get_git_head(repo_path: str) -> Optional[str]:
         return None
 
 
-def index_repository_initial(db: Database, repo_path: str, head_hash: str) -> bool:
+def index_repository_initial(db: Database, repo_path: Path, head_hash: str) -> bool:
     """Index all files in repository for first time."""
     git = git_path()
     if not git:
@@ -172,7 +172,7 @@ def index_repository_initial(db: Database, repo_path: str, head_hash: str) -> bo
 
 # pylint: disable=too-many-locals,too-many-branches
 def index_repository_incremental(
-    db: Database, repo_path: str, old_hash: str, new_hash: str
+    db: Database, repo_path: Path, old_hash: str, new_hash: str
 ) -> bool:
     """Update index with changes between two commits."""
     git = git_path()
@@ -248,41 +248,49 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:
         case "add-repo":
-            path = cmd.data.get("path")
-            if not path:
+            path_str = cmd.data.get("path")
+            if not path_str:
                 logging.error("add-repo missing 'path' field")
                 return False
 
-            logging.info("Add repository: %s", path)
+            repo_path = Path(path_str)
+            logging.info("Add repository: %s", repo_path)
 
-            head_hash = get_git_head(path)
+            head_hash = get_git_head(repo_path)
             if not head_hash:
                 return False
 
-            cached_hash = db.getrepohash(path)
+            cached_hash = db.getrepohash(repo_path)
 
             if cached_hash is None:
-                logging.info("Initial indexing of %s at %s", path, head_hash)
-                if not index_repository_initial(db, path, head_hash):
-                    logging.error("Failed to index repository %s", path)
+                logging.info("Initial indexing of %s at %s", repo_path, head_hash)
+                if not index_repository_initial(db, repo_path, head_hash):
+                    logging.error("Failed to index repository %s", repo_path)
                     return False
-                writestatus(config.runtimedir, path, head_hash)
+                writestatus(config.runtimedir, str(repo_path), head_hash)
             elif cached_hash != head_hash:
-                logging.info("Updating %s from %s to %s", path, cached_hash, head_hash)
-                if not index_repository_incremental(db, path, cached_hash, head_hash):
-                    logging.error("Failed to update repository %s", path)
+                logging.info(
+                    "Updating %s from %s to %s", repo_path, cached_hash, head_hash
+                )
+                if not index_repository_incremental(
+                    db, repo_path, cached_hash, head_hash
+                ):
+                    logging.error("Failed to update repository %s", repo_path)
                     return False
-                writestatus(config.runtimedir, path, head_hash)
+                writestatus(config.runtimedir, str(repo_path), head_hash)
             else:
-                logging.info("Repository %s already up to date at %s", path, head_hash)
+                logging.info(
+                    "Repository %s already up to date at %s", repo_path, head_hash
+                )
 
             return False
         case "remove-repo":
-            path = cmd.data.get("path")
-            if not path:
+            path_str = cmd.data.get("path")
+            if not path_str:
                 logging.error("remove-repo missing 'path' field")
                 return False
-            logging.info("Remove repository: %s", path)
+            repo_path = Path(path_str)
+            logging.info("Remove repository: %s", repo_path)
             return False
         case "query":
             query_id = cmd.data.get("query_id")

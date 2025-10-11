@@ -31,29 +31,29 @@ class Database:
         self.conn.executescript(schema)
         self.conn.commit()
 
-    def getrepohash(self, repopath: str) -> Optional[str]:
+    def getrepohash(self, repopath: Path) -> Optional[str]:
         assert self.conn is not None
         cursor = self.conn.execute(
-            "SELECT root_hash FROM roots WHERE root_path = ?", (repopath,)
+            "SELECT root_hash FROM roots WHERE root_path = ?", (str(repopath),)
         )
         row = cursor.fetchone()
         return row[0] if row else None
 
-    def setrepohash(self, repopath: str, sha: str):
+    def setrepohash(self, repopath: Path, sha: str):
         assert self.conn is not None
         self.conn.execute(
             "INSERT INTO roots (root_path, root_hash, updated_at) "
             "VALUES (?, ?, CURRENT_TIMESTAMP) "
             "ON CONFLICT(root_path) DO UPDATE SET "
             "root_hash = excluded.root_hash, updated_at = CURRENT_TIMESTAMP",
-            (repopath, sha),
+            (str(repopath), sha),
         )
         self.conn.commit()
 
-    def getrepoid(self, repopath: str) -> Optional[int]:
+    def getrepoid(self, repopath: Path) -> Optional[int]:
         assert self.conn is not None
         cursor = self.conn.execute(
-            "SELECT id FROM roots WHERE root_path = ?", (repopath,)
+            "SELECT id FROM roots WHERE root_path = ?", (str(repopath),)
         )
         row = cursor.fetchone()
         return row[0] if row else None

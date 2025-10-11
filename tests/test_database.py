@@ -35,20 +35,22 @@ class TestDatabase(unittest.TestCase):
 
     def test_setrepohash_and_getrepohash(self):
         with Database(self.config) as db:
-            db.setrepohash("/home/user/project", "abc123def456")
-            sha = db.getrepohash("/home/user/project")
+            repo_path = Path("/home/user/project")
+            db.setrepohash(repo_path, "abc123def456")
+            sha = db.getrepohash(repo_path)
             self.assertEqual(sha, "abc123def456")
 
     def test_getrepohash_nonexistent(self):
         with Database(self.config) as db:
-            sha = db.getrepohash("/nonexistent")
+            sha = db.getrepohash(Path("/nonexistent"))
             self.assertIsNone(sha)
 
     def test_setrepohash_updates_existing(self):
         with Database(self.config) as db:
-            db.setrepohash("/home/user/project", "old_sha")
-            db.setrepohash("/home/user/project", "new_sha")
-            sha = db.getrepohash("/home/user/project")
+            repo_path = Path("/home/user/project")
+            db.setrepohash(repo_path, "old_sha")
+            db.setrepohash(repo_path, "new_sha")
+            sha = db.getrepohash(repo_path)
             self.assertEqual(sha, "new_sha")
 
     def test_schema_creates_tables(self):

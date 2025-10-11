@@ -120,10 +120,10 @@ class TestIntegration(unittest.TestCase):
         time.sleep(0.2)
 
         with Database(self.config) as db:
-            stored_sha = db.getrepohash(str(repo_path))
+            stored_sha = db.getrepohash(repo_path)
             self.assertEqual(stored_sha, head_sha)
 
-            root_id = db.getrepoid(str(repo_path))
+            root_id = db.getrepoid(repo_path)
             self.assertIsNotNone(root_id)
 
             cursor = db.conn.execute(
@@ -148,7 +148,7 @@ class TestIntegration(unittest.TestCase):
         time.sleep(0.2)
 
         with Database(self.config) as db:
-            root_id = db.getrepoid(str(repo_path))
+            root_id = db.getrepoid(repo_path)
             cursor = db.conn.execute(
                 "SELECT leaf_path FROM leaves WHERE root_id = ?",
                 (root_id,),
@@ -184,11 +184,11 @@ class TestIntegration(unittest.TestCase):
         time.sleep(0.2)
 
         with Database(self.config) as db:
-            stored_sha = db.getrepohash(str(repo_path))
+            stored_sha = db.getrepohash(repo_path)
             self.assertEqual(stored_sha, new_sha)
             self.assertNotEqual(stored_sha, initial_sha)
 
-            root_id = db.getrepoid(str(repo_path))
+            root_id = db.getrepoid(repo_path)
             cursor = db.conn.execute(
                 "SELECT leaf_path FROM leaves WHERE root_id = ? ORDER BY leaf_path",
                 (root_id,),
@@ -207,13 +207,13 @@ class TestIntegration(unittest.TestCase):
         time.sleep(0.2)
 
         with Database(self.config) as db:
-            first_sha = db.getrepohash(str(repo_path))
+            first_sha = db.getrepohash(repo_path)
 
         self.send_command({"op": "add-repo", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
-            second_sha = db.getrepohash(str(repo_path))
+            second_sha = db.getrepohash(repo_path)
 
         self.assertEqual(first_sha, second_sha)
         self.assertEqual(first_sha, head_sha)
