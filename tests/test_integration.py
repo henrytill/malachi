@@ -58,6 +58,24 @@ class TestIntegration(unittest.TestCase):
             json.dump(command, f)
             f.write("\n")
 
+    def wait_for_status(
+        self, repo_path: Path, expected_hash: str, timeout: float = 5.0
+    ):
+        """Wait for status file to contain expected hash."""
+        statusfile = self.config.runtimedir / "roots" / repo_path.relative_to("/")
+        start = time.time()
+        while time.time() - start < timeout:
+            if statusfile.exists():
+                content = statusfile.read_text().strip()
+                if content == expected_hash:
+                    return
+            time.sleep(0.05)
+        self.fail(
+            f"Timeout waiting for {repo_path} status. "
+            f"Expected: {expected_hash}, "
+            f"File exists: {statusfile.exists()}"
+        )
+
     def test_daemon_starts_and_stops(self):
         self.start_daemon()
         self.assertTrue(self.daemon_started.wait(timeout=5))
@@ -118,7 +136,7 @@ class TestIntegration(unittest.TestCase):
         )
 
         self.send_command({"op": "add", "path": str(repo_path)})
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, head_sha)
 
         with Database(self.config) as db:
             stored_sha = db.get_repo_hash(repo_path)
@@ -146,7 +164,7 @@ class TestIntegration(unittest.TestCase):
         initial_sha = self.create_git_repo(repo_path, {"file1.txt": "initial"})
 
         self.send_command({"op": "add", "path": str(repo_path)})
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, initial_sha)
 
         with Database(self.config) as db:
             root_id = db.get_repo_id(repo_path)
@@ -182,7 +200,7 @@ class TestIntegration(unittest.TestCase):
         new_sha = result.stdout.strip()
 
         self.send_command({"op": "add", "path": str(repo_path)})
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, new_sha)
 
         with Database(self.config) as db:
             stored_sha = db.get_repo_hash(repo_path)
@@ -205,13 +223,13 @@ class TestIntegration(unittest.TestCase):
         head_sha = self.create_git_repo(repo_path, {"file.txt": "content"})
 
         self.send_command({"op": "add", "path": str(repo_path)})
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, head_sha)
 
         with Database(self.config) as db:
             first_sha = db.get_repo_hash(repo_path)
 
         self.send_command({"op": "add", "path": str(repo_path)})
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, head_sha)
 
         with Database(self.config) as db:
             second_sha = db.get_repo_hash(repo_path)
@@ -232,7 +250,7 @@ class TestIntegration(unittest.TestCase):
         }
 
         crawl(env)
-        time.sleep(0.2)
+        self.wait_for_status(repo_path, head_sha)
 
         with Database(self.config) as db:
             stored_sha = db.get_repo_hash(repo_path)
