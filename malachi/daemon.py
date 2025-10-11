@@ -144,7 +144,7 @@ def get_git_head(repo_path: Path) -> Optional[str]:
         return None
 
 
-def index_repository_initial(db: Database, repo_path: Path, head_hash: str) -> bool:
+def index_initial(db: Database, repo_path: Path, head_hash: str) -> bool:
     """Index all files in repository for first time."""
     git = git_path()
     if not git:
@@ -188,7 +188,7 @@ def index_repository_initial(db: Database, repo_path: Path, head_hash: str) -> b
 
 
 # pylint: disable=too-many-locals,too-many-branches
-def index_repository_incremental(
+def index_incremental(
     db: Database, repo_path: Path, old_hash: str, new_hash: str
 ) -> bool:
     """Update index with changes between two commits."""
@@ -281,7 +281,7 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
 
             if cached_hash is None:
                 logging.info("Initial indexing of %s at %s", repo_path, head_hash)
-                if not index_repository_initial(db, repo_path, head_hash):
+                if not index_initial(db, repo_path, head_hash):
                     logging.error("Failed to index repository %s", repo_path)
                     return False
                 writestatus(config.runtimedir, str(repo_path), head_hash)
@@ -289,9 +289,7 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
                 logging.info(
                     "Updating %s from %s to %s", repo_path, cached_hash, head_hash
                 )
-                if not index_repository_incremental(
-                    db, repo_path, cached_hash, head_hash
-                ):
+                if not index_incremental(db, repo_path, cached_hash, head_hash):
                     logging.error("Failed to update repository %s", repo_path)
                     return False
                 writestatus(config.runtimedir, str(repo_path), head_hash)
