@@ -272,25 +272,6 @@ def handle_command(cmd: Command, db: Database, config: Config) -> bool:
             return False
 
 
-def read_commands(pipefd: int, parser: Parser, db: Database, config: Config) -> bool:
-    """Read and process commands. Returns True to shutdown."""
-    try:
-        nread = parser.input(pipefd)
-        if nread == 0:
-            return False
-    except BufferError:
-        logging.error("Parser buffer full")
-    except OSError as e:
-        logging.error("Read error: %s", e)
-        return False
-
-    while (cmd := parser.parse_command()) is not None:
-        if handle_command(cmd, db, config):
-            return True
-
-    return False
-
-
 def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> int:
     """Main event loop."""
     parser = Parser(MAXLINESIZE * 2)
