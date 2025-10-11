@@ -244,7 +244,7 @@ def index_repository_incremental(
 
 
 # pylint: disable=too-many-return-statements,too-many-nested-blocks
-def handle_command(cmd: Command, db: Database, config: Config) -> bool:
+def handle_command(config: Config, db: Database, cmd: Command) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:
         case "add-repo":
@@ -302,7 +302,7 @@ def handle_command(cmd: Command, db: Database, config: Config) -> bool:
 
 
 def run_loop(
-    pipepath: Path, should_shutdown: Callable[[], bool], db: Database, config: Config
+    config: Config, db: Database, should_shutdown: Callable[[], bool], pipepath: Path
 ) -> int:
     """Main event loop."""
     parser = Parser(MAXLINESIZE * 2)
@@ -348,7 +348,7 @@ def run_loop(
                             return -1
                     else:
                         while (cmd := parser.parse_command()) is not None:
-                            if handle_command(cmd, db, config):
+                            if handle_command(config, db, cmd):
                                 return 0
 
             if should_shutdown():
@@ -396,7 +396,7 @@ def run_daemon(config: Config) -> int:
 
     with Database(config) as db:
         try:
-            rc = run_loop(pipepath, should_shutdown, db, config)
+            rc = run_loop(config, db, should_shutdown, pipepath)
         finally:
             pipepath.unlink(missing_ok=True)
 
