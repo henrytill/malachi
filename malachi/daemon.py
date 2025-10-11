@@ -11,7 +11,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from malachi import __version__
 from malachi.config import Config
@@ -299,39 +299,38 @@ def handle_command(cmd: Command, db: Database, config: Config) -> bool:
             return False
 
 
-def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> int:
+def run_loop(
+    pipepath: Path, should_shutdown: Callable[[], bool], db: Database, config: Config
+) -> int:
     """Main event loop."""
     parser = Parser(MAXLINESIZE * 2)
     sel = selectors.DefaultSelector()
-    pipefd = None
-    shutdown_requested = False
 
-    def open_pipe():
-        fd = os.open(pipepath, os.O_RDONLY | os.O_NONBLOCK)
-        sel.register(fd, selectors.EVENT_READ)
-        parser.reset()
-        return fd
+    def open_pipe() -> bool:
+        try:
+            fd = os.open(pipepath, os.O_RDONLY | os.O_NONBLOCK)
+            sel.register(fd, selectors.EVENT_READ)
+            parser.reset()
+            return True
+        except OSError as e:
+            logging.error("Failed to open command pipe: %s", e)
+            return False
 
-    try:
-        pipefd = open_pipe()
-    except OSError as e:
-        logging.error("Failed to open command pipe: %s", e)
+    if not open_pipe():
         return -1
 
     try:
-        while not shutdown_requested and not should_shutdown():
+        while True:
             try:
                 events = sel.select(timeout=1.0)
             except InterruptedError:
                 continue
 
             for key, mask in events:
-                fd = key.fd
-
                 if mask & selectors.EVENT_READ:
                     nread = 0
                     try:
-                        nread = parser.input(fd)
+                        nread = parser.input(key.fd)
                     except BufferError:
                         logging.error("Parser buffer full")
                         continue
@@ -341,28 +340,20 @@ def run_loop(pipepath: Path, should_shutdown, db: Database, config: Config) -> i
 
                     if nread == 0:
                         logging.debug("Client disconnected, reopening pipe")
-                        sel.unregister(fd)
-                        os.close(pipefd)
-                        try:
-                            pipefd = open_pipe()
-                        except OSError as e:
-                            logging.error("Failed to reopen pipe: %s", e)
+                        sel.unregister(key.fd)
+                        os.close(key.fd)
+                        if not open_pipe():
                             return -1
                     else:
                         while (cmd := parser.parse_command()) is not None:
                             if handle_command(cmd, db, config):
-                                shutdown_requested = True
-                                break
+                                return 0
 
-                if shutdown_requested:
-                    break
+            if should_shutdown():
+                break
     finally:
-        if pipefd is not None:
-            try:
-                sel.unregister(pipefd)
-            except (KeyError, ValueError):
-                pass
-            os.close(pipefd)
+        for key in list(sel.get_map().values()):
+            os.close(key.fd)
         sel.close()
 
     return 0
