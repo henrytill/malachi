@@ -49,8 +49,8 @@ def git_path() -> Optional[str]:
 class Operation(Enum):
     """Command operations."""
 
-    ADD_REPO = "add-repo"
-    REMOVE_REPO = "remove-repo"
+    ADD = "add"
+    REMOVE = "remove"
     QUERY = "query"
     SHUTDOWN = "shutdown"
 
@@ -264,10 +264,10 @@ def index_repository_incremental(
 def handle_command(config: Config, db: Database, cmd: Command) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:
-        case Operation.ADD_REPO:
+        case Operation.ADD:
             path_str = cmd.data.get("path")
             if not path_str:
-                logging.error("add-repo missing 'path' field")
+                logging.error("add missing 'path' field")
                 return False
 
             repo_path = Path(path_str)
@@ -301,10 +301,10 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
                 )
 
             return False
-        case Operation.REMOVE_REPO:
+        case Operation.REMOVE:
             path_str = cmd.data.get("path")
             if not path_str:
-                logging.error("remove-repo missing 'path' field")
+                logging.error("remove missing 'path' field")
                 return False
             repo_path = Path(path_str)
             logging.info("Remove repository: %s", repo_path)

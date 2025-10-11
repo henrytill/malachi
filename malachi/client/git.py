@@ -51,13 +51,13 @@ def crawl(env):
         logger.error("daemon pipe not found at %s", commandpipe)
         return
 
-    command = {"op": "add-repo", "path": repo}
+    command = {"op": "add", "path": repo}
     with open(commandpipe, "w", encoding="utf-8") as fh:
         json.dump(command, fh)
         fh.write("\n")
         fh.flush()
 
-    logger.debug("sent add-repo command for %s", repo)
+    logger.debug("sent add command for %s", repo)
 
 
 def main():

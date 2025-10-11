@@ -116,7 +116,7 @@ class TestIntegration(unittest.TestCase):
             repo_path, {"README.md": "# Test", "src/main.py": "print('hello')"}
         )
 
-        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        self.send_command({"op": "add", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
@@ -144,7 +144,7 @@ class TestIntegration(unittest.TestCase):
         repo_path = Path(self.tmpdir.name) / "test_repo"
         initial_sha = self.create_git_repo(repo_path, {"file1.txt": "initial"})
 
-        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        self.send_command({"op": "add", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
@@ -180,7 +180,7 @@ class TestIntegration(unittest.TestCase):
         )
         new_sha = result.stdout.strip()
 
-        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        self.send_command({"op": "add", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
@@ -203,13 +203,13 @@ class TestIntegration(unittest.TestCase):
         repo_path = Path(self.tmpdir.name) / "test_repo"
         head_sha = self.create_git_repo(repo_path, {"file.txt": "content"})
 
-        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        self.send_command({"op": "add", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
             first_sha = db.get_repo_hash(repo_path)
 
-        self.send_command({"op": "add-repo", "path": str(repo_path)})
+        self.send_command({"op": "add", "path": str(repo_path)})
         time.sleep(0.2)
 
         with Database(self.config) as db:
