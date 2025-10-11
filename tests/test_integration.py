@@ -8,6 +8,7 @@ import time
 import unittest
 from pathlib import Path
 
+from malachi.client.git import crawl
 from malachi.config import Config
 from malachi.daemon import run_daemon
 from malachi.database import Database
@@ -21,7 +22,7 @@ class TestIntegration(unittest.TestCase):
             configdir=Path(self.tmpdir.name) / "config",
             datadir=Path(self.tmpdir.name) / "data",
             cachedir=Path(self.tmpdir.name) / "cache",
-            runtimedir=Path(self.tmpdir.name) / "runtime",
+            runtimedir=Path(self.tmpdir.name) / "malachi",
         )
         self.daemon_thread = None
         self.daemon_started = threading.Event()
@@ -217,6 +218,34 @@ class TestIntegration(unittest.TestCase):
 
         self.assertEqual(first_sha, second_sha)
         self.assertEqual(first_sha, head_sha)
+
+    def test_git_client_integration(self):
+        self.start_daemon()
+        self.assertTrue(self.daemon_started.wait(timeout=5))
+
+        repo_path = (Path(self.tmpdir.name) / "test_repo").resolve()
+        head_sha = self.create_git_repo(repo_path, {"README.md": "# Test"})
+
+        env = {
+            "GIT_WORK_TREE": str(repo_path),
+            "XDG_RUNTIME_DIR": self.tmpdir.name,
+        }
+
+        crawl(env)
+        time.sleep(0.2)
+
+        with Database(self.config) as db:
+            stored_sha = db.get_repo_hash(repo_path)
+            self.assertEqual(stored_sha, head_sha)
+
+            root_id = db.get_repo_id(repo_path)
+            self.assertIsNotNone(root_id)
+
+            cursor = db.conn.execute(
+                "SELECT leaf_path FROM leaves WHERE root_id = ?", (root_id,)
+            )
+            paths = [row[0] for row in cursor.fetchall()]
+            self.assertEqual(paths, ["README.md"])
 
 
 if __name__ == "__main__":
