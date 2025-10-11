@@ -16,7 +16,7 @@ class Database:
     def __enter__(self):
         self.config.cachedir.mkdir(parents=True, exist_ok=True, mode=0o755)
         self.conn = sqlite3.connect(self.dbpath)
-        self.ensureschema()
+        self.ensure_schema()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -24,14 +24,14 @@ class Database:
             self.conn.close()
             self.conn = None
 
-    def ensureschema(self):
+    def ensure_schema(self):
         assert self.conn is not None
         schemapath = Path(__file__).parent / "schema.sql"
         schema = schemapath.read_text()
         self.conn.executescript(schema)
         self.conn.commit()
 
-    def getrepohash(self, repopath: Path) -> Optional[str]:
+    def get_repo_hash(self, repopath: Path) -> Optional[str]:
         assert self.conn is not None
         cursor = self.conn.execute(
             "SELECT root_hash FROM roots WHERE root_path = ?", (str(repopath),)
@@ -39,7 +39,7 @@ class Database:
         row = cursor.fetchone()
         return row[0] if row else None
 
-    def setrepohash(self, repopath: Path, sha: str):
+    def set_repo_hash(self, repopath: Path, sha: str):
         assert self.conn is not None
         self.conn.execute(
             "INSERT INTO roots (root_path, root_hash, updated_at) "
@@ -50,7 +50,7 @@ class Database:
         )
         self.conn.commit()
 
-    def getrepoid(self, repopath: Path) -> Optional[int]:
+    def get_repo_id(self, repopath: Path) -> Optional[int]:
         assert self.conn is not None
         cursor = self.conn.execute(
             "SELECT id FROM roots WHERE root_path = ?", (str(repopath),)
@@ -58,7 +58,7 @@ class Database:
         row = cursor.fetchone()
         return row[0] if row else None
 
-    def addleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
+    def add_leaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
         assert self.conn is not None
         self.conn.execute(
             "INSERT OR IGNORE INTO leaves "
@@ -68,7 +68,7 @@ class Database:
         )
         self.conn.commit()
 
-    def updateleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
+    def update_leaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
         assert self.conn is not None
         self.conn.execute(
             "UPDATE leaves SET leaf_hash = ?, leaf_size = ? "
@@ -77,7 +77,7 @@ class Database:
         )
         self.conn.commit()
 
-    def removeleaf(self, root_id: int, path: str):
+    def remove_leaf(self, root_id: int, path: str):
         assert self.conn is not None
         self.conn.execute(
             "DELETE FROM leaves WHERE root_id = ? AND leaf_path = ?",

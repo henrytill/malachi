@@ -134,9 +134,9 @@ def index_repository_initial(db: Database, repo_path: Path, head_hash: str) -> b
         return False
 
     try:
-        db.setrepohash(repo_path, head_hash)
+        db.set_repo_hash(repo_path, head_hash)
 
-        root_id = db.getrepoid(repo_path)
+        root_id = db.get_repo_id(repo_path)
         if root_id is None:
             logging.error("Failed to get repo ID for %s", repo_path)
             return False
@@ -161,7 +161,7 @@ def index_repository_initial(db: Database, repo_path: Path, head_hash: str) -> b
             if len(parts) != 3:
                 continue
             path, objhash, size = parts
-            db.addleaf(root_id, path, objhash, int(size))
+            db.add_leaf(root_id, path, objhash, int(size))
 
         return True
 
@@ -187,7 +187,7 @@ def index_repository_incremental(
             check=True,
         )
 
-        root_id = db.getrepoid(repo_path)
+        root_id = db.get_repo_id(repo_path)
         if root_id is None:
             logging.error("Failed to get repo ID for %s", repo_path)
             return False
@@ -229,13 +229,13 @@ def index_repository_incremental(
         for status, path, objhash in changes:
             if status == "A":
                 size = sizes.get(objhash, 0)
-                db.addleaf(root_id, path, objhash, size)
+                db.add_leaf(root_id, path, objhash, size)
             elif status == "M":
-                db.updateleaf(root_id, path, objhash)
+                db.update_leaf(root_id, path, objhash)
             elif status == "D":
-                db.removeleaf(root_id, path)
+                db.remove_leaf(root_id, path)
 
-        db.setrepohash(repo_path, new_hash)
+        db.set_repo_hash(repo_path, new_hash)
         return True
 
     except subprocess.CalledProcessError as e:
@@ -260,7 +260,7 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
             if not head_hash:
                 return False
 
-            cached_hash = db.getrepohash(repo_path)
+            cached_hash = db.get_repo_hash(repo_path)
 
             if cached_hash is None:
                 logging.info("Initial indexing of %s at %s", repo_path, head_hash)
