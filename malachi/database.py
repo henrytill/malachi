@@ -25,12 +25,14 @@ class Database:
             self.conn = None
 
     def ensureschema(self):
+        assert self.conn is not None
         schemapath = Path(__file__).parent / "schema.sql"
         schema = schemapath.read_text()
         self.conn.executescript(schema)
         self.conn.commit()
 
     def getrepohash(self, repopath: str) -> Optional[str]:
+        assert self.conn is not None
         cursor = self.conn.execute(
             "SELECT root_hash FROM roots WHERE root_path = ?", (repopath,)
         )
@@ -38,6 +40,7 @@ class Database:
         return row[0] if row else None
 
     def setrepohash(self, repopath: str, sha: str):
+        assert self.conn is not None
         self.conn.execute(
             "INSERT INTO roots (root_path, root_hash, updated_at) "
             "VALUES (?, ?, CURRENT_TIMESTAMP) "
@@ -48,6 +51,7 @@ class Database:
         self.conn.commit()
 
     def getrepoid(self, repopath: str) -> Optional[int]:
+        assert self.conn is not None
         cursor = self.conn.execute(
             "SELECT id FROM roots WHERE root_path = ?", (repopath,)
         )
@@ -55,6 +59,7 @@ class Database:
         return row[0] if row else None
 
     def addleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
+        assert self.conn is not None
         self.conn.execute(
             "INSERT OR IGNORE INTO leaves "
             "(root_id, leaf_path, leaf_hash, leaf_size) "
@@ -64,6 +69,7 @@ class Database:
         self.conn.commit()
 
     def updateleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
+        assert self.conn is not None
         self.conn.execute(
             "UPDATE leaves SET leaf_hash = ?, leaf_size = ? "
             "WHERE root_id = ? AND leaf_path = ?",
@@ -72,6 +78,7 @@ class Database:
         self.conn.commit()
 
     def removeleaf(self, root_id: int, path: str):
+        assert self.conn is not None
         self.conn.execute(
             "DELETE FROM leaves WHERE root_id = ? AND leaf_path = ?",
             (root_id, path),
