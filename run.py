@@ -114,7 +114,7 @@ def lint(use_venv: bool):
     run(["python3", "-m", "pylint", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
 
 
-def format_code(use_venv: bool):
+def fmt(use_venv: bool):
     logger.info("Formatting code...")
     run(["python3", "-m", "isort", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
     run(["python3", "-m", "black", PACKAGE_NAME, TEST_DIR], use_venv=use_venv)
@@ -169,7 +169,7 @@ def main():
         case CommandType.LINT:
             lint(args.venv)
         case CommandType.FMT:
-            format_code(args.venv)
+            fmt(args.venv)
         case CommandType.TEST:
             test(args.venv)
 
