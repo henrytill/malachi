@@ -10,6 +10,7 @@ import sqlite3
 import subprocess
 import sys
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -45,11 +46,20 @@ def git_path() -> Optional[str]:
     return _git_path
 
 
+class Operation(Enum):
+    """Command operations."""
+
+    ADD_REPO = "add-repo"
+    REMOVE_REPO = "remove-repo"
+    QUERY = "query"
+    SHUTDOWN = "shutdown"
+
+
 @dataclass
 class Command:
     """JSONL command structure."""
 
-    op: str
+    op: Operation
     data: dict[str, Any]
 
 
@@ -77,6 +87,7 @@ class Parser:
         self.buf.extend(data)
         return len(data)
 
+    # pylint: disable=too-many-return-statements
     def parse_command(self) -> Optional[Command]:
         """Parse next JSONL command from buffer."""
         if not self.buf:
@@ -97,9 +108,15 @@ class Parser:
                 )
                 return None
 
-            op = data.get("op")
-            if not op:
+            op_str = data.get("op")
+            if not op_str:
                 logging.error("Command missing 'op' field")
+                return None
+
+            try:
+                op = Operation(op_str)
+            except ValueError:
+                logging.error("Unknown operation: %s", op_str)
                 return None
 
             return Command(op=op, data=data)
@@ -247,7 +264,7 @@ def index_repository_incremental(
 def handle_command(config: Config, db: Database, cmd: Command) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:
-        case "add-repo":
+        case Operation.ADD_REPO:
             path_str = cmd.data.get("path")
             if not path_str:
                 logging.error("add-repo missing 'path' field")
@@ -284,7 +301,7 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
                 )
 
             return False
-        case "remove-repo":
+        case Operation.REMOVE_REPO:
             path_str = cmd.data.get("path")
             if not path_str:
                 logging.error("remove-repo missing 'path' field")
@@ -292,7 +309,7 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
             repo_path = Path(path_str)
             logging.info("Remove repository: %s", repo_path)
             return False
-        case "query":
+        case Operation.QUERY:
             query_id = cmd.data.get("query_id")
             terms = cmd.data.get("terms")
             if not query_id or not terms:
@@ -301,12 +318,9 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
             repo_filter = cmd.data.get("repo_filter")
             logging.info("Query: %s (id=%s, filter=%s)", terms, query_id, repo_filter)
             return False
-        case "shutdown":
+        case Operation.SHUTDOWN:
             logging.info("Shutdown requested")
             return True
-        case _:
-            logging.error("Unknown operation: %s", cmd.op)
-            return False
 
 
 def run_loop(
