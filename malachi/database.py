@@ -54,20 +54,20 @@ class Database:
         row = cursor.fetchone()
         return row[0] if row else None
 
-    def addleaf(self, root_id: int, path: str, hash: str, size: int = 0):
+    def addleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
         self.conn.execute(
             "INSERT OR IGNORE INTO leaves "
             "(root_id, leaf_path, leaf_hash, leaf_size) "
             "VALUES (?, ?, ?, ?)",
-            (root_id, path, hash, size),
+            (root_id, path, leaf_hash, size),
         )
         self.conn.commit()
 
-    def updateleaf(self, root_id: int, path: str, hash: str, size: int = 0):
+    def updateleaf(self, root_id: int, path: str, leaf_hash: str, size: int = 0):
         self.conn.execute(
             "UPDATE leaves SET leaf_hash = ?, leaf_size = ? "
             "WHERE root_id = ? AND leaf_path = ?",
-            (hash, size, root_id, path),
+            (leaf_hash, size, root_id, path),
         )
         self.conn.commit()
 

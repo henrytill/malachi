@@ -37,7 +37,7 @@ _git_path: Optional[str] = None
 
 def git_path() -> Optional[str]:
     """Get cached git executable path."""
-    global _git_path
+    global _git_path  # pylint: disable=global-statement
     if _git_path is None:
         _git_path = shutil.which("git")
         if _git_path is None:
@@ -170,6 +170,7 @@ def index_repository_initial(db: Database, repo_path: str, head_hash: str) -> bo
         return False
 
 
+# pylint: disable=too-many-locals,too-many-branches
 def index_repository_incremental(
     db: Database, repo_path: str, old_hash: str, new_hash: str
 ) -> bool:
@@ -242,6 +243,7 @@ def index_repository_incremental(
         return False
 
 
+# pylint: disable=too-many-return-statements,too-many-nested-blocks
 def handle_command(cmd: Command, db: Database, config: Config) -> bool:
     """Handle parsed command. Returns True to shutdown."""
     match cmd.op:

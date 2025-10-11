@@ -7,6 +7,7 @@ from malachi.status import ensurestatusdir, writestatus
 
 class TestStatus(unittest.TestCase):
     def setUp(self):
+        # pylint: disable=consider-using-with
         self.tmpdir = tempfile.TemporaryDirectory()
         self.runtimedir = Path(self.tmpdir.name) / "runtime"
 

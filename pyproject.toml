@@ -23,5 +23,6 @@ profile = "black"
 disable = [
     "C0103",  # invalid-name (module name doesn't conform to snake_case)
     "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
     "C0116",  # missing-function-docstring
 ]

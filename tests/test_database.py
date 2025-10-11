@@ -8,6 +8,7 @@ from malachi.database import Database
 
 class TestDatabase(unittest.TestCase):
     def setUp(self):
+        # pylint: disable=consider-using-with
         self.tmpdir = tempfile.TemporaryDirectory()
         self.config = Config(
             configdir=Path(self.tmpdir.name) / "config",

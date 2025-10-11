@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 import json
 import os
 import subprocess
@@ -9,10 +10,12 @@ from pathlib import Path
 
 from malachi.config import Config
 from malachi.daemon import run_daemon
+from malachi.database import Database
 
 
 class TestIntegration(unittest.TestCase):
     def setUp(self):
+        # pylint: disable=consider-using-with
         self.tmpdir = tempfile.TemporaryDirectory()
         self.config = Config(
             configdir=Path(self.tmpdir.name) / "config",
@@ -116,8 +119,6 @@ class TestIntegration(unittest.TestCase):
         self.send_command({"op": "add-repo", "path": str(repo_path)})
         time.sleep(0.2)
 
-        from malachi.database import Database
-
         with Database(self.config) as db:
             stored_sha = db.getrepohash(str(repo_path))
             self.assertEqual(stored_sha, head_sha)
@@ -145,8 +146,6 @@ class TestIntegration(unittest.TestCase):
 
         self.send_command({"op": "add-repo", "path": str(repo_path)})
         time.sleep(0.2)
-
-        from malachi.database import Database
 
         with Database(self.config) as db:
             root_id = db.getrepoid(str(repo_path))
@@ -184,8 +183,6 @@ class TestIntegration(unittest.TestCase):
         self.send_command({"op": "add-repo", "path": str(repo_path)})
         time.sleep(0.2)
 
-        from malachi.database import Database
-
         with Database(self.config) as db:
             stored_sha = db.getrepohash(str(repo_path))
             self.assertEqual(stored_sha, new_sha)
@@ -208,8 +205,6 @@ class TestIntegration(unittest.TestCase):
 
         self.send_command({"op": "add-repo", "path": str(repo_path)})
         time.sleep(0.2)
-
-        from malachi.database import Database
 
         with Database(self.config) as db:
             first_sha = db.getrepohash(str(repo_path))
