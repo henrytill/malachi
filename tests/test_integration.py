@@ -59,7 +59,10 @@ class TestIntegration(unittest.TestCase):
             f.write("\n")
 
     def wait_for_status(
-        self, repo_path: Path, expected_hash: str, timeout: float = 5.0
+        self,
+        repo_path: Path,
+        expected_hash: str,
+        timeout: float = 5.0,
     ):
         """Wait for status file to contain expected hash."""
         statusfile = self.config.runtimedir / "roots" / repo_path.relative_to("/")

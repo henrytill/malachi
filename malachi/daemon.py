@@ -189,7 +189,10 @@ def index_initial(db: Database, repo_path: Path, head_hash: str) -> bool:
 
 # pylint: disable=too-many-locals,too-many-branches
 def index_incremental(
-    db: Database, repo_path: Path, old_hash: str, new_hash: str
+    db: Database,
+    repo_path: Path,
+    old_hash: str,
+    new_hash: str,
 ) -> bool:
     """Update index with changes between two commits."""
     git = git_path()
@@ -322,7 +325,10 @@ def handle_command(config: Config, db: Database, cmd: Command) -> bool:
 
 
 def run_loop(
-    config: Config, db: Database, should_shutdown: Callable[[], bool], pipepath: Path
+    config: Config,
+    db: Database,
+    should_shutdown: Callable[[], bool],
+    pipepath: Path,
 ) -> int:
     """Main event loop."""
     parser = Parser(MAXLINESIZE * 2)
