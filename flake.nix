@@ -41,6 +41,16 @@
           malachi = pkgs.malachi;
           default = malachi;
         };
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [ pkgs.malachi ];
+          packages = with pkgs; [
+            python3Packages.black
+            python3Packages.isort
+            python3Packages.mypy
+            python3Packages.pylint
+            pyright
+          ];
+        };
       }
     );
 }
