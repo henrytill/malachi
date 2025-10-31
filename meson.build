@@ -11,6 +11,10 @@ if get_option('optimization') != '0'
     add_project_arguments('-D_FORTIFY_SOURCE=2', language: 'c')
 endif
 
+if get_option('json_protocol')
+    add_project_arguments('-DMALACHI_JSON_PROTOCOL', language: 'c')
+endif
+
 perl = find_program('perl', required: false)
 if perl.found()
     perl_modules = ['Cwd', 'File::Basename', 'Getopt::Std', 'Git']
@@ -28,6 +32,16 @@ endif
 mupdf_dep = dependency('mupdf', required: false)
 
 sqlite_dep = dependency('sqlite3', required: true)
+
+# yyjson typically doesn't provide pkg-config, try both methods
+yyjson_dep = disabler()
+if get_option('json_protocol')
+    yyjson_dep = dependency('yyjson', required: false)
+    if not yyjson_dep.found()
+        cc = meson.get_compiler('c')
+        yyjson_dep = cc.find_library('yyjson', required: true)
+    endif
+endif
 
 project_config = configure_file(
     input: 'include/project.h.in',
@@ -68,6 +82,13 @@ else
     platform_sources += ['src/cmd/malachi/platxdg.c']
 endif
 
+parser_sources = []
+if get_option('json_protocol')
+    parser_sources += ['src/cmd/malachi/parserjson.c']
+else
+    parser_sources += ['src/cmd/malachi/parser.c']
+endif
+
 filter_sources = []
 if mupdf_dep.found()
     filter_sources += ['src/cmd/malachi/filtmupdf.c']
@@ -80,6 +101,14 @@ else
     test_sources += ['src/cmd/malachi/testconfxdg.c']
 endif
 
+malachi_deps = [sqlite_dep]
+if get_option('json_protocol')
+    malachi_deps += [yyjson_dep]
+endif
+if mupdf_dep.found()
+    malachi_deps += [mupdf_dep]
+endif
+
 malachi = executable(
     'malachi',
     sources: [
@@ -87,17 +116,17 @@ malachi = executable(
         'src/cmd/malachi/config.c',
         'src/cmd/malachi/db.c',
         'src/cmd/malachi/filt.c',
-        'src/cmd/malachi/parser.c',
         'src/cmd/malachi/path.c',
         'src/cmd/malachi/test.c',
         'src/cmd/malachi/util.c',
         platform_sources,
+        parser_sources,
         filter_sources,
         test_sources,
         project_h,
         schema_h,
     ],
-    dependencies: [mupdf_dep, sqlite_dep],
+    dependencies: malachi_deps,
     install: true,
 )
 

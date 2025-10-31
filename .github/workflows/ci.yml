@@ -34,7 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v27
-      - run: nix build -L --accept-flake-config
+      - run: nix build -L --accept-flake-config --no-link .#malachi-ascii
+      - run: nix build -L --accept-flake-config .#malachi
       - run: result/bin/malachi -v
   macos:
     runs-on: macos-latest

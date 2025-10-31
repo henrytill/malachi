@@ -1,0 +1,5 @@
+option('json_protocol',
+    type: 'boolean',
+    value: false,
+    description: 'Use length-prefixed JSON protocol instead of ASCII-delimited protocol'
+)

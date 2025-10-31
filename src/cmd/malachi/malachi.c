@@ -11,6 +11,10 @@
 
 #include <sqlite3.h>
 
+#ifdef MALACHI_JSON_PROTOCOL
+#  include <yyjson.h>
+#endif
+
 #include "malachi.h"
 
 char const *const appname = "malachi";
@@ -36,10 +40,21 @@ static void usage(char *argv[]) {
   eprintf("Usage: %s [-v] [-d] [-c] [-t [name]]\n", argv[0]);
 }
 
+#ifdef MALACHI_JSON_PROTOCOL
+static void yyjsonversionprint(void) {
+  printf("yyjson=%s\n", YYJSON_VERSION_STRING);
+}
+#else
+static void yyjsonversionprint(void) {
+}
+#endif
+
 static int versionprint(void) {
   printf("malachi=%d.%d.%d%s\n", MALACHI_VERSION_MAJOR, MALACHI_VERSION_MINOR, MALACHI_VERSION_PATCH, commitstr);
 
   printf("sqlite=%s\n", sqlite3_libversion());
+
+  yyjsonversionprint();
 
   {
     Filter const **filters = filterall();
@@ -90,6 +105,20 @@ static int handlecommand(struct Command const *cmd) {
       cmd->fileop.root,
       cmd->fileop.roothash,
       cmd->fileop.leafhash
+    );
+    return 0;
+  case Opadd:
+    loginfo("Add repository: %s", cmd->pathop.path);
+    return 0;
+  case Opremove:
+    loginfo("Remove repository: %s", cmd->pathop.path);
+    return 0;
+  case Opquery:
+    loginfo(
+      "Query: %s (id=%s, filter=%s)",
+      cmd->queryop.terms,
+      cmd->queryop.queryid,
+      cmd->queryop.repofilter
     );
     return 0;
   case Opshutdown:

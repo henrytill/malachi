@@ -19,23 +19,30 @@
       ...
     }:
     let
-      overlay = final: prev: {
-        malachi = final.stdenv.mkDerivation {
-          name = "malachi";
+      mkMalachi =
+        {
+          pkgs,
+          jsonProtocol ? true,
+        }:
+        pkgs.stdenv.mkDerivation {
+          name = "malachi" + (if jsonProtocol then "-json" else "-ascii");
           src = builtins.path {
             path = ./.;
             name = "malachi-src";
           };
-          nativeBuildInputs = with final; [
+          nativeBuildInputs = with pkgs; [
             makeWrapper
             meson
             ninja
             pkg-config
           ];
-          buildInputs = with final; [
-            mupdf
-            sqlite
-          ];
+          buildInputs =
+            with pkgs;
+            [
+              mupdf
+              sqlite
+            ]
+            ++ pkgs.lib.optionals jsonProtocol [ yyjson ];
           preConfigure =
             let
               rev = self.shortRev or self.dirtyShortRev;
@@ -43,17 +50,30 @@
             ''
               sed -i 's|@MALACHI_COMMIT_SHORT_HASH@|"${rev}"|g' include/project.h.in
             '';
+          mesonFlags = [
+            (if jsonProtocol then "-Djson_protocol=true" else "-Djson_protocol=false")
+          ];
           doCheck = true;
           postFixup =
             let
-              binPath = final.lib.makeBinPath [ final.git ];
-              perlPath = final.perlPackages.makePerlPath [ final.git ];
+              binPath = pkgs.lib.makeBinPath [ pkgs.git ];
+              perlPath = pkgs.perlPackages.makePerlPath [ pkgs.git ];
             in
             ''
               wrapProgram $out/bin/git-crawl \
                 --prefix PATH : "${binPath}" \
                 --prefix PERL5LIB : "${perlPath}"
             '';
+        };
+
+      overlay = final: prev: {
+        malachi = mkMalachi {
+          pkgs = final;
+          jsonProtocol = true;
+        };
+        malachi-ascii = mkMalachi {
+          pkgs = final;
+          jsonProtocol = false;
         };
       };
     in
@@ -67,6 +87,7 @@
       in
       {
         packages.malachi = pkgs.malachi;
+        packages.malachi-ascii = pkgs.malachi-ascii;
         packages.default = self.packages.${system}.malachi;
         devShell = pkgs.mkShell {
           inputsFrom = [ pkgs.malachi ];
