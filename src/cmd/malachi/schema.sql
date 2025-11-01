@@ -51,42 +51,50 @@ CREATE VIRTUAL TABLE IF NOT EXISTS leaf_pages_fts USING fts5(
     content_rowid=id
 );
 
-CREATE TRIGGER IF NOT EXISTS leaves_ai AFTER INSERT ON leaves
-BEGIN
-    INSERT INTO leaves_fts (rowid, leaf_path, content)
-    VALUES (new.id, new.leaf_path, new.content);
-END;
+CREATE TRIGGER IF NOT EXISTS leaves_ai
+    AFTER INSERT ON leaves
+    BEGIN
+        INSERT INTO leaves_fts (rowid, leaf_path, content)
+        VALUES (new.id, new.leaf_path, new.content);
+    END;
 
-CREATE TRIGGER IF NOT EXISTS leaves_au AFTER UPDATE ON leaves
-BEGIN
-    UPDATE leaves_fts SET
-        leaf_path = new.leaf_path,
-        content = new.content
-    WHERE rowid = old.id;
-END;
+CREATE TRIGGER IF NOT EXISTS leaves_au
+    AFTER UPDATE ON leaves
+    BEGIN
+        UPDATE leaves_fts
+           SET leaf_path = new.leaf_path,
+               content = new.content
+         WHERE rowid = old.id;
+    END;
 
-CREATE TRIGGER IF NOT EXISTS leaves_ad AFTER DELETE ON leaves
-BEGIN
-    DELETE FROM leaves_fts WHERE rowid = old.id;
-END;
+CREATE TRIGGER IF NOT EXISTS leaves_ad
+    AFTER DELETE ON leaves
+    BEGIN
+        DELETE FROM leaves_fts
+         WHERE rowid = old.id;
+    END;
 
-CREATE TRIGGER IF NOT EXISTS leaf_pages_ai AFTER INSERT ON leaf_pages
-BEGIN
-    INSERT INTO leaf_pages_fts (rowid, content)
-    VALUES (new.id, new.content);
-END;
+CREATE TRIGGER IF NOT EXISTS leaf_pages_ai
+    AFTER INSERT ON leaf_pages
+    BEGIN
+        INSERT INTO leaf_pages_fts (rowid, content)
+        VALUES (new.id, new.content);
+    END;
 
-CREATE TRIGGER IF NOT EXISTS leaf_pages_au AFTER UPDATE ON leaf_pages
-BEGIN
-    UPDATE leaf_pages_fts SET
-        content = new.content
-    WHERE rowid = old.id;
-END;
+CREATE TRIGGER IF NOT EXISTS leaf_pages_au
+    AFTER UPDATE ON leaf_pages
+    BEGIN
+        UPDATE leaf_pages_fts
+           SET content = new.content
+         WHERE rowid = old.id;
+    END;
 
-CREATE TRIGGER IF NOT EXISTS leaf_pages_ad AFTER DELETE ON leaf_pages
-BEGIN
-    DELETE FROM leaf_pages_fts WHERE rowid = old.id;
-END;
+CREATE TRIGGER IF NOT EXISTS leaf_pages_ad
+    AFTER DELETE ON leaf_pages
+    BEGIN
+        DELETE FROM leaf_pages_fts
+         WHERE rowid = old.id;
+    END;
 
 CREATE INDEX IF NOT EXISTS idx_leaves_root_hash
     ON leaves(root_id, leaf_hash);
