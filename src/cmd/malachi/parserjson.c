@@ -136,11 +136,11 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd) {
 
     yyjson_val *fieldval = yyjson_obj_get(root, jsonkey);
     if (fieldval == NULL || yyjson_is_str(fieldval) == 0) {
-      if (required != 0) {
-        logerror("Missing or invalid '%s' field for %s operation", jsonkey, opstr);
-        goto freedoc;
+      if (required == 0) {
+        continue;
       }
-      continue; /* Skip optional field */
+      logerror("Missing or invalid '%s' field for %s operation", jsonkey, opstr);
+      goto freedoc;
     }
 
     char const *fieldstr = yyjson_get_str(fieldval);
