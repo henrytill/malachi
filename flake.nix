@@ -26,10 +26,7 @@
         }:
         pkgs.stdenv.mkDerivation {
           name = "malachi" + (if jsonProtocol then "-json" else "-ascii");
-          src = builtins.path {
-            path = ./.;
-            name = "malachi-src";
-          };
+          src = self;
           nativeBuildInputs = with pkgs; [
             makeWrapper
             meson
