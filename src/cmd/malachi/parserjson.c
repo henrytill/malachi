@@ -128,7 +128,6 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd) {
     size_t const offset = fieldspecs[i].offset;
     size_t const destsize = fieldspecs[i].size;
     char const *const jsonkey = fieldspecs[i].jsonkey;
-    char const *const fieldname = fieldspecs[i].name;
     int const required = fieldspecs[i].required;
 
     assert(offset + destsize <= sizeof(*cmd));
@@ -146,7 +145,8 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd) {
     char const *fieldstr = yyjson_get_str(fieldval);
     int const n = snprintf(dest, destsize, "%s", fieldstr);
     if (n >= (assert(destsize <= INT_MAX), (int)destsize)) {
-      logerror("%s too long: %s", fieldname, fieldstr);
+      char const *const destname = fieldspecs[i].name;
+      logerror("%s too long: %d", destname, strlen(fieldstr));
       goto freedoc;
     }
   }
