@@ -10,7 +10,8 @@
 
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
-enum {
+enum
+{
     MAXHASHLEN = 65,
     MAXOPSIZE = 16,
     MAXFIELDS = 5,
@@ -19,7 +20,8 @@ enum {
     MAXQUERYTERMSLEN = 4096,
 };
 
-enum {
+enum
+{
     Emissingdir = 2,
     Enospace = 3,
 };
@@ -34,31 +36,36 @@ typedef struct Command Command;
 
 typedef char *Getenvfn(char const *name);
 
-struct Error {
+struct Error
+{
     int rc;
     char const *msg;
 };
 
-struct Config {
+struct Config
+{
     char *configdir;
     char *datadir;
     char *cachedir;
     char *runtimedir;
 };
 
-struct Filter {
+struct Filter
+{
     char const *name;
     char const **exts;
     int (*extract)(char const *input, char **output);
     char const *(*version)(void);
 };
 
-struct Test {
+struct Test
+{
     char const *name;
     int (*run)(void);
 };
 
-typedef enum Opcode {
+typedef enum Opcode
+{
     Opunknown = 0,
     /* Old ASCII protocol operations */
     Opadded,
@@ -72,21 +79,26 @@ typedef enum Opcode {
     Opshutdown,
 } Opcode;
 
-struct Command {
+struct Command
+{
     Opcode op;
-    union {
+    union
+    {
         /* Old ASCII protocol */
-        struct {
+        struct
+        {
             char root[PATH_MAX];
             char roothash[MAXHASHLEN];
             char leaf[PATH_MAX];
             char leafhash[MAXHASHLEN];
         } fileop;
         /* New JSON protocol */
-        struct {
+        struct
+        {
             char path[PATH_MAX];
         } pathop;
-        struct {
+        struct
+        {
             char queryid[MAXQUERYIDLEN];
             char terms[MAXQUERYTERMSLEN];
             char repofilter[PATH_MAX];
@@ -109,7 +121,8 @@ struct Command {
     X(queryop.terms, "terms", 1)     \
     X(queryop.repofilter, "repoFilter", 0)
 
-struct Fieldspec {
+struct Fieldspec
+{
     size_t const offset;
     size_t const size;
     char const *const name;
@@ -144,7 +157,8 @@ static struct Fieldspec const queryopfields[] = {
 #undef X
 };
 
-static struct {
+static struct
+{
     Opcode const op;
     size_t const namelen;
     char const *const name;
@@ -159,7 +173,8 @@ static struct {
 #undef OP
 };
 
-static struct {
+static struct
+{
     Opcode const op;
     size_t const namelen;
     char const *const name;

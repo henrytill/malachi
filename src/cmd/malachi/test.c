@@ -9,7 +9,8 @@ static int ntests = 0;
 
 void testadd(Test const *ops)
 {
-    if (ntests < MAXTESTS - 1) {
+    if (ntests < MAXTESTS - 1)
+    {
         tests[ntests++] = ops;
         tests[ntests] = NULL;
     }
@@ -21,13 +22,15 @@ int testall(void)
 
     printf("Running %d tests...\n", ntests);
 
-    for (int i = 0; i < ntests; ++i) {
+    for (int i = 0; i < ntests; ++i)
+    {
         Test const *test = tests[i];
         printf("Running test: %s... ", test->name);
         (void)fflush(stdout);
 
         int result = test->run();
-        if (result == 0) {
+        if (result == 0)
+        {
             printf("PASS\n");
             continue;
         }
@@ -42,14 +45,17 @@ int testall(void)
 
 int testone(char const *name)
 {
-    for (int i = 0; i < ntests; ++i) {
+    for (int i = 0; i < ntests; ++i)
+    {
         Test const *test = tests[i];
-        if (strcmp(test->name, name) == 0) {
+        if (strcmp(test->name, name) == 0)
+        {
             printf("Running test: %s... ", test->name);
             (void)fflush(stdout);
 
             int result = test->run();
-            if (result == 0) {
+            if (result == 0)
+            {
                 printf("PASS\n");
                 return 0;
             }

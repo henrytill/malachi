@@ -45,19 +45,22 @@ char *joinpath4(char const *a, char const *b, char const *c, char const *d)
 
 int mkdirp(char const *path, mode_t mode)
 {
-    if (path == NULL || *path == '\0') {
+    if (path == NULL || *path == '\0')
+    {
         errno = EINVAL;
         return -1;
     }
 
     size_t pathlen = strlen(path) + 1;
-    if (pathlen >= PATH_MAX) {
+    if (pathlen >= PATH_MAX)
+    {
         errno = ENAMETOOLONG;
         return -1;
     }
 
     char *pathcopy = malloc(pathlen);
-    if (!pathcopy) {
+    if (!pathcopy)
+    {
         errno = ENOMEM;
         return -1;
     }
@@ -66,7 +69,8 @@ int mkdirp(char const *path, mode_t mode)
 
     int ret = -1;
 
-    for (char *p = (*pathcopy == '/') ? pathcopy + 1 : pathcopy; *p; ++p) {
+    for (char *p = (*pathcopy == '/') ? pathcopy + 1 : pathcopy; *p; ++p)
+    {
         if (*p != '/')
             continue;
 

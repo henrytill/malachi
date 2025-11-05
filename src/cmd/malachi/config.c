@@ -9,7 +9,8 @@ int configinit(Getenvfn getenv, Config *config, Error *err)
     char *cachedir = getcachedir(getenv, appname);
     char *runtimedir = getruntimedir(getenv, appname);
 
-    if (configdir == NULL) {
+    if (configdir == NULL)
+    {
         err->rc = -Emissingdir;
         err->msg = "configdir is NULL";
         free(datadir);
@@ -18,7 +19,8 @@ int configinit(Getenvfn getenv, Config *config, Error *err)
         return -Emissingdir;
     }
 
-    if (datadir == NULL) {
+    if (datadir == NULL)
+    {
         err->rc = -Emissingdir;
         err->msg = "datadir is NULL";
         free(configdir);
@@ -27,7 +29,8 @@ int configinit(Getenvfn getenv, Config *config, Error *err)
         return -Emissingdir;
     }
 
-    if (cachedir == NULL) {
+    if (cachedir == NULL)
+    {
         err->rc = -Emissingdir;
         err->msg = "cachedir is NULL";
         free(configdir);
@@ -36,7 +39,8 @@ int configinit(Getenvfn getenv, Config *config, Error *err)
         return -Emissingdir;
     }
 
-    if (runtimedir == NULL) {
+    if (runtimedir == NULL)
+    {
         err->rc = -Emissingdir;
         err->msg = "runtimedir is NULL";
         free(configdir);
@@ -57,12 +61,15 @@ void configfree(Config *config)
     void *ptrs[] = { config->configdir, config->datadir, config->cachedir, config->runtimedir };
     int freed[] = { 0, 0, 0, 0 };
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         if (freed[i] || ptrs[i] == NULL)
             continue;
 
-        for (int j = i + 1; j < 4; ++j) {
-            if (ptrs[i] == ptrs[j]) {
+        for (int j = i + 1; j < 4; ++j)
+        {
+            if (ptrs[i] == ptrs[j])
+            {
                 freed[j] = 1;
             }
         }

@@ -12,7 +12,8 @@
 #    define COUNTED_BY(member)
 #endif
 
-struct Parser {
+struct Parser
+{
     size_t bufsize;
     size_t bufused;
     char buf[] COUNTED_BY(bufsize);
@@ -61,7 +62,8 @@ static int findop(size_t oplen, char const *opstr)
 {
     STATIC_ASSERT(NELEM(ops) <= INT_MAX);
     int const nops = (int)NELEM(ops);
-    for (int i = 0; i < nops; ++i) {
+    for (int i = 0; i < nops; ++i)
+    {
         if (oplen == ops[i].namelen && strncmp(opstr, ops[i].name, oplen) == 0)
             return i;
     }
@@ -72,7 +74,8 @@ static int parserecord(char const *record, Command *cmd)
 {
     memset(cmd, 0, sizeof(*cmd));
 
-    struct {
+    struct
+    {
         char const *pos;
         size_t len;
     } fields[MAXFIELDS];
@@ -82,7 +85,8 @@ static int parserecord(char const *record, Command *cmd)
 
     STATIC_ASSERT(SIZE_MAX >> 1 == LONG_MAX || SIZE_MAX == LONG_MAX);
 
-    for (int i = 0; i < MAXFIELDS && *pos; ++i) {
+    for (int i = 0; i < MAXFIELDS && *pos; ++i)
+    {
         fields[i].pos = pos;
         char const *next = strchr(pos, '\x1F');
         fields[i].len = next ? (assert(next >= pos), (size_t)(next - pos)) : strlen(pos);
@@ -107,7 +111,8 @@ static int parserecord(char const *record, Command *cmd)
     if (fieldspecs == NULL)
         return 0;
 
-    for (int i = 0; i < nfields; ++i) {
+    for (int i = 0; i < nfields; ++i)
+    {
         size_t const offset = fieldspecs[i].offset;
         size_t const destsize = fieldspecs[i].size;
         assert(offset + destsize <= sizeof(*cmd));
@@ -117,7 +122,8 @@ static int parserecord(char const *record, Command *cmd)
         char const *const source = fields[i + 1].pos;
 
         int const n = snprintf(dest, destsize, "%.*s", sourcelen, source);
-        if (n >= (assert(destsize <= INT_MAX), (int)destsize)) {
+        if (n >= (assert(destsize <= INT_MAX), (int)destsize))
+        {
             char const *const destname = fieldspecs[i].name;
             logerror("%s too long: %d bytes", destname, sourcelen);
             return -1;
@@ -141,7 +147,8 @@ int parsecommand(Parser *p, Command *cmd, int *generation)
     size_t prefixlen = 0;
 
     /* If GS comes before RS (or RS not found), handle GS */
-    if (gs && (!rs || gs < rs)) {
+    if (gs && (!rs || gs < rs))
+    {
         separator = gs;
         prefixlen = gs - p->buf;
         assert(prefixlen < p->bufused);
@@ -158,7 +165,8 @@ int parsecommand(Parser *p, Command *cmd, int *generation)
     assert(prefixlen < p->bufused);
 
     int rc;
-    if (prefixlen > MAXRECORDSIZE) {
+    if (prefixlen > MAXRECORDSIZE)
+    {
         logerror("Record too large: %zu bytes, discarding", prefixlen);
         rc = -1;
         goto compact;

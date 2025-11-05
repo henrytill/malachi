@@ -5,11 +5,13 @@
 static int testplatformstr(void)
 {
     char const *plat = platformstr();
-    if (plat == NULL) {
+    if (plat == NULL)
+    {
         eprintf("platformstr returned NULL\n");
         return -1;
     }
-    if (strlen(plat) == 0) {
+    if (strlen(plat) == 0)
+    {
         eprintf("platformstr returned empty string\n");
         return -1;
     }
@@ -30,7 +32,8 @@ static char *testgetenv(char const *name)
 static int testconfigdir(void)
 {
     char *configdir = getconfigdir(testgetenv, "testapp");
-    if (configdir == NULL) {
+    if (configdir == NULL)
+    {
         eprintf("getconfigdir returned NULL\n");
         return -1;
     }
@@ -41,7 +44,8 @@ static int testconfigdir(void)
 static int testdatadir(void)
 {
     char *datadir = getdatadir(testgetenv, "testapp");
-    if (datadir == NULL) {
+    if (datadir == NULL)
+    {
         eprintf("getdatadir returned NULL\n");
         return -1;
     }

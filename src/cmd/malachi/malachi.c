@@ -28,7 +28,8 @@ static char const *const commitstr = sizeof(MALACHI_COMMIT_SHORT_HASH) - 1 > 0
 static sig_atomic_t volatile loopstat = 1;
 static sig_atomic_t volatile sigrecvd = 0;
 
-struct Opts {
+struct Opts
+{
     int version;
     int config;
     int test;
@@ -85,7 +86,8 @@ static void sighandler(int sig)
 
 static int handlecommand(struct Command const *cmd)
 {
-    switch (cmd->op) {
+    switch (cmd->op)
+    {
     case Opadded:
         loginfo(
             "Adding leaf: %s in root %s (roothash: %s, leafhash: %s)",
@@ -135,12 +137,17 @@ static int handlecommand(struct Command const *cmd)
 static void readcommands(int pipefd, Parser *parser, int *generation)
 {
     ssize_t nread = parserinput(parser, pipefd);
-    if (nread == -Enospace) {
+    if (nread == -Enospace)
+    {
         logerror("Parser buffer full, processing pending commands");
-    } else if (nread == 0) {
+    }
+    else if (nread == 0)
+    {
         /* EOF - no more data available */
         return;
-    } else if (nread < 0) {
+    }
+    else if (nread < 0)
+    {
         logerror("Read error: %s", strerror(errno));
         return;
     }
@@ -148,7 +155,8 @@ static void readcommands(int pipefd, Parser *parser, int *generation)
     struct Command cmd;
     int result;
 
-    for (;;) {
+    for (;;)
+    {
         result = parsecommand(parser, &cmd, generation);
         if (result <= 0)
             break;
@@ -158,9 +166,12 @@ static void readcommands(int pipefd, Parser *parser, int *generation)
             break;
     }
 
-    if (result == 0) {
+    if (result == 0)
+    {
         /* Incomplete command in buffer - normal, wait for more data */
-    } else if (result < 0) {
+    }
+    else if (result < 0)
+    {
         logerror("Malformed record skipped, continuing");
     }
 }
@@ -173,7 +184,8 @@ static int runloop(char const *pipepath)
     int generation = 0;
 
     Parser *parser = parsercreate((size_t)MAXRECORDSIZE * 2);
-    if (!parser) {
+    if (!parser)
+    {
         logerror("Failed to create parser");
         return -1;
     }
@@ -184,31 +196,37 @@ static int runloop(char const *pipepath)
 
     goto init;
 
-    while (loopstat) {
+    while (loopstat)
+    {
         pfd.revents = 0;
         int rc = poll(&pfd, 1, 1000);
 
-        if (rc == -1) {
+        if (rc == -1)
+        {
             if (errno == EINTR)
                 continue;
             logerror("poll failed: %s", strerror(errno));
             goto closepipefd;
         }
 
-        if (rc == 0) {
+        if (rc == 0)
+        {
             continue;
         }
 
-        if (pfd.revents & POLLERR) {
+        if (pfd.revents & POLLERR)
+        {
             logerror("Pipe error occurred");
             goto closepipefd;
         }
 
-        if (pfd.revents & POLLIN) {
+        if (pfd.revents & POLLIN)
+        {
             readcommands(pipefd, parser, &generation);
         }
 
-        if (pfd.revents & POLLHUP) {
+        if (pfd.revents & POLLHUP)
+        {
             logdebug("Client disconnected, reopening pipe");
             close(pipefd);
             goto init;
@@ -218,8 +236,10 @@ static int runloop(char const *pipepath)
 
     init:
         pipefd = open(pipepath, O_RDONLY | O_NONBLOCK);
-        if (pipefd == -1) {
-            if (errno == EINTR) {
+        if (pipefd == -1)
+        {
+            if (errno == EINTR)
+            {
                 logdebug("Signal received during pipe open, exiting");
                 ret = 0;
                 goto destroyparser;
@@ -252,37 +272,43 @@ static int run(Config *config)
     sigemptyset(&sa.sa_mask);
 
     int rc = sigaction(SIGINT, &sa, NULL);
-    if (rc == -1) {
+    if (rc == -1)
+    {
         logerror("Failed to set SIGINT handler");
         return -1;
     }
 
     rc = sigaction(SIGTERM, &sa, NULL);
-    if (rc == -1) {
+    if (rc == -1)
+    {
         logerror("Failed to set SIGTERM handler");
         return -1;
     }
 
     Database *database = dbcreate(config, &error);
-    if (database == NULL) {
+    if (database == NULL)
+    {
         logerror("Failed to initialize database: %s", error.msg);
         return -1;
     }
 
     rc = mkdirp(config->runtimedir, 0700);
-    if (rc == -1) {
+    if (rc == -1)
+    {
         logerror("Failed to create runtime directory: %s", strerror(errno));
         goto destroydatabase;
     }
 
     char *pipepath = joinpath2(config->runtimedir, "command");
-    if (pipepath == NULL) {
+    if (pipepath == NULL)
+    {
         logerror("Failed to allocate pipe path");
         goto destroydatabase;
     }
 
     rc = mkfifo(pipepath, 0622);
-    if (rc == -1) {
+    if (rc == -1)
+    {
         logerror("Failed to mkfifo: %s", strerror(errno));
         goto freepipepath;
     }
@@ -295,7 +321,8 @@ static int run(Config *config)
     if (rc != 0)
         goto unlinkpipepath;
 
-    switch (sigrecvd) {
+    switch (sigrecvd)
+    {
     case SIGINT:
         loginfo("Received SIGINT, shutting down");
         break;
@@ -328,12 +355,14 @@ int main(int argc, char *argv[])
     {
         int c = 0;
 
-        for (;;) {
+        for (;;)
+        {
             c = getopt(argc, argv, "vdct::");
             if (c == -1)
                 break;
 
-            switch (c) {
+            switch (c)
+            {
             case 'v':
                 opts.version = 1;
                 break;
@@ -359,7 +388,8 @@ int main(int argc, char *argv[])
     {
         Error error = { 0 };
 
-        if (opts.test) {
+        if (opts.test)
+        {
             int tr;
             if (opts.testname)
                 tr = testone(opts.testname);
@@ -369,18 +399,21 @@ int main(int argc, char *argv[])
             return tr ? EXIT_FAILURE : EXIT_SUCCESS;
         }
 
-        if (opts.version) {
+        if (opts.version)
+        {
             rc = versionprint();
             return rc ? EXIT_FAILURE : EXIT_SUCCESS;
         }
 
         rc = configinit(getenv, &config, &error);
-        if (rc != 0) {
+        if (rc != 0)
+        {
             logerror("Failed to initialize config: %s", error.msg);
             return EXIT_FAILURE;
         }
 
-        if (opts.config) {
+        if (opts.config)
+        {
             configprint(&config);
             ret = EXIT_SUCCESS;
             goto freeconfig;

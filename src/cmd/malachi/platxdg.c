@@ -78,7 +78,8 @@ static char *xdgruntimedir(Getenvfn getenv, char const *name)
             (void)snprintf(runuserpath, len, "/run/user/%u", uid);
 
             struct stat st;
-            if (stat(runuserpath, &st) == 0 && S_ISDIR(st.st_mode) && (st.st_mode & S_IWUSR)) {
+            if (stat(runuserpath, &st) == 0 && S_ISDIR(st.st_mode) && (st.st_mode & S_IWUSR))
+            {
                 char *result = joinpath2(runuserpath, name);
                 free(runuserpath);
                 return result;

@@ -21,12 +21,14 @@
 #    define UNUSED
 #endif
 
-enum Parsestate {
+enum Parsestate
+{
     Statelen,
     Statejson,
 };
 
-struct Parser {
+struct Parser
+{
     size_t bufsize;
     size_t bufused;
     enum Parsestate state;
@@ -81,7 +83,8 @@ static int findjsonop(size_t oplen, char const *opstr)
 {
     STATIC_ASSERT(NELEM(jsonops) <= INT_MAX);
     int const njsonops = (int)NELEM(jsonops);
-    for (int i = 0; i < njsonops; ++i) {
+    for (int i = 0; i < njsonops; ++i)
+    {
         if (oplen == jsonops[i].namelen && strncmp(opstr, jsonops[i].name, oplen) == 0)
             return i;
     }
@@ -94,19 +97,22 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
     memset(cmd, 0, sizeof(*cmd));
 
     yyjson_doc *doc = yyjson_read(jsonstr, jsonlen, 0);
-    if (doc == NULL) {
+    if (doc == NULL)
+    {
         logerror("Failed to parse JSON");
         return -1;
     }
 
     yyjson_val *root = yyjson_doc_get_root(doc);
-    if (yyjson_is_obj(root) == 0) {
+    if (yyjson_is_obj(root) == 0)
+    {
         logerror("JSON root is not an object");
         goto freedoc;
     }
 
     yyjson_val *opval = yyjson_obj_get(root, "op");
-    if (opval == NULL || yyjson_is_str(opval) == 0) {
+    if (opval == NULL || yyjson_is_str(opval) == 0)
+    {
         logerror("Missing or invalid 'op' field");
         goto freedoc;
     }
@@ -115,7 +121,8 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
     size_t oplen = yyjson_get_len(opval);
 
     int const opindex = findjsonop(oplen, opstr);
-    if (opindex < 0) {
+    if (opindex < 0)
+    {
         logerror("Unknown operation: %s", opstr);
         goto freedoc;
     }
@@ -123,14 +130,16 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
     cmd->op = jsonops[opindex].op;
 
     struct Fieldspec const *const fieldspecs = jsonops[opindex].fields;
-    if (fieldspecs == NULL) {
+    if (fieldspecs == NULL)
+    {
         ret = 0;
         goto freedoc;
     }
 
     int const nfields = (assert(jsonops[opindex].nfields <= INT_MAX), (int)jsonops[opindex].nfields);
 
-    for (int i = 0; i < nfields; ++i) {
+    for (int i = 0; i < nfields; ++i)
+    {
         size_t const offset = fieldspecs[i].offset;
         size_t const destsize = fieldspecs[i].size;
         int const required = fieldspecs[i].required;
@@ -140,8 +149,10 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
         char *const dest = (char *)cmd + offset;
 
         yyjson_val *fieldval = yyjson_obj_get(root, jsonkey);
-        if (fieldval == NULL || yyjson_is_str(fieldval) == 0) {
-            if (required == 0) {
+        if (fieldval == NULL || yyjson_is_str(fieldval) == 0)
+        {
+            if (required == 0)
+            {
                 continue;
             }
             logerror("Missing or invalid '%s' field for %s operation", jsonkey, opstr);
@@ -150,7 +161,8 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
 
         char const *fieldstr = yyjson_get_str(fieldval);
         int const n = snprintf(dest, destsize, "%s", fieldstr);
-        if (n >= (assert(destsize <= INT_MAX), (int)destsize)) {
+        if (n >= (assert(destsize <= INT_MAX), (int)destsize))
+        {
             char const *const destname = fieldspecs[i].name;
             logerror("%s too long: %d", destname, strlen(fieldstr));
             goto freedoc;
@@ -174,7 +186,8 @@ int parsecommand(Parser *p, Command *cmd, UNUSED int *generation)
     if (p->bufused == 0)
         return 0;
 
-    if (p->state == Statelen) {
+    if (p->state == Statelen)
+    {
         if (p->bufused < sizeof(uint32_t))
             return 0;
 
@@ -182,14 +195,16 @@ int parsecommand(Parser *p, Command *cmd, UNUSED int *generation)
         memcpy(&len, p->buf, sizeof(len));
         p->jsonlen = len;
 
-        if (p->jsonlen == 0) {
+        if (p->jsonlen == 0)
+        {
             logerror("Invalid JSON length: 0, draining buffer");
             skipbytes = p->bufused;
             rc = -1;
             goto compact;
         }
 
-        if (p->jsonlen > p->bufsize - sizeof(uint32_t)) {
+        if (p->jsonlen > p->bufsize - sizeof(uint32_t))
+        {
             logerror("JSON length too large: %u bytes, draining buffer", p->jsonlen);
             skipbytes = p->bufused;
             p->jsonlen = 0;
@@ -200,7 +215,8 @@ int parsecommand(Parser *p, Command *cmd, UNUSED int *generation)
         p->state = Statejson;
     }
 
-    if (p->state == Statejson) {
+    if (p->state == Statejson)
+    {
         size_t const totalneeded = sizeof(uint32_t) + p->jsonlen;
         if (p->bufused < totalneeded)
             return 0;
