@@ -11,10 +11,6 @@ if get_option('optimization') != '0'
     add_project_arguments('-D_FORTIFY_SOURCE=2', language: 'c')
 endif
 
-if get_option('json_protocol')
-    add_project_arguments('-DMALACHI_JSON_PROTOCOL', language: 'c')
-endif
-
 perl = find_program('perl', required: false)
 if perl.found()
     perl_modules = ['Cwd', 'File::Basename', 'Getopt::Std', 'Git']
@@ -34,13 +30,14 @@ mupdf_dep = dependency('mupdf', required: false)
 sqlite_dep = dependency('sqlite3', required: true)
 
 # yyjson typically doesn't provide pkg-config, try both methods
-yyjson_dep = disabler()
-if get_option('json_protocol')
-    yyjson_dep = dependency('yyjson', required: false)
-    if not yyjson_dep.found()
-        cc = meson.get_compiler('c')
-        yyjson_dep = cc.find_library('yyjson', required: true)
-    endif
+yyjson_dep = dependency('yyjson', required: false)
+if not yyjson_dep.found()
+    cc = meson.get_compiler('c')
+    yyjson_dep = cc.find_library('yyjson', required: false)
+endif
+if not yyjson_dep.found()
+    subproject('yyjson')
+    yyjson_dep = dependency('yyjson')
 endif
 
 project_config = configure_file(
@@ -82,12 +79,7 @@ else
     platform_sources += ['src/cmd/malachi/platxdg.c']
 endif
 
-parser_sources = []
-if get_option('json_protocol')
-    parser_sources += ['src/cmd/malachi/parserjson.c']
-else
-    parser_sources += ['src/cmd/malachi/parser.c']
-endif
+parser_sources = ['src/cmd/malachi/parserjson.c']
 
 filter_sources = []
 if mupdf_dep.found()
@@ -101,10 +93,7 @@ else
     test_sources += ['src/cmd/malachi/testconfxdg.c']
 endif
 
-malachi_deps = [sqlite_dep]
-if get_option('json_protocol')
-    malachi_deps += [yyjson_dep]
-endif
+malachi_deps = [sqlite_dep, yyjson_dep]
 if mupdf_dep.found()
     malachi_deps += [mupdf_dep]
 endif

@@ -11,9 +11,7 @@
 
 #include <sqlite3.h>
 
-#ifdef MALACHI_JSON_PROTOCOL
-#    include <yyjson.h>
-#endif
+#include <yyjson.h>
 
 #include "malachi.h"
 
@@ -41,16 +39,10 @@ static void usage(char *argv[])
     eprintf("Usage: %s [-v] [-d] [-c] [-t [name]]\n", argv[0]);
 }
 
-#ifdef MALACHI_JSON_PROTOCOL
 static void yyjsonversionprint(void)
 {
     printf("yyjson=%s\n", YYJSON_VERSION_STRING);
 }
-#else
-static void yyjsonversionprint(void)
-{
-}
-#endif
 
 static int versionprint(void)
 {
@@ -88,30 +80,6 @@ static int handlecommand(struct Command const *cmd)
 {
     switch (cmd->op)
     {
-    case Opadded:
-        loginfo(
-            "Adding leaf: %s in root %s (roothash: %s, leafhash: %s)",
-            cmd->fileop.leaf,
-            cmd->fileop.root,
-            cmd->fileop.roothash,
-            cmd->fileop.leafhash);
-        return 0;
-    case Opchanged:
-        loginfo(
-            "Updating leaf: %s in root %s (roothash: %s, leafhash: %s)",
-            cmd->fileop.leaf,
-            cmd->fileop.root,
-            cmd->fileop.roothash,
-            cmd->fileop.leafhash);
-        return 0;
-    case Opremoved:
-        loginfo(
-            "Removing leaf: %s from root %s (roothash: %s, leafhash: %s)",
-            cmd->fileop.leaf,
-            cmd->fileop.root,
-            cmd->fileop.roothash,
-            cmd->fileop.leafhash);
-        return 0;
     case Opadd:
         loginfo("Add repository: %s", cmd->pathop.path);
         return 0;

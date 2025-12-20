@@ -10,6 +10,19 @@ use File::Spec;
 use Getopt::Std;
 use Git;
 
+# Try to use JSON::XS (fast), fall back to JSON::PP (pure Perl)
+my $json_encoder;
+BEGIN {
+    eval {
+        require JSON::XS;
+        $json_encoder = JSON::XS->new->utf8->canonical;
+        1;
+    } or do {
+        require JSON::PP;
+        $json_encoder = JSON::PP->new->utf8->canonical;
+    };
+}
+
 my $debug = 0;
 
 sub usage() {
@@ -35,54 +48,15 @@ sub getruntimedir () {
     return File::Spec->catdir(File::Spec->tmpdir(), "malachi-$uid");
 }
 
-sub firstrun ($gitrepo, $head, $fh = \*STDOUT) {
-    dbg("first run - generating add events for all files");
-    my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
-    my ($pipe, $c) = $gitrepo->command_output_pipe('ls-tree', '-r', '--format=%(path) %(objectname)', $head);
-    while (my $line = <$pipe>) {
-        chomp $line;
-        my ($path, $hash) = split / /, $line, 2;
-        printf $fh "added\x1F%s\x1F%s\x1F%s\x1F%s\x1E", $repo, $head, $path, $hash;
-    }
-    $gitrepo->command_close_pipe($pipe, $c);
-    print $fh "\x1D";
-}
-
-sub genevents ($gitrepo, $cached, $head, $fh = \*STDOUT) {
-    my $repo = $gitrepo->wc_path() || dirname($gitrepo->repo_path());
-    my ($pipe, $c) = $gitrepo->command_output_pipe('diff-tree', '--raw', $cached, $head);
-    while (my $line = <$pipe>) {
-        chomp $line;
-
-        my @fields = split /\t/, $line, 2;
-        next unless @fields == 2;
-
-        my $info = $fields[0];
-        my $path = $fields[1];
-
-        my @parts = split / /, $info;
-        next unless @parts >= 5;
-
-        my $status = $parts[4];
-        my $op;
-        if ($status eq "A") {
-            $op = "added";
-        }
-        elsif ($status eq "M") {
-            $op = "changed";
-        }
-        elsif ($status eq "D") {
-            $op = "removed";
-        }
-        else {
-            next;
-        }
-
-        my $pathhash = ($status eq "D") ? $parts[2] : $parts[3];
-        printf $fh "%s\x1F%s\x1F%s\x1F%s\x1F%s\x1E", $op, $repo, $head, $path, $pathhash;
-    }
-    $gitrepo->command_close_pipe($pipe, $c);
-    print $fh "\x1D";
+sub send_json_message ($fh, $op, $path) {
+    my $data = {
+        op => $op,
+        path => $path,
+    };
+    my $json = $json_encoder->encode($data);
+    my $len = pack('L', length($json));  # native byte order uint32
+    print $fh $len . $json;
+    dbg("sent: $json");
 }
 
 sub main () {
@@ -102,45 +76,25 @@ sub main () {
     dbg("head=$head");
 
     my $runtimedir = getruntimedir();
-    my $cachefile = File::Spec->catfile($runtimedir, 'roots' . $repo);
     my $commandpipe = File::Spec->catfile($runtimedir, 'command');
     dbg("runtimedir=$runtimedir");
-    dbg("cachefile=$cachefile");
     dbg("commandpipe=$commandpipe");
 
-    unless (-f $cachefile) {
-        if (-p $commandpipe) {
-            open my $fh, '>', $commandpipe or die "open $commandpipe: $!";
-            firstrun($gitrepo, $head, $fh);
-            close $fh;
-            return;
+    # Check if daemon pipe exists
+    unless (-p $commandpipe) {
+        dbg("daemon pipe not found at $commandpipe");
+        # For testing, we can write to stdout instead
+        if ($debug) {
+            send_json_message(\*STDOUT, 'add', $repo);
         }
-
-        dbg("daemon pipe not found, writing to stdout instead");
-        firstrun($gitrepo, $head);
         return;
     }
 
-    my $cached = do {
-        open my $fh, '<', $cachefile or die "open $cachefile: $!";
-        chomp(my $line = <$fh>);
-        $line;
-    };
-
-    if ($cached eq $head) {
-        dbg("no changes since last run");
-        return;
-    }
-
-    if (-p $commandpipe) {
-        open my $fh, '>', $commandpipe or die "open $commandpipe: $!";
-        genevents($gitrepo, $cached, $head, $fh);
-        close $fh;
-        return;
-    }
-
-    dbg("daemon pipe not found, writing to stdout instead");
-    genevents($gitrepo, $cached, $head);
+    # Send add command to daemon
+    # The daemon will handle all Git operations (ls-tree, diff-tree, etc.)
+    open my $fh, '>', $commandpipe or die "open $commandpipe: $!";
+    send_json_message($fh, 'add', $repo);
+    close $fh;
 }
 
 main() unless caller;

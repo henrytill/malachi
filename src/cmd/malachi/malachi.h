@@ -67,15 +67,9 @@ struct Test
 typedef enum Opcode
 {
     Opunknown = 0,
-    /* Old ASCII protocol operations */
-    Opadded,
-    Opchanged,
-    Opremoved,
-    /* New JSON protocol operations */
     Opadd,
     Opremove,
     Opquery,
-    /* Common */
     Opshutdown,
 } Opcode;
 
@@ -84,15 +78,6 @@ struct Command
     Opcode op;
     union
     {
-        /* Old ASCII protocol */
-        struct
-        {
-            char root[PATH_MAX];
-            char roothash[MAXHASHLEN];
-            char leaf[PATH_MAX];
-            char leafhash[MAXHASHLEN];
-        } fileop;
-        /* New JSON protocol */
         struct
         {
             char path[PATH_MAX];
@@ -106,12 +91,6 @@ struct Command
         /* shutdown needs no fields */
     };
 };
-
-#define FILEFIELDS     \
-    X(fileop.root)     \
-    X(fileop.roothash) \
-    X(fileop.leaf)     \
-    X(fileop.leafhash)
 
 #define PATHOPFIELDS \
     X(pathop.path, "path", 1)
@@ -130,20 +109,10 @@ struct Fieldspec
     char const *const jsonkey;
 };
 
-#define X(field) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
-FILEFIELDS
-#undef X
-
 #define X(field, jsonkey, required) STATIC_ASSERT(sizeof(((Command *)0)->field) <= INT_MAX); /* NOLINT(bugprone-sizeof-expression) */
 PATHOPFIELDS
 QUERYFIELDS
 #undef X
-
-static struct Fieldspec const filefields[] = {
-#define X(field) { offsetof(Command, field), sizeof(((Command *)0)->field), #field, 1, NULL },
-    FILEFIELDS
-#undef X
-};
 
 static struct Fieldspec const pathopfields[] = {
 #define X(field, jsonkey, required) { offsetof(Command, field), sizeof(((Command *)0)->field), #field, required, jsonkey },
@@ -155,22 +124,6 @@ static struct Fieldspec const queryopfields[] = {
 #define X(field, jsonkey, required) { offsetof(Command, field), sizeof(((Command *)0)->field), #field, required, jsonkey },
     QUERYFIELDS
 #undef X
-};
-
-static struct
-{
-    Opcode const op;
-    size_t const namelen;
-    char const *const name;
-    size_t const nfields;
-    struct Fieldspec const *const fields;
-} const ops[] = {
-#define OP(opcode, name, nfields, fieldspecs) { opcode, sizeof(name) - 1, name, nfields, fieldspecs }
-    OP(Opadded, "added", 4, filefields),
-    OP(Opchanged, "changed", 4, filefields),
-    OP(Opremoved, "removed", 4, filefields),
-    OP(Opshutdown, "shutdown", 0, NULL),
-#undef OP
 };
 
 static struct

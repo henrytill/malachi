@@ -20,12 +20,9 @@
     }:
     let
       mkMalachi =
-        {
-          pkgs,
-          jsonProtocol ? true,
-        }:
+        pkgs:
         pkgs.stdenv.mkDerivation {
-          name = "malachi" + (if jsonProtocol then "-json" else "-ascii");
+          name = "malachi";
           src = self;
           nativeBuildInputs = with pkgs; [
             makeWrapper
@@ -33,13 +30,11 @@
             ninja
             pkg-config
           ];
-          buildInputs =
-            with pkgs;
-            [
-              mupdf
-              sqlite
-            ]
-            ++ pkgs.lib.optionals jsonProtocol [ yyjson ];
+          buildInputs = with pkgs; [
+            mupdf
+            sqlite
+            yyjson
+          ];
           preConfigure =
             let
               rev = self.shortRev or self.dirtyShortRev;
@@ -47,9 +42,6 @@
             ''
               sed -i 's|@MALACHI_COMMIT_SHORT_HASH@|"${rev}"|g' include/project.h.in
             '';
-          mesonFlags = [
-            (if jsonProtocol then "-Djson_protocol=true" else "-Djson_protocol=false")
-          ];
           doCheck = true;
           postFixup =
             let
@@ -64,14 +56,7 @@
         };
 
       overlay = final: prev: {
-        malachi = mkMalachi {
-          pkgs = final;
-          jsonProtocol = true;
-        };
-        malachi-ascii = mkMalachi {
-          pkgs = final;
-          jsonProtocol = false;
-        };
+        malachi = mkMalachi final;
       };
     in
     flake-utils.lib.eachDefaultSystem (
@@ -84,7 +69,6 @@
       in
       {
         packages.malachi = pkgs.malachi;
-        packages.malachi-ascii = pkgs.malachi-ascii;
         packages.default = self.packages.${system}.malachi;
         devShell = pkgs.mkShell {
           inputsFrom = [ pkgs.malachi ];
