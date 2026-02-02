@@ -178,9 +178,7 @@ static int runloop(char const *pipepath)
         }
 
         if (rc == 0)
-        {
             continue;
-        }
 
         if (pfd.revents & POLLERR)
         {

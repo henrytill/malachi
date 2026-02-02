@@ -84,10 +84,8 @@ static int findjsonop(size_t oplen, char const *opstr)
     STATIC_ASSERT(NELEM(jsonops) <= INT_MAX);
     int const njsonops = (int)NELEM(jsonops);
     for (int i = 0; i < njsonops; ++i)
-    {
         if (oplen == jsonops[i].namelen && strncmp(opstr, jsonops[i].name, oplen) == 0)
             return i;
-    }
     return -1;
 }
 
@@ -152,9 +150,7 @@ static int parsejson(char const *jsonstr, size_t jsonlen, Command *cmd)
         if (fieldval == NULL || yyjson_is_str(fieldval) == 0)
         {
             if (required == 0)
-            {
                 continue;
-            }
             logerror("Missing or invalid '%s' field for %s operation", jsonkey, opstr);
             goto freedoc;
         }

@@ -82,12 +82,14 @@ struct Command
         {
             char path[PATH_MAX];
         } pathop;
+
         struct
         {
             char queryid[MAXQUERYIDLEN];
             char terms[MAXQUERYTERMSLEN];
             char repofilter[PATH_MAX];
         } queryop;
+
         /* shutdown needs no fields */
     };
 };

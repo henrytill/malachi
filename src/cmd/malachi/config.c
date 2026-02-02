@@ -69,9 +69,7 @@ void configfree(Config *config)
         for (int j = i + 1; j < 4; ++j)
         {
             if (ptrs[i] == ptrs[j])
-            {
                 freed[j] = 1;
-            }
         }
 
         free(ptrs[i]);
