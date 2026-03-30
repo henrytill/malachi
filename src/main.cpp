@@ -25,28 +25,33 @@
 
 using namespace malachi;
 
-namespace {
+namespace
+{
 
-constexpr auto kUsageMsg = std::string_view{"Usage: {} [-v|--version] [-c|--config] <query>\n"};
+constexpr auto kUsageMsg = std::string_view { "Usage: {} [-v|--version] [-c|--config] <query>\n" };
 
-struct Options {
-    bool version{false};
-    bool config{false};
+struct Options
+{
+    bool version { false };
+    bool config { false };
 };
 
-void print_usage(char const *program) {
+void print_usage(char const *program)
+{
     std::cerr << std::format(kUsageMsg, program);
 }
 
 #ifdef MALACHI_HAVE_MUPDF
-inline void print_mupdf_version() {
+inline void print_mupdf_version()
+{
     std::cout << std::format("mupdf: {}\n", FZ_VERSION); // NOLINT(misc-include-cleaner)
 }
 #else
-inline void print_mupdf_version() {}
+inline void print_mupdf_version() { }
 #endif
 
-auto print_versions() -> int {
+auto print_versions() -> int
+{
     {
         int const major = MALACHI_VERSION_MAJOR;
         int const minor = MALACHI_VERSION_MINOR;
@@ -57,7 +62,8 @@ auto print_versions() -> int {
         int major = 0;
         int minor = 0;
         int rev = 0;
-        if (git_libgit2_version(&major, &minor, &rev) != 0) {
+        if (git_libgit2_version(&major, &minor, &rev) != 0)
+        {
             std::cerr << std::format("Failed to get libgit2 version\n");
             return -1;
         }
@@ -70,44 +76,49 @@ auto print_versions() -> int {
 
 } // namespace
 
-auto main(int argc, char *argv[]) -> int try {
-    auto const args = std::span<char *>{argv, static_cast<size_t>(argc)};
+auto main(int argc, char *argv[]) -> int
+try
+{
+    auto const args = std::span<char *> { argv, static_cast<size_t>(argc) };
 
     assert(not args.empty()); // we use args.front() below
 
-    if (args.size() == 1) {
+    if (args.size() == 1)
+    {
         print_usage(args.front());
         return EXIT_FAILURE;
     }
 
-    auto opts = Options{};
+    auto opts = Options {};
 
     {
-        constexpr auto long_options_len = size_t{3};
+        constexpr auto long_options_len = size_t { 3 };
         // NOLINTBEGIN(misc-include-cleaner)
-        constexpr auto long_options = std::array<struct option, long_options_len>{
-            (struct option){.name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v'},
-            (struct option){.name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c'},
-            (struct option){.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0},
+        constexpr auto long_options = std::array<struct option, long_options_len> {
+            (struct option) { .name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v' },
+            (struct option) { .name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c' },
+            (struct option) { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0 },
         };
         // NOLINTEND(misc-include-cleaner)
 
         auto option_index = 0;
 
-        while (true) {
+        while (true)
+        {
             // NOLINTNEXTLINE(misc-include-cleaner)
             int const opt = getopt_long(
                 static_cast<int>(args.size()),
                 args.data(),
                 "vc",
                 long_options.data(),
-                &option_index
-            );
-            if (opt == -1) {
+                &option_index);
+            if (opt == -1)
+            {
                 break;
             }
 
-            switch (opt) {
+            switch (opt)
+            {
             case 'v':
                 opts.version = true;
                 break;
@@ -123,12 +134,14 @@ auto main(int argc, char *argv[]) -> int try {
         }
     }
 
-    if (opts.version) {
+    if (opts.version)
+    {
         return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
-    auto const config_result = config::Builder{std::getenv}.with_defaults().build();
-    if (std::holds_alternative<config::Error>(config_result)) {
+    auto const config_result = config::Builder { std::getenv }.with_defaults().build();
+    if (std::holds_alternative<config::Error>(config_result))
+    {
         auto const &error = std::get<config::Error>(config_result);
         std::cerr << std::format("Failed to build config: {}\n", error.message);
         return EXIT_FAILURE;
@@ -136,16 +149,19 @@ auto main(int argc, char *argv[]) -> int try {
 
     auto const &config = std::get<config::Config>(config_result);
 
-    if (opts.config) {
+    if (opts.config)
+    {
         std::cout << config.to_string();
         return EXIT_SUCCESS;
     }
 
     {
         auto const offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
-        if (offset < args.size()) {
+        if (offset < args.size())
+        {
             std::cout << "non-option argv elements:";
-            for (auto const *arg : args.subspan(offset)) {
+            for (auto const *arg : args.subspan(offset))
+            {
                 std::cout << std::format(" {}", arg);
             }
             std::cout << '\n';
@@ -158,10 +174,14 @@ auto main(int argc, char *argv[]) -> int try {
     }
 
     return EXIT_SUCCESS;
-} catch (std::exception const &e) {
+}
+catch (std::exception const &e)
+{
     std::cerr << std::format("Fatal error: {}\n", e.what());
     return EXIT_FAILURE;
-} catch (...) {
+}
+catch (...)
+{
     std::cerr << "Fatal error: Unknown exception\n";
     return EXIT_FAILURE;
 }
