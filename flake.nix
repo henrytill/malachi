@@ -53,6 +53,13 @@
       {
         packages.malachi = pkgs.malachi;
         packages.default = self.packages.${system}.malachi;
+        devShell = pkgs.mkShell {
+          inputsFrom = [ pkgs.malachi ];
+          packages = with pkgs; [
+            clang-tools
+          ];
+          hardeningDisable = [ "fortify" ];
+        };
       }
     );
 }
