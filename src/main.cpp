@@ -32,6 +32,7 @@
 #include "filter.h"
 #include "logging.h"
 #include "parser.h"
+#include "platform.h"
 #include "protocol.h"
 
 using namespace malachi;
