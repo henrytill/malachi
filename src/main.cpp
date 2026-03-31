@@ -10,7 +10,6 @@
 #include <filesystem>
 #include <format>
 #include <iostream>
-#include <signal.h> // NOLINT(hicpp-deprecated-headers,modernize-deprecated-headers)
 #include <span>
 #include <string_view>
 #include <system_error>
@@ -19,6 +18,7 @@
 #include <fcntl.h>
 #include <getopt.h> // IWYU pragma: keep
 #include <poll.h>   // IWYU pragma: keep
+#include <signal.h> // NOLINT(hicpp-deprecated-headers,modernize-deprecated-headers)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
