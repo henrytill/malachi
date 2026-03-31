@@ -54,7 +54,7 @@ TEST_CASE("Parser: add command", "[parser]")
     write_message(p.write_end(), R"({"op":"add","path":"/home/test/repo"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -71,7 +71,7 @@ TEST_CASE("Parser: remove command", "[parser]")
     write_message(p.write_end(), R"({"op":"remove","path":"/home/test/repo"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -88,7 +88,7 @@ TEST_CASE("Parser: shutdown command", "[parser]")
     write_message(p.write_end(), R"({"op":"shutdown"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -104,7 +104,7 @@ TEST_CASE("Parser: query without repoFilter", "[parser]")
     write_message(p.write_end(), R"({"op":"query","queryId":"q-001","terms":"hello world"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -125,7 +125,7 @@ TEST_CASE("Parser: query with repoFilter", "[parser]")
                   R"({"op":"query","queryId":"q-002","terms":"foo","repoFilter":"/home/test/repo"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -148,12 +148,12 @@ TEST_CASE("Parser: split feed yields nullopt then command", "[parser]")
     write(p.write_end(), &len, sizeof(len));
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     CHECK(not parser.next().has_value()); // incomplete — no JSON yet
 
     // Now write the JSON body
     write(p.write_end(), json.data(), json.size());
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
     REQUIRE(result.has_value());
     auto const &result_val = result.value(); // NOLINT(bugprone-unchecked-optional-access)
@@ -171,7 +171,7 @@ TEST_CASE("Parser: malformed JSON produces ParseError", "[parser]")
     write(p.write_end(), bad.data(), bad.size());
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
     auto result = parser.next();
 
     REQUIRE(result.has_value());
@@ -185,7 +185,7 @@ TEST_CASE("Parser: multiple commands in one feed", "[parser]")
     write_message(p.write_end(), R"({"op":"add","path":"/tmp/repo"})");
 
     parser::Parser parser;
-    parser.feed(p.read_end());
+    REQUIRE(parser.feed(p.read_end()) > 0);
 
     auto first = parser.next();
     REQUIRE(first.has_value());

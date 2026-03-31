@@ -35,10 +35,10 @@ public:
     explicit Parser(std::size_t max_buffer = kDefaultBufferSize);
 
     // Feed bytes from fd into the buffer. Returns bytes read, 0 on EOF, -1 on error.
-    auto feed(int fd) -> ssize_t;
+    [[nodiscard]] auto feed(int fd) -> ssize_t;
 
     // Extract the next complete command from the buffer.
-    auto next() -> ParseResult;
+    [[nodiscard]] auto next() -> ParseResult;
 
     // Reset parser state (call after pipe EOF/reconnect).
     void reset();
