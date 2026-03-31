@@ -297,7 +297,8 @@ auto run(config::Config const &config) -> int
     }
 
     auto const pipe_path = daemon_dir / "command";
-    if (::mkfifo(pipe_path.c_str(), kPipeMode) == -1 && errno != EEXIST)
+    auto const mkfifo_rc = ::mkfifo(pipe_path.c_str(), kPipeMode);
+    if (mkfifo_rc == -1 && errno != EEXIST)
     {
         logging::error("mkfifo: {}", std::strerror(errno));
         return EXIT_FAILURE;
