@@ -27,10 +27,6 @@
 #include <sqlite3.h>
 #include <yyjson.h>
 
-#ifdef MALACHI_HAVE_MUPDF
-#    include <mupdf/fitz.h> // IWYU pragma: keep
-#endif
-
 #include "config.h"
 #include "db.h"
 #include "filter.h"
@@ -77,15 +73,6 @@ void handle_signal(int /*sig*/)
 
 // Version printing
 
-#ifdef MALACHI_HAVE_MUPDF
-inline void print_mupdf_version()
-{
-    std::cout << std::format("mupdf: {}\n", FZ_VERSION); // NOLINT(misc-include-cleaner)
-}
-#else
-inline void print_mupdf_version() { }
-#endif
-
 auto print_versions() -> int
 {
     {
@@ -105,7 +92,6 @@ auto print_versions() -> int
         }
         std::cout << std::format("libgit2: {}.{}.{}\n", major, minor, rev);
     }
-    print_mupdf_version();
     std::cout << std::format("sqlite: {}\n", sqlite3_libversion());
     std::cout << std::format("yyjson: {}\n", YYJSON_VERSION_STRING);
     for (auto const &filt : filter::global_registry().all())
