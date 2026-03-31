@@ -190,12 +190,8 @@ inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> opt
     {
         return optional<path> { path { xdg_runtime_dir } / name };
     }
-#ifndef _WIN32
     auto const uid = ::getuid();
     return optional<path> { path { "/run/user" } / std::to_string(uid) / name };
-#else
-    return std::nullopt;
-#endif
 }
 
 } // namespace xdg
