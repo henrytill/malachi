@@ -38,7 +38,7 @@ public:
         return FZ_VERSION; // NOLINT(misc-include-cleaner)
     }
 
-    auto extract(std::string const & /*input_path*/) -> std::optional<std::string> override
+    [[nodiscard]] auto extract(std::string const & /*input_path*/) const -> std::optional<std::string> override
     {
         return std::nullopt; // Not yet implemented
     }

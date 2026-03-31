@@ -24,7 +24,7 @@ public:
     [[nodiscard]] virtual auto extensions() const -> std::span<std::string_view const> = 0;
     [[nodiscard]] virtual auto version() const -> std::string_view = 0;
 
-    virtual auto extract(std::string const &input_path) -> std::optional<std::string> = 0;
+    [[nodiscard]] virtual auto extract(std::string const &input_path) const -> std::optional<std::string> = 0;
 };
 
 class Registry
