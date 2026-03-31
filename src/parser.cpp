@@ -20,9 +20,7 @@
 namespace malachi::parser
 {
 
-// ---------------------------------------------------------------------------
 // Declarative field descriptors
-// ---------------------------------------------------------------------------
 
 template <typename Cmd>
 struct FieldSpec
@@ -56,9 +54,7 @@ static auto apply_fields(
     return std::nullopt;
 }
 
-// ---------------------------------------------------------------------------
 // Per-command field tables
-// ---------------------------------------------------------------------------
 
 static constexpr FieldSpec<protocol::AddCommand> kAddFields[] = {
     { "path", true, [](protocol::AddCommand &c, std::string_view v)
@@ -79,9 +75,7 @@ static constexpr FieldSpec<protocol::QueryCommand> kQueryFields[] = {
       { c.repo_filter = v; } },
 };
 
-// ---------------------------------------------------------------------------
 // Parser implementation
-// ---------------------------------------------------------------------------
 
 Parser::Parser(std::size_t max_buffer)
     : buf_(max_buffer)

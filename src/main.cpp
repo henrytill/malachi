@@ -42,9 +42,7 @@ using namespace malachi;
 namespace
 {
 
-// ---------------------------------------------------------------------------
 // Utilities
-// ---------------------------------------------------------------------------
 
 template <typename... Ts>
 struct overloaded : Ts...
@@ -66,9 +64,7 @@ void print_usage(char const *program)
     std::cerr << std::format(kUsageMsg, program);
 }
 
-// ---------------------------------------------------------------------------
 // Signal handling
-// ---------------------------------------------------------------------------
 
 static sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -77,9 +73,7 @@ void handle_signal(int /*sig*/)
     loopstat = 0;
 }
 
-// ---------------------------------------------------------------------------
 // Version printing
-// ---------------------------------------------------------------------------
 
 #ifdef MALACHI_HAVE_MUPDF
 inline void print_mupdf_version()
@@ -119,9 +113,7 @@ auto print_versions() -> int
     return 0;
 }
 
-// ---------------------------------------------------------------------------
 // Command dispatch
-// ---------------------------------------------------------------------------
 
 auto handle_command(protocol::Command const &cmd) -> bool
 {
@@ -155,9 +147,7 @@ auto handle_command(protocol::Command const &cmd) -> bool
         cmd);
 }
 
-// ---------------------------------------------------------------------------
 // Daemon loop (POSIX only)
-// ---------------------------------------------------------------------------
 
 #ifndef _WIN32
 
