@@ -42,9 +42,12 @@ struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Wi
     static constexpr auto env = std::array {
         std::pair { "APPDATA"sv, R"(C:\Users\Test\AppData\Roaming)" },
         std::pair { "LOCALAPPDATA"sv, R"(C:\Users\Test\AppData\Local)" },
+        std::pair { "TEMP"sv, R"(C:\Users\Test\AppData\Local\Temp)" },
     };
     static constexpr auto expected_config_dir = R"(C:\Users\Test\AppData\Roaming\malachi)";
     static constexpr auto expected_data_dir = R"(C:\Users\Test\AppData\Local\malachi)";
+    static constexpr auto expected_cache_dir = R"(C:\Users\Test\AppData\Local\malachi)";
+    static constexpr auto expected_runtime_dir = R"(C:\Users\Test\AppData\Local\Temp\malachi)";
 };
 
 template <>
@@ -52,9 +55,12 @@ struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacO
 {
     static constexpr auto env = std::array {
         std::pair { "HOME"sv, "/Users/test" },
+        std::pair { "TMPDIR"sv, "/var/folders/test" },
     };
     static constexpr auto expected_config_dir = "/Users/test/Library/Application Support/malachi";
     static constexpr auto expected_data_dir = "/Users/test/Library/Application Support/malachi";
+    static constexpr auto expected_cache_dir = "/Users/test/Library/Caches/malachi";
+    static constexpr auto expected_runtime_dir = "/var/folders/test/malachi";
 };
 
 template <>
@@ -63,9 +69,13 @@ struct ConfigFixture<Platform::Linux> : Environment<ConfigFixture<Platform::Linu
     static constexpr auto env = std::array {
         std::pair { "XDG_CONFIG_HOME"sv, "/home/test/.config" },
         std::pair { "XDG_DATA_HOME"sv, "/home/test/.local/share" },
+        std::pair { "XDG_CACHE_HOME"sv, "/home/test/.cache" },
+        std::pair { "XDG_RUNTIME_DIR"sv, "/run/user/1000" },
     };
     static constexpr auto expected_config_dir = "/home/test/.config/malachi";
     static constexpr auto expected_data_dir = "/home/test/.local/share/malachi";
+    static constexpr auto expected_cache_dir = "/home/test/.cache/malachi";
+    static constexpr auto expected_runtime_dir = "/run/user/1000/malachi";
 };
 
 TEMPLATE_TEST_CASE_METHOD_SIG(
@@ -83,6 +93,8 @@ TEMPLATE_TEST_CASE_METHOD_SIG(
     auto const &config = std::get<Config>(result);
     CHECK(config.config_dir == std::filesystem::path { fixture::expected_config_dir });
     CHECK(config.data_dir == std::filesystem::path { fixture::expected_data_dir });
+    CHECK(config.cache_dir == std::filesystem::path { fixture::expected_cache_dir });
+    CHECK(config.runtime_dir == std::filesystem::path { fixture::expected_runtime_dir });
 }
 
 template <Platform P>

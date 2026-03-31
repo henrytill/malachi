@@ -26,6 +26,8 @@ struct Config
 {
     std::filesystem::path config_dir;
     std::filesystem::path data_dir;
+    std::filesystem::path cache_dir;
+    std::filesystem::path runtime_dir;
 
     static auto platform() -> platform::Platform;
     [[nodiscard]] auto to_string() const -> std::string;
@@ -44,6 +46,8 @@ private:
     platform::GetEnvFn getenv_;
     std::optional<std::filesystem::path> maybe_config_dir_;
     std::optional<std::filesystem::path> maybe_data_dir_;
+    std::optional<std::filesystem::path> maybe_cache_dir_;
+    std::optional<std::filesystem::path> maybe_runtime_dir_;
 };
 
 } // namespace malachi::config
