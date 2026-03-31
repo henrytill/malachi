@@ -273,8 +273,18 @@ auto run(config::Config const &config) -> int
     sa.sa_handler = handle_signal;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
-    sigaction(SIGINT, &sa, nullptr);
-    sigaction(SIGTERM, &sa, nullptr);
+    auto const sigint_rc = sigaction(SIGINT, &sa, nullptr);
+    if (sigint_rc != 0)
+    {
+        logging::error("sigaction(SIGINT): {}", std::strerror(errno));
+        return EXIT_FAILURE;
+    }
+    auto const sigterm_rc = sigaction(SIGTERM, &sa, nullptr);
+    if (sigterm_rc != 0)
+    {
+        logging::error("sigaction(SIGTERM): {}", std::strerror(errno));
+        return EXIT_FAILURE;
+    }
 
     // Create runtime directory and named pipe
     auto const daemon_dir = config.runtime_dir / "malachi";
