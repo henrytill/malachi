@@ -22,6 +22,11 @@ struct TempDirFixture
         fs::create_directories(tmp_dir);
     }
 
+    TempDirFixture(TempDirFixture const &) = delete;
+    auto operator=(TempDirFixture const &) -> TempDirFixture & = delete;
+    TempDirFixture(TempDirFixture &&) = delete;
+    auto operator=(TempDirFixture &&) -> TempDirFixture & = delete;
+
     ~TempDirFixture()
     {
         fs::remove_all(tmp_dir);
@@ -69,7 +74,7 @@ TEST_CASE_METHOD(TempDirFixture, "repo_set and repo_get round-trip", "[db]")
 
     auto const &val = std::get<std::optional<std::string>>(get_result);
     REQUIRE(val.has_value());
-    CHECK(*val == "abc123");
+    CHECK(val.value() == "abc123"); // NOLINT(bugprone-unchecked-optional-access)
 }
 
 TEST_CASE_METHOD(TempDirFixture, "repo_get returns nullopt for missing path", "[db]")

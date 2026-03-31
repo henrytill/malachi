@@ -7,7 +7,7 @@
 namespace malachi::logging
 {
 
-extern bool debug_enabled;
+extern bool debug_enabled; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 inline void log_info(std::string_view msg)
 {
@@ -22,7 +22,9 @@ inline void log_error(std::string_view msg)
 inline void log_debug(std::string_view msg)
 {
     if (debug_enabled)
+    {
         std::cout << std::format("[DEBUG] {}\n", msg);
+    }
 }
 
 template <typename... Args>

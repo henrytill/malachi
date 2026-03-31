@@ -9,7 +9,7 @@
 #    include <string>
 #    include <string_view>
 
-#    include <mupdf/fitz.h>
+#    include <mupdf/fitz.h> // IWYU pragma: keep
 
 #    include "filter.h"
 
@@ -35,7 +35,7 @@ public:
 
     [[nodiscard]] auto version() const -> std::string_view override
     {
-        return FZ_VERSION;
+        return FZ_VERSION; // NOLINT(misc-include-cleaner)
     }
 
     auto extract(std::string const & /*input_path*/) -> std::optional<std::string> override

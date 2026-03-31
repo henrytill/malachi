@@ -1,11 +1,12 @@
 #include "db.h"
+#include "config.h"
 
 #include <filesystem>
 #include <format>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <variant>
+#include <utility>
 
 #include <sqlite3.h>
 
@@ -42,7 +43,7 @@ auto Database::open(config::Config const &config) -> Result<Database>
 
     if (rc != SQLITE_OK)
     {
-        auto const msg = sqlite3_errmsg(conn.get());
+        auto const *const msg = sqlite3_errmsg(conn.get());
         return DbError { .sqlite_code = rc, .message = std::format("sqlite3_open: {}", msg) };
     }
 
@@ -94,7 +95,7 @@ auto Database::repo_get(std::string_view repo_path) -> Result<std::optional<std:
         return DbError { .sqlite_code = src, .message = std::format("repo_get step: {}", sqlite3_errmsg(conn_.get())) };
     }
 
-    auto const *text = reinterpret_cast<char const *>(sqlite3_column_text(stmt.get(), 0));
+    auto const *text = reinterpret_cast<char const *>(sqlite3_column_text(stmt.get(), 0)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     return std::optional<std::string> { text };
 }
 

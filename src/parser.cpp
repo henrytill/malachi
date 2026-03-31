@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -11,6 +12,7 @@
 #include <variant>
 #include <vector>
 
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <yyjson.h>
@@ -20,21 +22,24 @@
 namespace malachi::parser
 {
 
+namespace
+{
+
 // Declarative field descriptors
 
 template <typename Cmd>
 struct FieldSpec
 {
     std::string_view key;
-    bool required;
+    bool required {};
     void (*setter)(Cmd &, std::string_view);
 };
 
 template <typename Cmd, std::size_t N>
-static auto apply_fields(
+auto apply_fields(
     yyjson_val *obj,
     Cmd &cmd,
-    FieldSpec<Cmd> const (&specs)[N]) -> std::optional<ParseError>
+    std::array<FieldSpec<Cmd>, N> const &specs) -> std::optional<ParseError>
 {
     for (auto const &spec : specs)
     {
@@ -56,24 +61,26 @@ static auto apply_fields(
 
 // Per-command field tables
 
-static constexpr FieldSpec<protocol::AddCommand> kAddFields[] = {
-    { "path", true, [](protocol::AddCommand &c, std::string_view v)
+constexpr auto kAddFields = std::array<FieldSpec<protocol::AddCommand>, 1> { {
+    { .key = "path", .required = true, .setter = [](protocol::AddCommand &c, std::string_view v)
       { c.path = v; } },
-};
+} };
 
-static constexpr FieldSpec<protocol::RemoveCommand> kRemoveFields[] = {
-    { "path", true, [](protocol::RemoveCommand &c, std::string_view v)
+constexpr auto kRemoveFields = std::array<FieldSpec<protocol::RemoveCommand>, 1> { {
+    { .key = "path", .required = true, .setter = [](protocol::RemoveCommand &c, std::string_view v)
       { c.path = v; } },
-};
+} };
 
-static constexpr FieldSpec<protocol::QueryCommand> kQueryFields[] = {
-    { "queryId", true, [](protocol::QueryCommand &c, std::string_view v)
+constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> { {
+    { .key = "queryId", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v)
       { c.query_id = v; } },
-    { "terms", true, [](protocol::QueryCommand &c, std::string_view v)
+    { .key = "terms", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v)
       { c.terms = v; } },
-    { "repoFilter", false, [](protocol::QueryCommand &c, std::string_view v)
+    { .key = "repoFilter", .required = false, .setter = [](protocol::QueryCommand &c, std::string_view v)
       { c.repo_filter = v; } },
-};
+} };
+
+} // namespace
 
 // Parser implementation
 
@@ -89,7 +96,7 @@ auto Parser::feed(int fd) -> ssize_t
     {
         return -1; // buffer full
     }
-    auto const n = ::read(fd, buf_.data() + buf_used_, space);
+    auto const n = ::read(fd, buf_.data() + buf_used_, space); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     if (n > 0)
     {
         buf_used_ += static_cast<std::size_t>(n);
@@ -134,7 +141,7 @@ auto Parser::parse_json(std::span<std::byte const> json_bytes)
     -> std::variant<protocol::Command, ParseError>
 {
     auto *doc = yyjson_read(
-        reinterpret_cast<char const *>(json_bytes.data()),
+        reinterpret_cast<char const *>(json_bytes.data()), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         json_bytes.size(),
         0);
 
@@ -146,8 +153,16 @@ auto Parser::parse_json(std::span<std::byte const> json_bytes)
     struct DocGuard
     {
         yyjson_doc *doc;
+        explicit DocGuard(yyjson_doc *d)
+            : doc { d }
+        {
+        }
+        DocGuard(DocGuard const &) = delete;
+        auto operator=(DocGuard const &) -> DocGuard & = delete;
+        DocGuard(DocGuard &&) = delete;
+        auto operator=(DocGuard &&) -> DocGuard & = delete;
         ~DocGuard() { yyjson_doc_free(doc); }
-    } guard { doc };
+    } const guard { doc };
 
     auto *root = yyjson_doc_get_root(doc);
     if (root == nullptr || yyjson_get_type(root) != YYJSON_TYPE_OBJ)
@@ -209,7 +224,7 @@ void Parser::compact(std::size_t skip)
         return;
     }
     auto const remaining = buf_used_ - skip;
-    std::memmove(buf_.data(), buf_.data() + skip, remaining);
+    std::memmove(buf_.data(), buf_.data() + skip, remaining); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     buf_used_ = remaining;
 }
 

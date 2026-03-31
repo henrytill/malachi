@@ -13,6 +13,11 @@ namespace malachi::filter
 class Filter
 {
 public:
+    Filter() = default;
+    Filter(Filter const &) = delete;
+    auto operator=(Filter const &) -> Filter & = delete;
+    Filter(Filter &&) = delete;
+    auto operator=(Filter &&) -> Filter & = delete;
     virtual ~Filter() = default;
 
     [[nodiscard]] virtual auto name() const -> std::string_view = 0;

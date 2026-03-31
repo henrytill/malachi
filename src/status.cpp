@@ -3,12 +3,13 @@
 #include <filesystem>
 #include <fstream>
 #include <string_view>
+#include <system_error>
 
 namespace malachi::status
 {
 
 auto write(
-    std::filesystem::path const &runtime_dir,
+    std::filesystem::path const &runtime_dir, // NOLINT(bugprone-easily-swappable-parameters)
     std::filesystem::path const &repo_path,
     std::string_view sha) -> bool
 {
@@ -41,7 +42,7 @@ auto write(
 }
 
 auto ensure(
-    std::filesystem::path const &runtime_dir,
+    std::filesystem::path const &runtime_dir, // NOLINT(bugprone-easily-swappable-parameters)
     std::filesystem::path const &repo_path) -> bool
 {
     auto const roots_dir = runtime_dir / "roots";

@@ -8,6 +8,10 @@
 #include <variant>
 #include <vector>
 
+#ifndef _WIN32
+#    include <sys/types.h>
+#endif
+
 #include "protocol.h"
 
 namespace malachi::parser
@@ -51,8 +55,7 @@ private:
     State state_ { State::kLength };
     uint32_t json_len_ { 0 };
 
-    auto parse_json(std::span<std::byte const> json_bytes)
-        -> std::variant<protocol::Command, ParseError>;
+    [[nodiscard]] static auto parse_json(std::span<std::byte const> json_bytes) -> std::variant<protocol::Command, ParseError>;
     void compact(std::size_t skip);
 };
 

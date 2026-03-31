@@ -3,7 +3,6 @@
 #include <array>
 #include <cassert>
 #include <cerrno>
-#include <csignal>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -11,14 +10,17 @@
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <signal.h> // NOLINT(hicpp-deprecated-headers,modernize-deprecated-headers)
 #include <span>
 #include <string_view>
+#include <system_error>
 #include <variant>
 
 #include <fcntl.h>
 #include <getopt.h> // IWYU pragma: keep
-#include <poll.h>
+#include <poll.h>   // IWYU pragma: keep
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <git2/common.h>
@@ -66,7 +68,7 @@ void print_usage(char const *program)
 
 // Signal handling
 
-static sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 void handle_signal(int /*sig*/)
 {
@@ -151,6 +153,8 @@ auto handle_command(protocol::Command const &cmd) -> bool
 
 #ifndef _WIN32
 
+constexpr mode_t kPipeMode = 0622; // NOLINT(misc-include-cleaner)
+
 auto run_loop(std::filesystem::path const &pipe_path) -> int
 {
     parser::Parser par;
@@ -161,7 +165,7 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
         int pipe_fd = -1;
         while (loopstat != 0 && pipe_fd == -1)
         {
-            pipe_fd = ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK);
+            pipe_fd = ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK); // NOLINT(cppcoreguidelines-pro-type-vararg)
             if (pipe_fd == -1)
             {
                 if (errno == EINTR)
@@ -180,11 +184,11 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
 
         par.reset();
 
-        struct pollfd pfd { .fd = pipe_fd, .events = POLLIN, .revents = 0 };
+        struct pollfd pfd { .fd = pipe_fd, .events = POLLIN, .revents = 0 }; // NOLINT(misc-include-cleaner)
 
         while (loopstat != 0)
         {
-            auto const rc = ::poll(&pfd, 1, 1000);
+            auto const rc = ::poll(&pfd, 1, 1000); // NOLINT(misc-include-cleaner)
 
             if (rc == -1)
             {
@@ -197,7 +201,7 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                 return -1;
             }
 
-            if ((pfd.revents & POLLERR) != 0)
+            if ((pfd.revents & POLLERR) != 0) // NOLINT(misc-include-cleaner)
             {
                 logging::error("pipe error");
                 ::close(pipe_fd);
@@ -244,7 +248,7 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                 }
             }
 
-            if ((pfd.revents & POLLHUP) != 0)
+            if ((pfd.revents & POLLHUP) != 0) // NOLINT(misc-include-cleaner)
             {
                 // Client disconnected — reopen the pipe
                 break;
@@ -283,7 +287,7 @@ auto run(config::Config const &config) -> int
     }
 
     auto const pipe_path = daemon_dir / "command";
-    if (::mkfifo(pipe_path.c_str(), 0622) == -1 && errno != EEXIST)
+    if (::mkfifo(pipe_path.c_str(), kPipeMode) == -1 && errno != EEXIST)
     {
         logging::error("mkfifo: {}", std::strerror(errno));
         return EXIT_FAILURE;
