@@ -1,0 +1,56 @@
+#include "filter_mupdf.h"
+
+#ifdef MALACHI_HAVE_MUPDF
+
+#    include <array>
+#    include <memory>
+#    include <optional>
+#    include <span>
+#    include <string>
+#    include <string_view>
+
+#    include <mupdf/fitz.h>
+
+#    include "filter.h"
+
+namespace malachi::filter
+{
+
+namespace
+{
+
+class MupdfFilter final : public Filter
+{
+public:
+    [[nodiscard]] auto name() const -> std::string_view override
+    {
+        return "mupdf";
+    }
+
+    [[nodiscard]] auto extensions() const -> std::span<std::string_view const> override
+    {
+        static constexpr std::array<std::string_view, 2> kExts { ".pdf", ".PDF" };
+        return kExts;
+    }
+
+    [[nodiscard]] auto version() const -> std::string_view override
+    {
+        return FZ_VERSION;
+    }
+
+    auto extract(std::string const & /*input_path*/) -> std::optional<std::string> override
+    {
+        return std::nullopt; // Not yet implemented
+    }
+};
+
+} // namespace
+
+auto make_mupdf_filter() -> std::unique_ptr<Filter>
+{
+    return std::make_unique<MupdfFilter>();
+}
+
+} // namespace malachi::filter
+
+#endif // MALACHI_HAVE_MUPDF

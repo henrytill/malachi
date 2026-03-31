@@ -38,18 +38,28 @@ configure_file(
     },
 )
 
+malachi_sources = [
+    'src/config.cpp',
+    'src/logging.cpp',
+    'src/db.cpp',
+    'src/status.cpp',
+    'src/filter.cpp',
+    'src/parser.cpp',
+    'src/main.cpp',
+    schema_h,
+]
+
+malachi_deps = [libgit2_dep, sqlite_dep, yyjson_dep]
+
+if mupdf_dep.found()
+    malachi_sources += ['src/filter_mupdf.cpp']
+    malachi_deps += [mupdf_dep]
+endif
+
 executable(
     'malachi',
-    sources: [
-        'src/config.cpp',
-        'src/logging.cpp',
-        'src/db.cpp',
-        'src/status.cpp',
-        'src/parser.cpp',
-        'src/main.cpp',
-        schema_h,
-    ],
-    dependencies: [libgit2_dep, mupdf_dep, sqlite_dep, yyjson_dep],
+    sources: malachi_sources,
+    dependencies: malachi_deps,
     include_directories: [include_dir, root_dir],
     install: true,
 )
