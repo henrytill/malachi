@@ -151,8 +151,6 @@ auto handle_command(protocol::Command const &cmd) -> bool
 
 // Daemon loop (POSIX only)
 
-#ifndef _WIN32
-
 constexpr mode_t kPipeMode = 0622; // NOLINT(misc-include-cleaner)
 
 auto run_loop(std::filesystem::path const &pipe_path) -> int
@@ -261,8 +259,15 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
     return 0;
 }
 
+template <platform::Platform p = platform::get_platform()>
 auto run(config::Config const &config) -> int
 {
+    if constexpr (p == platform::Platform::Windows)
+    {
+        std::cerr << "Daemon not supported on Windows\n";
+        return EXIT_FAILURE;
+    }
+
     // Register filters
 #    ifdef MALACHI_HAVE_MUPDF
     filter::global_registry().add(filter::make_mupdf_filter());
@@ -321,8 +326,6 @@ auto run(config::Config const &config) -> int
 
     return rc == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-#endif // _WIN32
 
 } // namespace
 
@@ -407,12 +410,7 @@ try
         return EXIT_SUCCESS;
     }
 
-#ifndef _WIN32
     return run(config);
-#else
-    std::cerr << "Daemon not supported on Windows\n";
-    return EXIT_FAILURE;
-#endif
 }
 catch (std::exception const &e)
 {
