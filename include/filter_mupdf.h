@@ -1,5 +1,7 @@
 #pragma once
 
+#include "project.h"
+
 #ifdef MALACHI_HAVE_MUPDF
 
 #    include <memory>

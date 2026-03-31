@@ -2,8 +2,11 @@
 
 #include <array>
 #include <cassert>
+#include <cerrno>
+#include <csignal>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <filesystem>
 #include <format>
@@ -12,34 +15,71 @@
 #include <string_view>
 #include <variant>
 
+#include <fcntl.h>
 #include <getopt.h> // IWYU pragma: keep
+#include <poll.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <git2/common.h>
 #include <sqlite3.h>
+#include <yyjson.h>
 
 #ifdef MALACHI_HAVE_MUPDF
 #    include <mupdf/fitz.h> // IWYU pragma: keep
 #endif
 
 #include "config.h"
+#include "db.h"
+#include "filter.h"
+#include "filter_mupdf.h"
+#include "logging.h"
+#include "parser.h"
+#include "protocol.h"
 
 using namespace malachi;
 
 namespace
 {
 
-constexpr auto kUsageMsg = std::string_view { "Usage: {} [-v|--version] [-c|--config] <query>\n" };
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+template <typename... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+
+constexpr auto kUsageMsg = std::string_view { "Usage: {} [-v|--version] [-c|--config] [-d|--debug]\n" };
 
 struct Options
 {
     bool version { false };
     bool config { false };
+    bool debug { false };
 };
 
 void print_usage(char const *program)
 {
     std::cerr << std::format(kUsageMsg, program);
 }
+
+// ---------------------------------------------------------------------------
+// Signal handling
+// ---------------------------------------------------------------------------
+
+static sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+void handle_signal(int /*sig*/)
+{
+    loopstat = 0;
+}
+
+// ---------------------------------------------------------------------------
+// Version printing
+// ---------------------------------------------------------------------------
 
 #ifdef MALACHI_HAVE_MUPDF
 inline void print_mupdf_version()
@@ -71,8 +111,213 @@ auto print_versions() -> int
     }
     print_mupdf_version();
     std::cout << std::format("sqlite: {}\n", sqlite3_libversion());
+    std::cout << std::format("yyjson: {}\n", YYJSON_VERSION_STRING);
+    for (auto const &filt : filter::global_registry().all())
+    {
+        std::cout << std::format("{}: {}\n", filt->name(), filt->version());
+    }
     return 0;
 }
+
+// ---------------------------------------------------------------------------
+// Command dispatch
+// ---------------------------------------------------------------------------
+
+auto handle_command(protocol::Command const &cmd) -> bool
+{
+    return std::visit(
+        overloaded {
+            [](protocol::AddCommand const &c) -> bool
+            {
+                logging::info("add: {}", c.path.string());
+                return false;
+            },
+            [](protocol::RemoveCommand const &c) -> bool
+            {
+                logging::info("remove: {}", c.path.string());
+                return false;
+            },
+            [](protocol::QueryCommand const &c) -> bool
+            {
+                logging::info(
+                    "query: {} (id={}, filter={})",
+                    c.terms,
+                    c.query_id,
+                    c.repo_filter ? c.repo_filter->string() : "");
+                return false;
+            },
+            [](protocol::ShutdownCommand const &) -> bool
+            {
+                logging::info("shutdown requested");
+                return true;
+            },
+        },
+        cmd);
+}
+
+// ---------------------------------------------------------------------------
+// Daemon loop (POSIX only)
+// ---------------------------------------------------------------------------
+
+#ifndef _WIN32
+
+auto run_loop(std::filesystem::path const &pipe_path) -> int
+{
+    parser::Parser par;
+
+    while (loopstat != 0)
+    {
+        // Open the named pipe non-blocking
+        int pipe_fd = -1;
+        while (loopstat != 0 && pipe_fd == -1)
+        {
+            pipe_fd = ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK);
+            if (pipe_fd == -1)
+            {
+                if (errno == EINTR)
+                {
+                    continue;
+                }
+                logging::error("open pipe: {}", std::strerror(errno));
+                return -1;
+            }
+        }
+
+        if (pipe_fd == -1)
+        {
+            break;
+        }
+
+        par.reset();
+
+        struct pollfd pfd { .fd = pipe_fd, .events = POLLIN, .revents = 0 };
+
+        while (loopstat != 0)
+        {
+            auto const rc = ::poll(&pfd, 1, 1000);
+
+            if (rc == -1)
+            {
+                if (errno == EINTR)
+                {
+                    continue;
+                }
+                logging::error("poll: {}", std::strerror(errno));
+                ::close(pipe_fd);
+                return -1;
+            }
+
+            if ((pfd.revents & POLLERR) != 0)
+            {
+                logging::error("pipe error");
+                ::close(pipe_fd);
+                return -1;
+            }
+
+            if ((pfd.revents & POLLIN) != 0)
+            {
+                auto const n = par.feed(pipe_fd);
+                if (n == 0)
+                {
+                    // EOF — client disconnected, reopen
+                    break;
+                }
+                if (n < 0)
+                {
+                    if (errno == EINTR || errno == EAGAIN)
+                    {
+                        continue;
+                    }
+                    logging::error("read: {}", std::strerror(errno));
+                    ::close(pipe_fd);
+                    return -1;
+                }
+
+                // Drain all complete commands from the buffer
+                while (true)
+                {
+                    auto result = par.next();
+                    if (not result.has_value())
+                    {
+                        break;
+                    }
+                    if (std::holds_alternative<parser::ParseError>(*result))
+                    {
+                        logging::error("parse error: {}", std::get<parser::ParseError>(*result).reason);
+                        continue;
+                    }
+                    auto const &cmd = std::get<protocol::Command>(*result);
+                    if (handle_command(cmd))
+                    {
+                        loopstat = 0;
+                    }
+                }
+            }
+
+            if ((pfd.revents & POLLHUP) != 0)
+            {
+                // Client disconnected — reopen the pipe
+                break;
+            }
+        }
+
+        ::close(pipe_fd);
+    }
+
+    return 0;
+}
+
+auto run(config::Config const &config) -> int
+{
+    // Register filters
+#    ifdef MALACHI_HAVE_MUPDF
+    filter::global_registry().add(filter::make_mupdf_filter());
+#    endif
+
+    // Set up signal handlers
+    struct sigaction sa {};
+    sa.sa_handler = handle_signal;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGINT, &sa, nullptr);
+    sigaction(SIGTERM, &sa, nullptr);
+
+    // Create runtime directory and named pipe
+    auto const daemon_dir = config.runtime_dir / "malachi";
+    std::error_code ec;
+    std::filesystem::create_directories(daemon_dir, ec);
+    if (ec)
+    {
+        logging::error("create runtime dir: {}", ec.message());
+        return EXIT_FAILURE;
+    }
+
+    auto const pipe_path = daemon_dir / "command";
+    if (::mkfifo(pipe_path.c_str(), 0622) == -1 && errno != EEXIST)
+    {
+        logging::error("mkfifo: {}", std::strerror(errno));
+        return EXIT_FAILURE;
+    }
+
+    // Open database
+    auto db_result = db::Database::open(config);
+    if (std::holds_alternative<db::DbError>(db_result))
+    {
+        logging::error("open database: {}", std::get<db::DbError>(db_result).message);
+        return EXIT_FAILURE;
+    }
+
+    logging::info("listening on {}", pipe_path.string());
+
+    auto const rc = run_loop(pipe_path);
+
+    // Clean up pipe
+    std::filesystem::remove(pipe_path, ec);
+
+    return rc == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+#endif // _WIN32
 
 } // namespace
 
@@ -80,23 +325,17 @@ auto main(int argc, char *argv[]) -> int
 try
 {
     auto const args = std::span<char *> { argv, static_cast<size_t>(argc) };
-
-    assert(not args.empty()); // we use args.front() below
-
-    if (args.size() == 1)
-    {
-        print_usage(args.front());
-        return EXIT_FAILURE;
-    }
+    assert(not args.empty());
 
     auto opts = Options {};
 
     {
-        constexpr auto long_options_len = size_t { 3 };
+        constexpr auto long_options_len = size_t { 4 };
         // NOLINTBEGIN(misc-include-cleaner)
         constexpr auto long_options = std::array<struct option, long_options_len> {
             (struct option) { .name = "version", .has_arg = no_argument, .flag = nullptr, .val = 'v' },
             (struct option) { .name = "config", .has_arg = no_argument, .flag = nullptr, .val = 'c' },
+            (struct option) { .name = "debug", .has_arg = no_argument, .flag = nullptr, .val = 'd' },
             (struct option) { .name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0 },
         };
         // NOLINTEND(misc-include-cleaner)
@@ -109,7 +348,7 @@ try
             int const opt = getopt_long(
                 static_cast<int>(args.size()),
                 args.data(),
-                "vc",
+                "vcd",
                 long_options.data(),
                 &option_index);
             if (opt == -1)
@@ -125,6 +364,9 @@ try
             case 'c':
                 opts.config = true;
                 break;
+            case 'd':
+                opts.debug = true;
+                break;
             case '?':
                 print_usage(args.front());
                 return EXIT_FAILURE;
@@ -132,6 +374,11 @@ try
                 break;
             }
         }
+    }
+
+    if (opts.debug)
+    {
+        logging::debug_enabled = true;
     }
 
     if (opts.version)
@@ -155,25 +402,12 @@ try
         return EXIT_SUCCESS;
     }
 
-    {
-        auto const offset = static_cast<size_t>(optind); // NOLINT(misc-include-cleaner)
-        if (offset < args.size())
-        {
-            std::cout << "non-option argv elements:";
-            for (auto const *arg : args.subspan(offset))
-            {
-                std::cout << std::format(" {}", arg);
-            }
-            std::cout << '\n';
-        }
-    }
-
-    {
-        auto const cwd = std::filesystem::current_path();
-        std::cout << std::format("cwd: {}\n", cwd.string());
-    }
-
-    return EXIT_SUCCESS;
+#ifndef _WIN32
+    return run(config);
+#else
+    std::cerr << "Daemon not supported on Windows\n";
+    return EXIT_FAILURE;
+#endif
 }
 catch (std::exception const &e)
 {
