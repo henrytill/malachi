@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -65,11 +64,9 @@ namespace windows
 [[nodiscard]]
 inline auto get_app_data(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto app_data = std::unique_ptr<char> { getenv("APPDATA") };
-    if (app_data != nullptr)
+    if (auto const *app_data = getenv("APPDATA"); app_data != nullptr)
     {
-        auto const config_dir = path { app_data.release() };
-        return optional<path> { config_dir / name };
+        return optional<path> { path { app_data } / name };
     }
     return std::nullopt;
 }
@@ -77,11 +74,9 @@ inline auto get_app_data(GetEnvFn getenv, std::string_view const name) -> option
 [[nodiscard]]
 inline auto get_local_app_data(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto local_app_data = std::unique_ptr<char> { getenv("LOCALAPPDATA") };
-    if (local_app_data != nullptr)
+    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr)
     {
-        auto const data_dir = path { local_app_data.release() };
-        return optional<path> { data_dir / name };
+        return optional<path> { path { local_app_data } / name };
     }
     return std::nullopt;
 }
@@ -89,11 +84,9 @@ inline auto get_local_app_data(GetEnvFn getenv, std::string_view const name) -> 
 [[nodiscard]]
 inline auto get_local_app_data_cache(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto local_app_data = std::unique_ptr<char> { getenv("LOCALAPPDATA") };
-    if (local_app_data != nullptr)
+    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr)
     {
-        auto const cache_dir = path { local_app_data.release() };
-        return optional<path> { cache_dir / name };
+        return optional<path> { path { local_app_data } / name };
     }
     return std::nullopt;
 }
@@ -101,11 +94,9 @@ inline auto get_local_app_data_cache(GetEnvFn getenv, std::string_view const nam
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto temp = std::unique_ptr<char> { getenv("TEMP") };
-    if (temp != nullptr)
+    if (auto const *temp = getenv("TEMP"); temp != nullptr)
     {
-        auto const runtime_dir = path { temp.release() };
-        return optional<path> { runtime_dir / name };
+        return optional<path> { path { temp } / name };
     }
     return std::nullopt;
 }
@@ -118,11 +109,9 @@ namespace mac_os
 [[nodiscard]]
 inline auto get_application_support(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto home = std::unique_ptr<char> { getenv("HOME") };
-    if (home != nullptr)
+    if (auto const *home = getenv("HOME"); home != nullptr)
     {
-        auto const home_dir = path { home.release() };
-        return optional<path> { home_dir / "Library" / "Application Support" / name };
+        return optional<path> { path { home } / "Library" / "Application Support" / name };
     }
     return std::nullopt;
 }
@@ -130,11 +119,9 @@ inline auto get_application_support(GetEnvFn getenv, std::string_view const name
 [[nodiscard]]
 inline auto get_caches(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto home = std::unique_ptr<char> { getenv("HOME") };
-    if (home != nullptr)
+    if (auto const *home = getenv("HOME"); home != nullptr)
     {
-        auto const home_dir = path { home.release() };
-        return optional<path> { home_dir / "Library" / "Caches" / name };
+        return optional<path> { path { home } / "Library" / "Caches" / name };
     }
     return std::nullopt;
 }
@@ -142,11 +129,9 @@ inline auto get_caches(GetEnvFn getenv, std::string_view const name) -> optional
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto tmpdir = std::unique_ptr<char> { getenv("TMPDIR") };
-    if (tmpdir != nullptr)
+    if (auto const *tmpdir = getenv("TMPDIR"); tmpdir != nullptr)
     {
-        auto const tmp_dir = path { tmpdir.release() };
-        return optional<path> { tmp_dir / name };
+        return optional<path> { path { tmpdir } / name };
     }
     return optional<path> { path { "/tmp" } / name };
 }
@@ -159,17 +144,13 @@ namespace xdg
 [[nodiscard]]
 inline auto get_config_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto xdg_config_home = std::unique_ptr<char> { getenv("XDG_CONFIG_HOME") };
-    if (xdg_config_home != nullptr)
+    if (auto const *xdg_config_home = getenv("XDG_CONFIG_HOME"); xdg_config_home != nullptr)
     {
-        auto const config_dir = path { xdg_config_home.release() };
-        return optional<path> { config_dir / name };
+        return optional<path> { path { xdg_config_home } / name };
     }
-    auto home = std::unique_ptr<char> { getenv("HOME") };
-    if (home != nullptr)
+    if (auto const *home = getenv("HOME"); home != nullptr)
     {
-        auto const home_dir = path { home.release() };
-        return optional<path> { home_dir / ".config" / name };
+        return optional<path> { path { home } / ".config" / name };
     }
     return std::nullopt;
 }
@@ -177,17 +158,13 @@ inline auto get_config_home(GetEnvFn getenv, std::string_view const name) -> opt
 [[nodiscard]]
 inline auto get_data_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto xdg_data_home = std::unique_ptr<char> { getenv("XDG_DATA_HOME") };
-    if (xdg_data_home != nullptr)
+    if (auto const *xdg_data_home = getenv("XDG_DATA_HOME"); xdg_data_home != nullptr)
     {
-        auto const data_dir = path { xdg_data_home.release() };
-        return optional<path> { data_dir / name };
+        return optional<path> { path { xdg_data_home } / name };
     }
-    auto home = std::unique_ptr<char> { getenv("HOME") };
-    if (home != nullptr)
+    if (auto const *home = getenv("HOME"); home != nullptr)
     {
-        auto const home_dir = path { home.release() };
-        return optional<path> { home_dir / ".local" / "share" / name };
+        return optional<path> { path { home } / ".local" / "share" / name };
     }
     return std::nullopt;
 }
@@ -195,17 +172,13 @@ inline auto get_data_home(GetEnvFn getenv, std::string_view const name) -> optio
 [[nodiscard]]
 inline auto get_cache_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto xdg_cache_home = std::unique_ptr<char> { getenv("XDG_CACHE_HOME") };
-    if (xdg_cache_home != nullptr)
+    if (auto const *xdg_cache_home = getenv("XDG_CACHE_HOME"); xdg_cache_home != nullptr)
     {
-        auto const cache_dir = path { xdg_cache_home.release() };
-        return optional<path> { cache_dir / name };
+        return optional<path> { path { xdg_cache_home } / name };
     }
-    auto home = std::unique_ptr<char> { getenv("HOME") };
-    if (home != nullptr)
+    if (auto const *home = getenv("HOME"); home != nullptr)
     {
-        auto const home_dir = path { home.release() };
-        return optional<path> { home_dir / ".cache" / name };
+        return optional<path> { path { home } / ".cache" / name };
     }
     return std::nullopt;
 }
@@ -213,11 +186,9 @@ inline auto get_cache_home(GetEnvFn getenv, std::string_view const name) -> opti
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    auto xdg_runtime_dir = std::unique_ptr<char> { getenv("XDG_RUNTIME_DIR") };
-    if (xdg_runtime_dir != nullptr)
+    if (auto const *xdg_runtime_dir = getenv("XDG_RUNTIME_DIR"); xdg_runtime_dir != nullptr)
     {
-        auto const runtime_dir = path { xdg_runtime_dir.release() };
-        return optional<path> { runtime_dir / name };
+        return optional<path> { path { xdg_runtime_dir } / name };
     }
 #ifndef _WIN32
     auto const uid = ::getuid();
