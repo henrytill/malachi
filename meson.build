@@ -29,7 +29,7 @@ configure_file(
 
 executable(
     'malachi',
-    sources: ['src/config.cpp', 'src/main.cpp'],
+    sources: ['src/config.cpp', 'src/logging.cpp', 'src/main.cpp'],
     dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
     include_directories: [include_dir, root_dir],
     install: true,
