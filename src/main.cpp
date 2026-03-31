@@ -30,7 +30,6 @@
 #include "config.h"
 #include "db.h"
 #include "filter.h"
-#include "filter_mupdf.h"
 #include "logging.h"
 #include "parser.h"
 #include "protocol.h"
@@ -252,12 +251,6 @@ auto run(config::Config const &config) -> int
     {
         std::cerr << "Daemon not supported on Windows\n";
         return EXIT_FAILURE;
-    }
-
-    // Register filters
-    if (auto f = filter::make_mupdf_filter(); f != nullptr)
-    {
-        filter::global_registry().add(std::move(f));
     }
 
     // Set up signal handlers

@@ -1,17 +1,13 @@
-#include "filter_mupdf.h"
+#include <array>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string>
+#include <string_view>
 
-#ifdef MALACHI_HAVE_MUPDF
+#include <mupdf/fitz.h> // IWYU pragma: keep
 
-#    include <array>
-#    include <memory>
-#    include <optional>
-#    include <span>
-#    include <string>
-#    include <string_view>
-
-#    include <mupdf/fitz.h> // IWYU pragma: keep
-
-#    include "filter.h"
+#include "filter.h"
 
 namespace malachi::filter
 {
@@ -44,25 +40,11 @@ public:
     }
 };
 
+struct Registrar
+{
+    Registrar() { global_registry().add(std::make_unique<MupdfFilter>()); }
+} const registrar;
+
 } // namespace
 
-auto make_mupdf_filter() -> std::unique_ptr<Filter>
-{
-    return std::make_unique<MupdfFilter>();
-}
-
 } // namespace malachi::filter
-
-#else
-
-namespace malachi::filter
-{
-
-auto make_mupdf_filter() -> std::unique_ptr<Filter>
-{
-    return nullptr;
-}
-
-} // namespace malachi::filter
-
-#endif // MALACHI_HAVE_MUPDF
