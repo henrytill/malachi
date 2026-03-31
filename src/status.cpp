@@ -1,5 +1,6 @@
 #include "status.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string_view>
@@ -7,6 +8,18 @@
 
 namespace malachi::status
 {
+
+namespace
+{
+
+auto repo_path_to_filename(std::filesystem::path const &repo_path) -> std::string
+{
+    auto filename = repo_path.string();
+    std::ranges::replace(filename, '/', '_');
+    return filename;
+}
+
+} // namespace
 
 auto write(
     std::filesystem::path const &runtime_dir, // NOLINT(bugprone-easily-swappable-parameters)
@@ -21,17 +34,7 @@ auto write(
         return false;
     }
 
-    // Use repo path as filename (replacing '/' with '_')
-    auto filename = repo_path.string();
-    for (auto &ch : filename)
-    {
-        if (ch == '/')
-        {
-            ch = '_';
-        }
-    }
-
-    auto const status_file = roots_dir / filename;
+    auto const status_file = roots_dir / repo_path_to_filename(repo_path);
     std::ofstream out { status_file };
     if (not out)
     {
@@ -53,16 +56,7 @@ auto ensure(
         return false;
     }
 
-    auto filename = repo_path.string();
-    for (auto &ch : filename)
-    {
-        if (ch == '/')
-        {
-            ch = '_';
-        }
-    }
-
-    auto const status_file = roots_dir / filename;
+    auto const status_file = roots_dir / repo_path_to_filename(repo_path);
     if (not std::filesystem::exists(status_file))
     {
         std::ofstream { status_file };
