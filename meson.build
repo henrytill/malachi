@@ -13,6 +13,8 @@ sqlite_dep = dependency('sqlite3', required: true)
 
 catch2_dep = dependency('catch2', fallback: ['catch2', 'catch2_dep'])
 
+yyjson_dep = dependency('yyjson', fallback: ['yyjson', 'yyjson_dep'])
+
 include_dir = include_directories('include')
 
 root_dir = include_directories('.')
@@ -43,13 +45,27 @@ executable(
         'src/logging.cpp',
         'src/db.cpp',
         'src/status.cpp',
+        'src/parser.cpp',
         'src/main.cpp',
         schema_h,
     ],
-    dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
+    dependencies: [libgit2_dep, mupdf_dep, sqlite_dep, yyjson_dep],
     include_directories: [include_dir, root_dir],
     install: true,
 )
+
+parser_test = executable(
+    'parser_test',
+    sources: [
+        'src/logging.cpp',
+        'src/parser.cpp',
+        'test/parser_test.cpp',
+    ],
+    dependencies: [catch2_dep, yyjson_dep],
+    include_directories: [include_dir, root_dir],
+)
+
+test('parser_test', parser_test)
 
 db_test = executable(
     'db_test',
