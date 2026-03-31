@@ -10,8 +10,7 @@ public:
     static constexpr auto getenv(std::string_view const name) -> char *
     {
         constexpr auto &vars = Derived::env;
-        auto const *const iterator = std::ranges::find_if(vars, [name](auto const &pair)
-                                                          { return name == pair.first; });
+        auto const *const iterator = std::ranges::find_if(vars, [name](auto const &pair) { return name == pair.first; });
         if (iterator == vars.end())
         {
             return nullptr;

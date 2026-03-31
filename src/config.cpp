@@ -34,8 +34,7 @@ auto Config::to_string() const -> std::string
 
 Builder::Builder(platform::GetEnvFn getenv)
     : getenv_ { std::move(getenv) }
-{
-}
+{ }
 
 auto Builder::with_defaults() && -> Builder &&
 {

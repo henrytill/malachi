@@ -28,8 +28,7 @@ void StmtDeleter::operator()(sqlite3_stmt *stmt) const noexcept
 Database::Database(Sqlite3Ptr conn, std::filesystem::path path)
     : conn_ { std::move(conn) }
     , path_ { std::move(path) }
-{
-}
+{ }
 
 auto Database::open(config::Config const &config) -> Result<Database>
 {

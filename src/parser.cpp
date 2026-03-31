@@ -36,10 +36,7 @@ struct FieldSpec
 };
 
 template <typename Cmd, std::size_t N>
-auto apply_fields(
-    yyjson_val *obj,
-    Cmd &cmd,
-    std::array<FieldSpec<Cmd>, N> const &specs) -> std::optional<ParseError>
+auto apply_fields(yyjson_val *obj, Cmd &cmd, std::array<FieldSpec<Cmd>, N> const &specs) -> std::optional<ParseError>
 {
     for (auto const &spec : specs)
     {
@@ -61,24 +58,25 @@ auto apply_fields(
 
 // Per-command field tables
 
-constexpr auto kAddFields = std::array<FieldSpec<protocol::AddCommand>, 1> { {
-    { .key = "path", .required = true, .setter = [](protocol::AddCommand &c, std::string_view v)
-      { c.path = v; } },
-} };
+constexpr auto kAddFields = std::array<FieldSpec<protocol::AddCommand>, 1> {
+    {
+        { .key = "path", .required = true, .setter = [](protocol::AddCommand &c, std::string_view v) { c.path = v; } },
+    }
+};
 
-constexpr auto kRemoveFields = std::array<FieldSpec<protocol::RemoveCommand>, 1> { {
-    { .key = "path", .required = true, .setter = [](protocol::RemoveCommand &c, std::string_view v)
-      { c.path = v; } },
-} };
+constexpr auto kRemoveFields = std::array<FieldSpec<protocol::RemoveCommand>, 1> {
+    {
+        { .key = "path", .required = true, .setter = [](protocol::RemoveCommand &c, std::string_view v) { c.path = v; } },
+    }
+};
 
-constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> { {
-    { .key = "queryId", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v)
-      { c.query_id = v; } },
-    { .key = "terms", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v)
-      { c.terms = v; } },
-    { .key = "repoFilter", .required = false, .setter = [](protocol::QueryCommand &c, std::string_view v)
-      { c.repo_filter = v; } },
-} };
+constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> {
+    {
+        { .key = "queryId", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.query_id = v; } },
+        { .key = "terms", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.terms = v; } },
+        { .key = "repoFilter", .required = false, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.repo_filter = v; } },
+    }
+};
 
 } // namespace
 
@@ -86,8 +84,7 @@ constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> {
 
 Parser::Parser(std::size_t max_buffer)
     : buf_(max_buffer)
-{
-}
+{ }
 
 auto Parser::feed(int fd) -> ssize_t
 {
@@ -137,8 +134,7 @@ void Parser::reset()
     json_len_ = 0;
 }
 
-auto Parser::parse_json(std::span<std::byte const> json_bytes)
-    -> std::variant<protocol::Command, ParseError>
+auto Parser::parse_json(std::span<std::byte const> json_bytes) -> std::variant<protocol::Command, ParseError>
 {
     auto *doc = yyjson_read(
         reinterpret_cast<char const *>(json_bytes.data()), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)

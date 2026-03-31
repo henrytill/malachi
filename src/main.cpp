@@ -106,18 +106,15 @@ auto handle_command(protocol::Command const &cmd) -> bool
 {
     return std::visit(
         overloaded {
-            [](protocol::AddCommand const &c) -> bool
-            {
+            [](protocol::AddCommand const &c) -> bool {
                 logging::info("add: {}", c.path.string());
                 return false;
             },
-            [](protocol::RemoveCommand const &c) -> bool
-            {
+            [](protocol::RemoveCommand const &c) -> bool {
                 logging::info("remove: {}", c.path.string());
                 return false;
             },
-            [](protocol::QueryCommand const &c) -> bool
-            {
+            [](protocol::QueryCommand const &c) -> bool {
                 logging::info(
                     "query: {} (id={}, filter={})",
                     c.terms,
@@ -125,8 +122,7 @@ auto handle_command(protocol::Command const &cmd) -> bool
                     c.repo_filter ? c.repo_filter->string() : "");
                 return false;
             },
-            [](protocol::ShutdownCommand const &) -> bool
-            {
+            [](protocol::ShutdownCommand const &) -> bool {
                 logging::info("shutdown requested");
                 return true;
             },
