@@ -55,9 +55,12 @@ struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>
 {
     static constexpr auto config_base = R"(C:\Users\Test\AppData\Roaming)";
     static constexpr auto data_base = R"(C:\Users\Test\AppData\Local)";
+    static constexpr auto cache_base = R"(C:\Users\Test\AppData\Local)";
+    static constexpr auto runtime_base = R"(C:\Users\Test\AppData\Local\Temp)";
     static constexpr auto env = std::array {
         std::pair { "APPDATA"sv, config_base },
         std::pair { "LOCALAPPDATA"sv, data_base },
+        std::pair { "TEMP"sv, runtime_base },
     };
 };
 
@@ -66,8 +69,11 @@ struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>>
 {
     static constexpr auto config_base = "/Users/test/Library/Application Support";
     static constexpr auto data_base = "/Users/test/Library/Application Support";
+    static constexpr auto cache_base = "/Users/test/Library/Caches";
+    static constexpr auto runtime_base = "/var/folders/test";
     static constexpr auto env = std::array {
         std::pair { "HOME"sv, "/Users/test" },
+        std::pair { "TMPDIR"sv, runtime_base },
     };
 };
 
@@ -76,9 +82,13 @@ struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>>
 {
     static constexpr auto config_base = "/home/test/.config";
     static constexpr auto data_base = "/home/test/.local/share";
+    static constexpr auto cache_base = "/home/test/.cache";
+    static constexpr auto runtime_base = "/run/user/1000";
     static constexpr auto env = std::array {
         std::pair { "XDG_CONFIG_HOME"sv, config_base },
         std::pair { "XDG_DATA_HOME"sv, data_base },
+        std::pair { "XDG_CACHE_HOME"sv, cache_base },
+        std::pair { "XDG_RUNTIME_DIR"sv, runtime_base },
     };
 };
 
@@ -103,6 +113,8 @@ TEMPLATE_TEST_CASE_METHOD_SIG(
         {
             auto const expected_config = std::filesystem::path { DirFixture<P>::config_base } / name;
             auto const expected_data = std::filesystem::path { DirFixture<P>::data_base } / name;
+            auto const expected_cache = std::filesystem::path { DirFixture<P>::cache_base } / name;
+            auto const expected_runtime = std::filesystem::path { DirFixture<P>::runtime_base } / name;
 
             auto const config_dir = get_config_dir<P>(DirFixture<P>::getenv, name);
             REQUIRE(config_dir.has_value());
@@ -111,6 +123,14 @@ TEMPLATE_TEST_CASE_METHOD_SIG(
             auto const data_dir = get_data_dir<P>(DirFixture<P>::getenv, name);
             REQUIRE(data_dir.has_value());
             CHECK(data_dir.value() == expected_data); // NOLINT(bugprone-unchecked-optional-access)
+
+            auto const cache_dir = get_cache_dir<P>(DirFixture<P>::getenv, name);
+            REQUIRE(cache_dir.has_value());
+            CHECK(cache_dir.value() == expected_cache); // NOLINT(bugprone-unchecked-optional-access)
+
+            auto const runtime_dir = get_runtime_dir<P>(DirFixture<P>::getenv, name);
+            REQUIRE(runtime_dir.has_value());
+            CHECK(runtime_dir.value() == expected_runtime); // NOLINT(bugprone-unchecked-optional-access)
         }
     }
 }
