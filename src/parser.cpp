@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <format>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
@@ -78,6 +79,8 @@ constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> {
     }
 };
 
+using DocPtr = std::unique_ptr<yyjson_doc, void (*)(yyjson_doc *)>;
+
 } // namespace
 
 // Parser implementation
@@ -136,31 +139,17 @@ void Parser::reset()
 
 auto Parser::parse_json(std::span<std::byte const> json_bytes) -> std::variant<protocol::Command, ParseError>
 {
-    auto *doc = yyjson_read(
-        reinterpret_cast<char const *>(json_bytes.data()), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        json_bytes.size(),
-        0);
+    DocPtr const doc {
+        yyjson_read(reinterpret_cast<char const *>(json_bytes.data()), json_bytes.size(), 0), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        yyjson_doc_free
+    };
 
     if (doc == nullptr)
     {
         return ParseError { "invalid JSON" };
     }
 
-    struct DocGuard
-    {
-        yyjson_doc *doc;
-        explicit DocGuard(yyjson_doc *d)
-            : doc { d }
-        {
-        }
-        DocGuard(DocGuard const &) = delete;
-        auto operator=(DocGuard const &) -> DocGuard & = delete;
-        DocGuard(DocGuard &&) = delete;
-        auto operator=(DocGuard &&) -> DocGuard & = delete;
-        ~DocGuard() { yyjson_doc_free(doc); }
-    } const guard { doc };
-
-    auto *root = yyjson_doc_get_root(doc);
+    auto *root = yyjson_doc_get_root(doc.get());
     if (root == nullptr || yyjson_get_type(root) != YYJSON_TYPE_OBJ)
     {
         return ParseError { "JSON root is not an object" };
