@@ -1,0 +1,5 @@
+#pragma once
+
+// clang-format off
+inline constexpr char const *kMalachiSchemaSql = @MALACHI_SCHEMA_SQL@;
+// clang-format on

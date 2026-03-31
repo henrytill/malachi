@@ -17,6 +17,15 @@ include_dir = include_directories('include')
 
 root_dir = include_directories('.')
 
+fs = import('fs')
+schema = fs.read('src/schema.sql')
+schema_escaped = schema.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+schema_h = configure_file(
+    input: 'include/schema.h.in',
+    output: 'schema.h',
+    configuration: {'MALACHI_SCHEMA_SQL': '"' + schema_escaped + '"'},
+)
+
 configure_file(
     output: 'project.h',
     configuration: {
@@ -29,11 +38,34 @@ configure_file(
 
 executable(
     'malachi',
-    sources: ['src/config.cpp', 'src/logging.cpp', 'src/main.cpp'],
+    sources: [
+        'src/config.cpp',
+        'src/logging.cpp',
+        'src/db.cpp',
+        'src/status.cpp',
+        'src/main.cpp',
+        schema_h,
+    ],
     dependencies: [libgit2_dep, mupdf_dep, sqlite_dep],
     include_directories: [include_dir, root_dir],
     install: true,
 )
+
+db_test = executable(
+    'db_test',
+    sources: [
+        'src/config.cpp',
+        'src/logging.cpp',
+        'src/db.cpp',
+        'src/status.cpp',
+        'test/db_test.cpp',
+        schema_h,
+    ],
+    dependencies: [catch2_dep, sqlite_dep],
+    include_directories: [include_dir, root_dir],
+)
+
+test('db_test', db_test)
 
 platform_test = executable(
     'platform_test',
