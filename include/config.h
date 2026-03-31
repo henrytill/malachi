@@ -38,7 +38,7 @@ using Result = std::variant<Config, Error>;
 class Builder
 {
 public:
-    Builder(platform::GetEnvFn getenv);
+    explicit Builder(platform::GetEnvFn getenv);
     auto with_defaults() && -> Builder &&;
     auto build() && -> Result;
 
