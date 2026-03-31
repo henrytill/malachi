@@ -1,12 +1,8 @@
 #pragma once
 
-#include "project.h"
+#include <memory>
 
-#ifdef MALACHI_HAVE_MUPDF
-
-#    include <memory>
-
-#    include "filter.h"
+#include "filter.h"
 
 namespace malachi::filter
 {
@@ -14,5 +10,3 @@ namespace malachi::filter
 auto make_mupdf_filter() -> std::unique_ptr<Filter>;
 
 } // namespace malachi::filter
-
-#endif // MALACHI_HAVE_MUPDF

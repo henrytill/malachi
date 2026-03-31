@@ -269,9 +269,10 @@ auto run(config::Config const &config) -> int
     }
 
     // Register filters
-#    ifdef MALACHI_HAVE_MUPDF
-    filter::global_registry().add(filter::make_mupdf_filter());
-#    endif
+    if (auto f = filter::make_mupdf_filter(); f != nullptr)
+    {
+        filter::global_registry().add(std::move(f));
+    }
 
     // Set up signal handlers
     struct sigaction sa {};
