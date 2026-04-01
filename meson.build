@@ -5,6 +5,19 @@ project(
     default_options: ['warning_level=2', 'cpp_std=c++20'],
 )
 
+perl = find_program('perl', required: false)
+if perl.found()
+    perl_modules = ['Cwd', 'File::Basename', 'File::Spec', 'Getopt::Std', 'Git', 'JSON::XS', 'JSON::PP']
+    foreach module : perl_modules
+        result = run_command(perl, '-e', 'use @0@;'.format(module), check: false)
+        if result.returncode() == 0
+            message('Perl module @0@ found: YES'.format(module))
+        else
+            warning('Perl module @0@ found: NO'.format(module))
+        endif
+    endforeach
+endif
+
 libgit2_dep = dependency('libgit2', required: true)
 
 mupdf_dep = dependency('mupdf', required: false)
@@ -110,3 +123,8 @@ config_test = executable(
 test('platform_test', platform_test)
 
 test('config_test', config_test)
+
+if not get_option('prefix').startswith(meson.current_source_dir())
+    install_data('bin/git-crawl', install_dir: get_option('bindir'))
+    install_man('man/man1/malachi.1')
+endif
