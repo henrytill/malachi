@@ -13,6 +13,7 @@
 #include <span>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <variant>
 
 #include <fcntl.h>
@@ -46,6 +47,47 @@ template <typename... Ts>
 struct overloaded : Ts...
 {
     using Ts::operator()...;
+};
+
+struct UniqueFd
+{
+    int fd { -1 };
+    UniqueFd() = default;
+
+    explicit UniqueFd(int fd)
+        : fd { fd }
+    { }
+
+    ~UniqueFd()
+    {
+        if (fd != -1)
+        {
+            ::close(fd);
+        }
+    }
+
+    UniqueFd(UniqueFd const &) = delete;
+    auto operator=(UniqueFd const &) -> UniqueFd & = delete;
+
+    UniqueFd(UniqueFd &&other) noexcept
+        : fd { std::exchange(other.fd, -1) }
+    { }
+
+    auto operator=(UniqueFd &&other) noexcept -> UniqueFd &
+    {
+        if (this != &other)
+        {
+            if (fd != -1)
+            {
+                ::close(fd);
+            }
+            fd = std::exchange(other.fd, -1);
+        }
+        return *this;
+    }
+
+    explicit operator bool() const { return fd != -1; }
+    [[nodiscard]] auto get() const -> int { return fd; }
 };
 
 constexpr auto kUsageMsg = std::string_view { "Usage: {} [-v|--version] [-c|--config] [-d|--debug]\n" };
@@ -142,11 +184,11 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
     while (loopstat != 0)
     {
         // Open the named pipe non-blocking
-        int pipe_fd = -1;
-        while (loopstat != 0 && pipe_fd == -1)
+        auto pipe_fd = UniqueFd {};
+        while (loopstat != 0 && !pipe_fd)
         {
-            pipe_fd = ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK); // NOLINT(cppcoreguidelines-pro-type-vararg)
-            if (pipe_fd == -1)
+            pipe_fd = UniqueFd { ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK) }; // NOLINT(cppcoreguidelines-pro-type-vararg)
+            if (!pipe_fd)
             {
                 if (errno == EINTR)
                 {
@@ -157,14 +199,14 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
             }
         }
 
-        if (pipe_fd == -1)
+        if (!pipe_fd)
         {
             break;
         }
 
         par.reset();
 
-        struct pollfd pfd { .fd = pipe_fd, .events = POLLIN, .revents = 0 }; // NOLINT(misc-include-cleaner)
+        struct pollfd pfd { .fd = pipe_fd.get(), .events = POLLIN, .revents = 0 }; // NOLINT(misc-include-cleaner)
 
         while (loopstat != 0)
         {
@@ -177,20 +219,18 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                     continue;
                 }
                 logging::error("poll: {}", std::strerror(errno));
-                ::close(pipe_fd);
                 return -1;
             }
 
             if ((pfd.revents & POLLERR) != 0) // NOLINT(misc-include-cleaner)
             {
                 logging::error("pipe error");
-                ::close(pipe_fd);
                 return -1;
             }
 
             if ((pfd.revents & POLLIN) != 0)
             {
-                auto const n = par.feed(pipe_fd);
+                auto const n = par.feed(pipe_fd.get());
                 if (n == 0)
                 {
                     // EOF — client disconnected, reopen
@@ -203,7 +243,6 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                         continue;
                     }
                     logging::error("read: {}", std::strerror(errno));
-                    ::close(pipe_fd);
                     return -1;
                 }
 
@@ -234,8 +273,6 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                 break;
             }
         }
-
-        ::close(pipe_fd);
     }
 
     return 0;
