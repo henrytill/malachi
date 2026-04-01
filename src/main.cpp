@@ -306,7 +306,7 @@ auto run(config::Config const &config) -> int
     }
 
     // Create runtime directory and named pipe
-    auto const daemon_dir = config.runtime_dir / "malachi";
+    auto const daemon_dir = config.runtime_dir;
     std::error_code ec;
     std::filesystem::create_directories(daemon_dir, ec);
     if (ec)
