@@ -37,6 +37,7 @@
             libgit2
             mupdf
             sqlite
+            yyjson
           ];
           doCheck = true;
         };
