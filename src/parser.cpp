@@ -61,21 +61,21 @@ auto apply_fields(yyjson_val *obj, Cmd &cmd, std::array<FieldSpec<Cmd>, N> const
 
 constexpr auto kAddFields = std::array<FieldSpec<protocol::AddCommand>, 1> {
     {
-        { .key = "path", .required = true, .setter = [](protocol::AddCommand &c, std::string_view v) { c.path = v; } },
+        { .key = "path", .required = true, .setter = [](protocol::AddCommand &c, std::string_view v) -> void { c.path = v; } },
     }
 };
 
 constexpr auto kRemoveFields = std::array<FieldSpec<protocol::RemoveCommand>, 1> {
     {
-        { .key = "path", .required = true, .setter = [](protocol::RemoveCommand &c, std::string_view v) { c.path = v; } },
+        { .key = "path", .required = true, .setter = [](protocol::RemoveCommand &c, std::string_view v) -> void { c.path = v; } },
     }
 };
 
 constexpr auto kQueryFields = std::array<FieldSpec<protocol::QueryCommand>, 3> {
     {
-        { .key = "queryId", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.query_id = v; } },
-        { .key = "terms", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.terms = v; } },
-        { .key = "repoFilter", .required = false, .setter = [](protocol::QueryCommand &c, std::string_view v) { c.repo_filter = v; } },
+        { .key = "queryId", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) -> void { c.query_id = v; } },
+        { .key = "terms", .required = true, .setter = [](protocol::QueryCommand &c, std::string_view v) -> void { c.terms = v; } },
+        { .key = "repoFilter", .required = false, .setter = [](protocol::QueryCommand &c, std::string_view v) -> void { c.repo_filter = v; } },
     }
 };
 
