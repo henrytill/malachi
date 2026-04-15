@@ -106,7 +106,7 @@ void print_usage(char const *program)
 
 // Signal handling
 
-sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::sig_atomic_t volatile loopstat = 1; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 void handle_signal(int /*sig*/)
 {
