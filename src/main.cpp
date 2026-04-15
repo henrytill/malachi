@@ -16,10 +16,10 @@
 #include <utility>
 #include <variant>
 
+#include <csignal>
 #include <fcntl.h>
 #include <getopt.h> // IWYU pragma: keep
 #include <poll.h>   // IWYU pragma: keep
-#include <signal.h> // NOLINT(hicpp-deprecated-headers,modernize-deprecated-headers)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -288,20 +288,14 @@ auto run(config::Config const &config) -> int
     }
 
     // Set up signal handlers
-    struct sigaction sa {};
-    sa.sa_handler = handle_signal;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    auto const sigint_rc = sigaction(SIGINT, &sa, nullptr);
-    if (sigint_rc != 0)
+    if (std::signal(SIGINT, handle_signal) == SIG_ERR)
     {
-        logging::error("sigaction(SIGINT): {}", std::strerror(errno));
+        logging::error("signal(SIGINT): {}", std::strerror(errno));
         return EXIT_FAILURE;
     }
-    auto const sigterm_rc = sigaction(SIGTERM, &sa, nullptr);
-    if (sigterm_rc != 0)
+    if (std::signal(SIGTERM, handle_signal) == SIG_ERR)
     {
-        logging::error("sigaction(SIGTERM): {}", std::strerror(errno));
+        logging::error("signal(SIGTERM): {}", std::strerror(errno));
         return EXIT_FAILURE;
     }
 
