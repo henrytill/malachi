@@ -51,8 +51,7 @@ template <Platform P>
 struct DirFixture;
 
 template <>
-struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>>
-{
+struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>> {
     static constexpr auto config_base = R"(C:\Users\Test\AppData\Roaming)";
     static constexpr auto data_base = R"(C:\Users\Test\AppData\Local)";
     static constexpr auto cache_base = R"(C:\Users\Test\AppData\Local)";
@@ -65,8 +64,7 @@ struct DirFixture<Platform::Windows> : Environment<DirFixture<Platform::Windows>
 };
 
 template <>
-struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>>
-{
+struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>> {
     static constexpr auto config_base = "/Users/test/Library/Application Support";
     static constexpr auto data_base = "/Users/test/Library/Application Support";
     static constexpr auto cache_base = "/Users/test/Library/Caches";
@@ -78,8 +76,7 @@ struct DirFixture<Platform::MacOS> : Environment<DirFixture<Platform::MacOS>>
 };
 
 template <>
-struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>>
-{
+struct DirFixture<Platform::Linux> : Environment<DirFixture<Platform::Linux>> {
     static constexpr auto config_base = "/home/test/.config";
     static constexpr auto data_base = "/home/test/.local/share";
     static constexpr auto cache_base = "/home/test/.cache";
@@ -107,8 +104,7 @@ TEMPLATE_TEST_CASE_METHOD_SIG(
     Platform::MacOS,
     Platform::Linux)
 {
-    for (auto const &name : { std::string_view { "test_app" }, std::string_view {} })
-    {
+    for (auto const &name : { std::string_view { "test_app" }, std::string_view {} }) {
         SECTION(std::format("Name: {}", name.empty() ? "<empty>" : name))
         {
             auto const expected_config = std::filesystem::path { DirFixture<P>::config_base } / name;

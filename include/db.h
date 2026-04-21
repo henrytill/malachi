@@ -11,11 +11,9 @@
 
 #include "config.h"
 
-namespace malachi::db
-{
+namespace malachi::db {
 
-struct DbError
-{
+struct DbError {
     int sqlite_code;
     std::string message;
 };
@@ -23,21 +21,18 @@ struct DbError
 template <typename T>
 using Result = std::variant<T, DbError>;
 
-struct Sqlite3Deleter
-{
+struct Sqlite3Deleter {
     void operator()(sqlite3 *conn) const noexcept;
 };
 
-struct StmtDeleter
-{
+struct StmtDeleter {
     void operator()(sqlite3_stmt *stmt) const noexcept;
 };
 
 using Sqlite3Ptr = std::unique_ptr<sqlite3, Sqlite3Deleter>;
 using StmtPtr = std::unique_ptr<sqlite3_stmt, StmtDeleter>;
 
-class Database
-{
+class Database {
 public:
     static auto open(config::Config const &config) -> Result<Database>;
 

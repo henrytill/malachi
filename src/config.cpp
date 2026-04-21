@@ -7,8 +7,7 @@
 
 #include "platform.h"
 
-namespace malachi::config
-{
+namespace malachi::config {
 
 static constexpr auto kName = std::string_view { "malachi" };
 static constexpr auto kMissingConfigDirMsg = std::string_view { "Configuration directory could not be determined" };
@@ -34,7 +33,8 @@ auto Config::to_string() const -> std::string
 
 Builder::Builder(platform::GetEnvFn getenv)
     : getenv_ { std::move(getenv) }
-{ }
+{
+}
 
 auto Builder::with_defaults() && -> Builder &&
 {
@@ -47,32 +47,28 @@ auto Builder::with_defaults() && -> Builder &&
 
 auto Builder::build() && -> Result
 {
-    if (not maybe_config_dir_.has_value())
-    {
+    if (not maybe_config_dir_.has_value()) {
         return Error {
             .code = ErrorCode::kMissingDir,
             .message = std::string { kMissingConfigDirMsg },
         };
     }
 
-    if (not maybe_data_dir_.has_value())
-    {
+    if (not maybe_data_dir_.has_value()) {
         return Error {
             .code = ErrorCode::kMissingDir,
             .message = std::string { kMissingDataDirMsg },
         };
     }
 
-    if (not maybe_cache_dir_.has_value())
-    {
+    if (not maybe_cache_dir_.has_value()) {
         return Error {
             .code = ErrorCode::kMissingDir,
             .message = std::string { kMissingCacheDirMsg },
         };
     }
 
-    if (not maybe_runtime_dir_.has_value())
-    {
+    if (not maybe_runtime_dir_.has_value()) {
         return Error {
             .code = ErrorCode::kMissingDir,
             .message = std::string { kMissingRuntimeDirMsg },

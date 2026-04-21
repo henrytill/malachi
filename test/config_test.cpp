@@ -18,8 +18,7 @@ using namespace std::literals;
 using namespace malachi::config;
 using platform::Platform;
 
-struct EmptyConfigFixture : Environment<EmptyConfigFixture>
-{
+struct EmptyConfigFixture : Environment<EmptyConfigFixture> {
     static constexpr auto env = std::array<std::pair<std::string_view, char const *>, 0> {};
 };
 
@@ -37,8 +36,7 @@ template <Platform P>
 struct ConfigFixture;
 
 template <>
-struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Windows>>
-{
+struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Windows>> {
     static constexpr auto env = std::array {
         std::pair { "APPDATA"sv, R"(C:\Users\Test\AppData\Roaming)" },
         std::pair { "LOCALAPPDATA"sv, R"(C:\Users\Test\AppData\Local)" },
@@ -51,8 +49,7 @@ struct ConfigFixture<Platform::Windows> : Environment<ConfigFixture<Platform::Wi
 };
 
 template <>
-struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacOS>>
-{
+struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacOS>> {
     static constexpr auto env = std::array {
         std::pair { "HOME"sv, "/Users/test" },
         std::pair { "TMPDIR"sv, "/var/folders/test" },
@@ -64,8 +61,7 @@ struct ConfigFixture<Platform::MacOS> : Environment<ConfigFixture<Platform::MacO
 };
 
 template <>
-struct ConfigFixture<Platform::Linux> : Environment<ConfigFixture<Platform::Linux>>
-{
+struct ConfigFixture<Platform::Linux> : Environment<ConfigFixture<Platform::Linux>> {
     static constexpr auto env = std::array {
         std::pair { "XDG_CONFIG_HOME"sv, "/home/test/.config" },
         std::pair { "XDG_DATA_HOME"sv, "/home/test/.local/share" },
@@ -101,24 +97,21 @@ template <Platform P>
 struct PartialConfigFixture;
 
 template <>
-struct PartialConfigFixture<Platform::Windows> : Environment<PartialConfigFixture<Platform::Windows>>
-{
+struct PartialConfigFixture<Platform::Windows> : Environment<PartialConfigFixture<Platform::Windows>> {
     static constexpr auto env = std::array {
         std::pair { "APPDATA"sv, R"(C:\Users\Test\AppData\Roaming)" },
     };
 };
 
 template <>
-struct PartialConfigFixture<Platform::MacOS> : Environment<PartialConfigFixture<Platform::MacOS>>
-{
+struct PartialConfigFixture<Platform::MacOS> : Environment<PartialConfigFixture<Platform::MacOS>> {
     static constexpr auto env = std::array {
         std::pair { "HOME"sv, "/Users/test" },
     };
 };
 
 template <>
-struct PartialConfigFixture<Platform::Linux> : Environment<PartialConfigFixture<Platform::Linux>>
-{
+struct PartialConfigFixture<Platform::Linux> : Environment<PartialConfigFixture<Platform::Linux>> {
     static constexpr auto env = std::array {
         std::pair { "XDG_CONFIG_HOME"sv, "/home/test/.config" },
     };
@@ -133,13 +126,10 @@ TEMPLATE_TEST_CASE_METHOD_SIG(
 {
     auto const result = Builder(PartialConfigFixture<P>::getenv).with_defaults().build();
 
-    if constexpr (P == Platform::MacOS)
-    {
+    if constexpr (P == Platform::MacOS) {
         // macOS doesn't require a separate data directory
         REQUIRE(std::holds_alternative<Config>(result));
-    }
-    else
-    {
+    } else {
         // Other platforms require both directories
         REQUIRE(std::holds_alternative<Error>(result));
 

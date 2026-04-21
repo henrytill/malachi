@@ -4,8 +4,7 @@
 #include <iostream>
 #include <string_view>
 
-namespace malachi::logging
-{
+namespace malachi::logging {
 
 extern bool debug_enabled; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -21,8 +20,7 @@ inline void log_error(std::string_view msg)
 
 inline void log_debug(std::string_view msg)
 {
-    if (debug_enabled)
-    {
+    if (debug_enabled) {
         std::cout << std::format("[DEBUG] {}\n", msg);
     }
 }

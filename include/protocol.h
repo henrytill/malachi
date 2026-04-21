@@ -5,28 +5,23 @@
 #include <string>
 #include <variant>
 
-namespace malachi::protocol
-{
+namespace malachi::protocol {
 
-struct AddCommand
-{
+struct AddCommand {
     std::filesystem::path path;
 };
 
-struct RemoveCommand
-{
+struct RemoveCommand {
     std::filesystem::path path;
 };
 
-struct QueryCommand
-{
+struct QueryCommand {
     std::string query_id;
     std::string terms;
     std::optional<std::filesystem::path> repo_filter;
 };
 
-struct ShutdownCommand
-{
+struct ShutdownCommand {
 };
 
 using Command = std::variant<AddCommand, RemoveCommand, QueryCommand, ShutdownCommand>;

@@ -8,22 +8,18 @@
 
 #include "platform.h"
 
-namespace malachi::config
-{
+namespace malachi::config {
 
-enum class ErrorCode : int8_t
-{
+enum class ErrorCode : int8_t {
     kMissingDir = 1,
 };
 
-struct Error
-{
+struct Error {
     ErrorCode code;
     std::string message;
 };
 
-struct Config
-{
+struct Config {
     std::filesystem::path config_dir;
     std::filesystem::path data_dir;
     std::filesystem::path cache_dir;
@@ -35,8 +31,7 @@ struct Config
 
 using Result = std::variant<Config, Error>;
 
-class Builder
-{
+class Builder {
 public:
     explicit Builder(platform::GetEnvFn getenv);
     auto with_defaults() && -> Builder &&;

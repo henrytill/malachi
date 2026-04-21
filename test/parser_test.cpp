@@ -24,8 +24,7 @@ static void write_message(int fd, std::string const &json)
 }
 
 // RAII pipe pair
-struct Pipe
-{
+struct Pipe {
     std::array<int, 2> fds {};
 
     Pipe()

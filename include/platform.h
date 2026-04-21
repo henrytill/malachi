@@ -12,8 +12,7 @@
 #    include <unistd.h>
 #endif
 
-namespace platform
-{
+namespace platform {
 
 template <typename T>
 using optional = std::optional<T>;
@@ -22,8 +21,7 @@ using path = std::filesystem::path;
 
 using GetEnvFn = std::function<char *(char const *)>;
 
-enum class Platform : uint8_t
-{
+enum class Platform : uint8_t {
     Windows,
     MacOS,
     Linux,
@@ -43,8 +41,7 @@ enum class Platform : uint8_t
 [[nodiscard]]
 constexpr auto to_string_view(const Platform platform) -> std::string_view
 {
-    switch (platform)
-    {
+    switch (platform) {
     case Platform::Windows:
         return "Windows";
     case Platform::MacOS:
@@ -58,14 +55,12 @@ constexpr auto to_string_view(const Platform platform) -> std::string_view
     };
 }
 
-namespace windows
-{
+namespace windows {
 
 [[nodiscard]]
 inline auto get_app_data(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *app_data = getenv("APPDATA"); app_data != nullptr)
-    {
+    if (auto const *app_data = getenv("APPDATA"); app_data != nullptr) {
         return optional<path> { path { app_data } / name };
     }
     return std::nullopt;
@@ -74,8 +69,7 @@ inline auto get_app_data(GetEnvFn getenv, std::string_view const name) -> option
 [[nodiscard]]
 inline auto get_local_app_data(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr)
-    {
+    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr) {
         return optional<path> { path { local_app_data } / name };
     }
     return std::nullopt;
@@ -84,8 +78,7 @@ inline auto get_local_app_data(GetEnvFn getenv, std::string_view const name) -> 
 [[nodiscard]]
 inline auto get_local_app_data_cache(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr)
-    {
+    if (auto const *local_app_data = getenv("LOCALAPPDATA"); local_app_data != nullptr) {
         return optional<path> { path { local_app_data } / name };
     }
     return std::nullopt;
@@ -94,8 +87,7 @@ inline auto get_local_app_data_cache(GetEnvFn getenv, std::string_view const nam
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *temp = getenv("TEMP"); temp != nullptr)
-    {
+    if (auto const *temp = getenv("TEMP"); temp != nullptr) {
         return optional<path> { path { temp } / name };
     }
     return std::nullopt;
@@ -103,14 +95,12 @@ inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> opt
 
 } // namespace windows
 
-namespace mac_os
-{
+namespace mac_os {
 
 [[nodiscard]]
 inline auto get_application_support(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *home = getenv("HOME"); home != nullptr)
-    {
+    if (auto const *home = getenv("HOME"); home != nullptr) {
         return optional<path> { path { home } / "Library" / "Application Support" / name };
     }
     return std::nullopt;
@@ -119,8 +109,7 @@ inline auto get_application_support(GetEnvFn getenv, std::string_view const name
 [[nodiscard]]
 inline auto get_caches(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *home = getenv("HOME"); home != nullptr)
-    {
+    if (auto const *home = getenv("HOME"); home != nullptr) {
         return optional<path> { path { home } / "Library" / "Caches" / name };
     }
     return std::nullopt;
@@ -129,8 +118,7 @@ inline auto get_caches(GetEnvFn getenv, std::string_view const name) -> optional
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *tmpdir = getenv("TMPDIR"); tmpdir != nullptr)
-    {
+    if (auto const *tmpdir = getenv("TMPDIR"); tmpdir != nullptr) {
         return optional<path> { path { tmpdir } / name };
     }
     return optional<path> { path { "/tmp" } / name };
@@ -138,18 +126,15 @@ inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> opt
 
 } // namespace mac_os
 
-namespace xdg
-{
+namespace xdg {
 
 [[nodiscard]]
 inline auto get_config_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *xdg_config_home = getenv("XDG_CONFIG_HOME"); xdg_config_home != nullptr)
-    {
+    if (auto const *xdg_config_home = getenv("XDG_CONFIG_HOME"); xdg_config_home != nullptr) {
         return optional<path> { path { xdg_config_home } / name };
     }
-    if (auto const *home = getenv("HOME"); home != nullptr)
-    {
+    if (auto const *home = getenv("HOME"); home != nullptr) {
         return optional<path> { path { home } / ".config" / name };
     }
     return std::nullopt;
@@ -158,12 +143,10 @@ inline auto get_config_home(GetEnvFn getenv, std::string_view const name) -> opt
 [[nodiscard]]
 inline auto get_data_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *xdg_data_home = getenv("XDG_DATA_HOME"); xdg_data_home != nullptr)
-    {
+    if (auto const *xdg_data_home = getenv("XDG_DATA_HOME"); xdg_data_home != nullptr) {
         return optional<path> { path { xdg_data_home } / name };
     }
-    if (auto const *home = getenv("HOME"); home != nullptr)
-    {
+    if (auto const *home = getenv("HOME"); home != nullptr) {
         return optional<path> { path { home } / ".local" / "share" / name };
     }
     return std::nullopt;
@@ -172,12 +155,10 @@ inline auto get_data_home(GetEnvFn getenv, std::string_view const name) -> optio
 [[nodiscard]]
 inline auto get_cache_home(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *xdg_cache_home = getenv("XDG_CACHE_HOME"); xdg_cache_home != nullptr)
-    {
+    if (auto const *xdg_cache_home = getenv("XDG_CACHE_HOME"); xdg_cache_home != nullptr) {
         return optional<path> { path { xdg_cache_home } / name };
     }
-    if (auto const *home = getenv("HOME"); home != nullptr)
-    {
+    if (auto const *home = getenv("HOME"); home != nullptr) {
         return optional<path> { path { home } / ".cache" / name };
     }
     return std::nullopt;
@@ -186,8 +167,7 @@ inline auto get_cache_home(GetEnvFn getenv, std::string_view const name) -> opti
 [[nodiscard]]
 inline auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if (auto const *xdg_runtime_dir = getenv("XDG_RUNTIME_DIR"); xdg_runtime_dir != nullptr)
-    {
+    if (auto const *xdg_runtime_dir = getenv("XDG_RUNTIME_DIR"); xdg_runtime_dir != nullptr) {
         return optional<path> { path { xdg_runtime_dir } / name };
     }
     auto const uid = ::getuid();
@@ -200,16 +180,11 @@ template <Platform p = get_platform()>
 [[nodiscard]]
 auto get_config_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if constexpr (p == Platform::Windows)
-    {
+    if constexpr (p == Platform::Windows) {
         return windows::get_app_data(getenv, name);
-    }
-    else if constexpr (p == Platform::MacOS)
-    {
+    } else if constexpr (p == Platform::MacOS) {
         return mac_os::get_application_support(getenv, name);
-    }
-    else
-    {
+    } else {
         return xdg::get_config_home(getenv, name);
     }
 }
@@ -218,16 +193,11 @@ template <Platform p = get_platform()>
 [[nodiscard]]
 auto get_data_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if constexpr (p == Platform::Windows)
-    {
+    if constexpr (p == Platform::Windows) {
         return windows::get_local_app_data(getenv, name);
-    }
-    else if constexpr (p == Platform::MacOS)
-    {
+    } else if constexpr (p == Platform::MacOS) {
         return mac_os::get_application_support(getenv, name);
-    }
-    else
-    {
+    } else {
         return xdg::get_data_home(getenv, name);
     }
 }
@@ -236,16 +206,11 @@ template <Platform p = get_platform()>
 [[nodiscard]]
 auto get_cache_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if constexpr (p == Platform::Windows)
-    {
+    if constexpr (p == Platform::Windows) {
         return windows::get_local_app_data_cache(getenv, name);
-    }
-    else if constexpr (p == Platform::MacOS)
-    {
+    } else if constexpr (p == Platform::MacOS) {
         return mac_os::get_caches(getenv, name);
-    }
-    else
-    {
+    } else {
         return xdg::get_cache_home(getenv, name);
     }
 }
@@ -254,16 +219,11 @@ template <Platform p = get_platform()>
 [[nodiscard]]
 auto get_runtime_dir(GetEnvFn getenv, std::string_view const name) -> optional<path>
 {
-    if constexpr (p == Platform::Windows)
-    {
+    if constexpr (p == Platform::Windows) {
         return windows::get_runtime_dir(getenv, name);
-    }
-    else if constexpr (p == Platform::MacOS)
-    {
+    } else if constexpr (p == Platform::MacOS) {
         return mac_os::get_runtime_dir(getenv, name);
-    }
-    else
-    {
+    } else {
         return xdg::get_runtime_dir(getenv, name);
     }
 }

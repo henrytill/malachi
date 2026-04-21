@@ -3,8 +3,7 @@
 #include <filesystem>
 #include <string_view>
 
-namespace malachi::status
-{
+namespace malachi::status {
 
 auto write(
     std::filesystem::path const &runtime_dir,

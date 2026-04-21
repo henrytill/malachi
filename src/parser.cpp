@@ -20,17 +20,14 @@
 
 #include "protocol.h"
 
-namespace malachi::parser
-{
+namespace malachi::parser {
 
-namespace
-{
+namespace {
 
 // Declarative field descriptors
 
 template <typename Cmd>
-struct FieldSpec
-{
+struct FieldSpec {
     std::string_view key;
     bool required {};
     void (*setter)(Cmd &, std::string_view);
@@ -39,18 +36,13 @@ struct FieldSpec
 template <typename Cmd, std::size_t N>
 auto apply_fields(yyjson_val *obj, Cmd &cmd, std::array<FieldSpec<Cmd>, N> const &specs) -> std::optional<ParseError>
 {
-    for (auto const &spec : specs)
-    {
+    for (auto const &spec : specs) {
         auto *val = yyjson_obj_getn(obj, spec.key.data(), spec.key.size());
-        if (val == nullptr || yyjson_get_type(val) != YYJSON_TYPE_STR)
-        {
-            if (spec.required)
-            {
+        if (val == nullptr || yyjson_get_type(val) != YYJSON_TYPE_STR) {
+            if (spec.required) {
                 return ParseError { std::format("missing required field '{}'", spec.key) };
             }
-        }
-        else
-        {
+        } else {
             spec.setter(cmd, std::string_view { yyjson_get_str(val), yyjson_get_len(val) });
         }
     }
@@ -87,18 +79,17 @@ using DocPtr = std::unique_ptr<yyjson_doc, void (*)(yyjson_doc *)>;
 
 Parser::Parser(std::size_t max_buffer)
     : buf_(max_buffer)
-{ }
+{
+}
 
 auto Parser::feed(int fd) -> ssize_t
 {
     auto const space = buf_.size() - buf_used_;
-    if (space == 0)
-    {
+    if (space == 0) {
         return -1; // buffer full
     }
     auto const n = ::read(fd, buf_.data() + buf_used_, space); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    if (n > 0)
-    {
+    if (n > 0) {
         buf_used_ += static_cast<std::size_t>(n);
     }
     return n;
@@ -106,10 +97,8 @@ auto Parser::feed(int fd) -> ssize_t
 
 auto Parser::next() -> ParseResult
 {
-    if (state_ == State::kLength)
-    {
-        if (buf_used_ < sizeof(uint32_t))
-        {
+    if (state_ == State::kLength) {
+        if (buf_used_ < sizeof(uint32_t)) {
             return std::nullopt;
         }
         std::memcpy(&json_len_, buf_.data(), sizeof(uint32_t));
@@ -118,8 +107,7 @@ auto Parser::next() -> ParseResult
     }
 
     // State::kJson
-    if (buf_used_ < json_len_)
-    {
+    if (buf_used_ < json_len_) {
         return std::nullopt;
     }
 
@@ -144,57 +132,47 @@ auto Parser::parse_json(std::span<std::byte const> json_bytes) -> std::variant<p
         yyjson_doc_free
     };
 
-    if (doc == nullptr)
-    {
+    if (doc == nullptr) {
         return ParseError { "invalid JSON" };
     }
 
     auto *root = yyjson_doc_get_root(doc.get());
-    if (root == nullptr || yyjson_get_type(root) != YYJSON_TYPE_OBJ)
-    {
+    if (root == nullptr || yyjson_get_type(root) != YYJSON_TYPE_OBJ) {
         return ParseError { "JSON root is not an object" };
     }
 
     auto *op_val = yyjson_obj_get(root, "op");
-    if (op_val == nullptr || yyjson_get_type(op_val) != YYJSON_TYPE_STR)
-    {
+    if (op_val == nullptr || yyjson_get_type(op_val) != YYJSON_TYPE_STR) {
         return ParseError { "missing 'op' field" };
     }
 
     auto const op = std::string_view { yyjson_get_str(op_val), yyjson_get_len(op_val) };
 
-    if (op == "add")
-    {
+    if (op == "add") {
         protocol::AddCommand cmd;
-        if (auto err = apply_fields(root, cmd, kAddFields); err.has_value())
-        {
+        if (auto err = apply_fields(root, cmd, kAddFields); err.has_value()) {
             return *err;
         }
         return cmd;
     }
 
-    if (op == "remove")
-    {
+    if (op == "remove") {
         protocol::RemoveCommand cmd;
-        if (auto err = apply_fields(root, cmd, kRemoveFields); err.has_value())
-        {
+        if (auto err = apply_fields(root, cmd, kRemoveFields); err.has_value()) {
             return *err;
         }
         return cmd;
     }
 
-    if (op == "query")
-    {
+    if (op == "query") {
         protocol::QueryCommand cmd;
-        if (auto err = apply_fields(root, cmd, kQueryFields); err.has_value())
-        {
+        if (auto err = apply_fields(root, cmd, kQueryFields); err.has_value()) {
             return *err;
         }
         return cmd;
     }
 
-    if (op == "shutdown")
-    {
+    if (op == "shutdown") {
         return protocol::ShutdownCommand {};
     }
 
@@ -203,8 +181,7 @@ auto Parser::parse_json(std::span<std::byte const> json_bytes) -> std::variant<p
 
 void Parser::compact(std::size_t skip)
 {
-    if (skip >= buf_used_)
-    {
+    if (skip >= buf_used_) {
         buf_used_ = 0;
         return;
     }

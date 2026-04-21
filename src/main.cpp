@@ -38,30 +38,27 @@
 
 using namespace malachi;
 
-namespace
-{
+namespace {
 
 // Utilities
 
 template <typename... Ts>
-struct overloaded : Ts...
-{
+struct overloaded : Ts... {
     using Ts::operator()...;
 };
 
-struct UniqueFd
-{
+struct UniqueFd {
     int fd { -1 };
     UniqueFd() = default;
 
     explicit UniqueFd(int fd)
         : fd { fd }
-    { }
+    {
+    }
 
     ~UniqueFd()
     {
-        if (fd != -1)
-        {
+        if (fd != -1) {
             ::close(fd);
         }
     }
@@ -71,14 +68,13 @@ struct UniqueFd
 
     UniqueFd(UniqueFd &&other) noexcept
         : fd { std::exchange(other.fd, -1) }
-    { }
+    {
+    }
 
     auto operator=(UniqueFd &&other) noexcept -> UniqueFd &
     {
-        if (this != &other)
-        {
-            if (fd != -1)
-            {
+        if (this != &other) {
+            if (fd != -1) {
                 ::close(fd);
             }
             fd = std::exchange(other.fd, -1);
@@ -92,8 +88,7 @@ struct UniqueFd
 
 constexpr auto kUsageMsg = std::string_view { "Usage: {} [-v|--version] [-c|--config] [-d|--debug]\n" };
 
-struct Options
-{
+struct Options {
     bool version { false };
     bool config { false };
     bool debug { false };
@@ -127,8 +122,7 @@ auto print_versions() -> int
         int major = 0;
         int minor = 0;
         int rev = 0;
-        if (git_libgit2_version(&major, &minor, &rev) != 0)
-        {
+        if (git_libgit2_version(&major, &minor, &rev) != 0) {
             std::cerr << std::format("Failed to get libgit2 version\n");
             return -1;
         }
@@ -136,8 +130,7 @@ auto print_versions() -> int
     }
     std::cout << std::format("sqlite: {}\n", sqlite3_libversion());
     std::cout << std::format("yyjson: {}\n", YYJSON_VERSION_STRING);
-    for (auto const &filt : filter::global_registry().all())
-    {
+    for (auto const &filt : filter::global_registry().all()) {
         std::cout << std::format("{}: {}\n", filt->name(), filt->version());
     }
     return 0;
@@ -181,17 +174,13 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
 {
     parser::Parser par;
 
-    while (loopstat != 0)
-    {
+    while (loopstat != 0) {
         // Open the named pipe non-blocking
         auto pipe_fd = UniqueFd {};
-        while (loopstat != 0 && !pipe_fd)
-        {
+        while (loopstat != 0 && !pipe_fd) {
             pipe_fd = UniqueFd { ::open(pipe_path.c_str(), O_RDONLY | O_NONBLOCK) }; // NOLINT(cppcoreguidelines-pro-type-vararg)
-            if (!pipe_fd)
-            {
-                if (errno == EINTR)
-                {
+            if (!pipe_fd) {
+                if (errno == EINTR) {
                     continue;
                 }
                 logging::error("open pipe: {}", std::strerror(errno));
@@ -199,8 +188,7 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
             }
         }
 
-        if (!pipe_fd)
-        {
+        if (!pipe_fd) {
             break;
         }
 
@@ -208,38 +196,30 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
 
         struct pollfd pfd { .fd = pipe_fd.get(), .events = POLLIN, .revents = 0 }; // NOLINT(misc-include-cleaner)
 
-        while (loopstat != 0)
-        {
+        while (loopstat != 0) {
             auto const rc = ::poll(&pfd, 1, 1000); // NOLINT(misc-include-cleaner)
 
-            if (rc == -1)
-            {
-                if (errno == EINTR)
-                {
+            if (rc == -1) {
+                if (errno == EINTR) {
                     continue;
                 }
                 logging::error("poll: {}", std::strerror(errno));
                 return -1;
             }
 
-            if ((pfd.revents & POLLERR) != 0) // NOLINT(misc-include-cleaner)
-            {
+            if ((pfd.revents & POLLERR) != 0) { // NOLINT(misc-include-cleaner)
                 logging::error("pipe error");
                 return -1;
             }
 
-            if ((pfd.revents & POLLIN) != 0)
-            {
+            if ((pfd.revents & POLLIN) != 0) {
                 auto const n = par.feed(pipe_fd.get());
-                if (n == 0)
-                {
+                if (n == 0) {
                     // EOF — client disconnected, reopen
                     break;
                 }
-                if (n < 0)
-                {
-                    if (errno == EINTR || errno == EAGAIN)
-                    {
+                if (n < 0) {
+                    if (errno == EINTR || errno == EAGAIN) {
                         continue;
                     }
                     logging::error("read: {}", std::strerror(errno));
@@ -247,28 +227,23 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
                 }
 
                 // Drain all complete commands from the buffer
-                while (true)
-                {
+                while (true) {
                     auto result = par.next();
-                    if (not result.has_value())
-                    {
+                    if (not result.has_value()) {
                         break;
                     }
-                    if (std::holds_alternative<parser::ParseError>(*result))
-                    {
+                    if (std::holds_alternative<parser::ParseError>(*result)) {
                         logging::error("parse error: {}", std::get<parser::ParseError>(*result).reason);
                         continue;
                     }
                     auto const &cmd = std::get<protocol::Command>(*result);
-                    if (handle_command(cmd))
-                    {
+                    if (handle_command(cmd)) {
                         loopstat = 0;
                     }
                 }
             }
 
-            if ((pfd.revents & POLLHUP) != 0) // NOLINT(misc-include-cleaner)
-            {
+            if ((pfd.revents & POLLHUP) != 0) { // NOLINT(misc-include-cleaner)
                 // Client disconnected — reopen the pipe
                 break;
             }
@@ -281,20 +256,17 @@ auto run_loop(std::filesystem::path const &pipe_path) -> int
 template <platform::Platform p = platform::get_platform()>
 auto run(config::Config const &config) -> int
 {
-    if constexpr (p == platform::Platform::Windows)
-    {
+    if constexpr (p == platform::Platform::Windows) {
         std::cerr << "Daemon not supported on Windows\n";
         return EXIT_FAILURE;
     }
 
     // Set up signal handlers
-    if (std::signal(SIGINT, handle_signal) == SIG_ERR)
-    {
+    if (std::signal(SIGINT, handle_signal) == SIG_ERR) {
         logging::error("signal(SIGINT): {}", std::strerror(errno));
         return EXIT_FAILURE;
     }
-    if (std::signal(SIGTERM, handle_signal) == SIG_ERR)
-    {
+    if (std::signal(SIGTERM, handle_signal) == SIG_ERR) {
         logging::error("signal(SIGTERM): {}", std::strerror(errno));
         return EXIT_FAILURE;
     }
@@ -303,24 +275,21 @@ auto run(config::Config const &config) -> int
     auto const daemon_dir = config.runtime_dir;
     std::error_code ec;
     std::filesystem::create_directories(daemon_dir, ec);
-    if (ec)
-    {
+    if (ec) {
         logging::error("create runtime dir: {}", ec.message());
         return EXIT_FAILURE;
     }
 
     auto const pipe_path = daemon_dir / "command";
     auto const mkfifo_rc = ::mkfifo(pipe_path.c_str(), kPipeMode);
-    if (mkfifo_rc == -1 && errno != EEXIST)
-    {
+    if (mkfifo_rc == -1 && errno != EEXIST) {
         logging::error("mkfifo: {}", std::strerror(errno));
         return EXIT_FAILURE;
     }
 
     // Open database
     auto db_result = db::Database::open(config);
-    if (std::holds_alternative<db::DbError>(db_result))
-    {
+    if (std::holds_alternative<db::DbError>(db_result)) {
         logging::error("open database: {}", std::get<db::DbError>(db_result).message);
         return EXIT_FAILURE;
     }
@@ -338,8 +307,7 @@ auto run(config::Config const &config) -> int
 } // namespace
 
 auto main(int argc, char *argv[]) -> int
-try
-{
+try {
     auto const args = std::span<char *> { argv, static_cast<size_t>(argc) };
     assert(not args.empty());
 
@@ -358,8 +326,7 @@ try
 
         auto option_index = 0;
 
-        while (true)
-        {
+        while (true) {
             // NOLINTNEXTLINE(misc-include-cleaner)
             int const opt = getopt_long(
                 static_cast<int>(args.size()),
@@ -367,13 +334,11 @@ try
                 "vcd",
                 long_options.data(),
                 &option_index);
-            if (opt == -1)
-            {
+            if (opt == -1) {
                 break;
             }
 
-            switch (opt)
-            {
+            switch (opt) {
             case 'v':
                 opts.version = true;
                 break;
@@ -392,19 +357,16 @@ try
         }
     }
 
-    if (opts.debug)
-    {
+    if (opts.debug) {
         logging::debug_enabled = true;
     }
 
-    if (opts.version)
-    {
+    if (opts.version) {
         return print_versions() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
     auto const config_result = config::Builder { std::getenv }.with_defaults().build();
-    if (std::holds_alternative<config::Error>(config_result))
-    {
+    if (std::holds_alternative<config::Error>(config_result)) {
         auto const &error = std::get<config::Error>(config_result);
         std::cerr << std::format("Failed to build config: {}\n", error.message);
         return EXIT_FAILURE;
@@ -412,21 +374,16 @@ try
 
     auto const &config = std::get<config::Config>(config_result);
 
-    if (opts.config)
-    {
+    if (opts.config) {
         std::cout << config.to_string();
         return EXIT_SUCCESS;
     }
 
     return run(config);
-}
-catch (std::exception const &e)
-{
+} catch (std::exception const &e) {
     std::cerr << std::format("Fatal error: {}\n", e.what());
     return EXIT_FAILURE;
-}
-catch (...)
-{
+} catch (...) {
     std::cerr << "Fatal error: Unknown exception\n";
     return EXIT_FAILURE;
 }

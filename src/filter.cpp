@@ -7,8 +7,7 @@
 #include <utility>
 #include <vector>
 
-namespace malachi::filter
-{
+namespace malachi::filter {
 
 void Registry::add(std::unique_ptr<Filter> filter)
 {
@@ -17,12 +16,10 @@ void Registry::add(std::unique_ptr<Filter> filter)
 
 auto Registry::find_by_extension(std::string_view ext) const -> Filter const *
 {
-    for (auto const &filter : filters_)
-    {
+    for (auto const &filter : filters_) {
         auto const exts = filter->extensions();
         auto const it = std::ranges::find(exts, ext);
-        if (it != exts.end())
-        {
+        if (it != exts.end()) {
             return filter.get();
         }
     }

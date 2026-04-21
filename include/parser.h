@@ -14,11 +14,9 @@
 
 #include "protocol.h"
 
-namespace malachi::parser
-{
+namespace malachi::parser {
 
-struct ParseError
-{
+struct ParseError {
     std::string reason;
 };
 
@@ -27,8 +25,7 @@ struct ParseError
 // ParseError     -> malformed record (buffer advanced past it)
 using ParseResult = std::optional<std::variant<protocol::Command, ParseError>>;
 
-class Parser
-{
+class Parser {
 public:
     static constexpr std::size_t kDefaultBufferSize = 65536;
 
@@ -44,8 +41,7 @@ public:
     void reset();
 
 private:
-    enum class State : uint8_t
-    {
+    enum class State : uint8_t {
         kLength,
         kJson,
     };

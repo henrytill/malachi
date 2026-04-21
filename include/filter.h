@@ -7,11 +7,9 @@
 #include <string_view>
 #include <vector>
 
-namespace malachi::filter
-{
+namespace malachi::filter {
 
-class Filter
-{
+class Filter {
 public:
     Filter() = default;
     Filter(Filter const &) = delete;
@@ -27,8 +25,7 @@ public:
     [[nodiscard]] virtual auto extract(std::string const &input_path) const -> std::optional<std::string> = 0;
 };
 
-class Registry
-{
+class Registry {
 public:
     void add(std::unique_ptr<Filter> filter);
 

@@ -11,8 +11,7 @@
 
 namespace fs = std::filesystem;
 
-struct TempDirFixture
-{
+struct TempDirFixture {
     fs::path tmp_dir;
 
     TempDirFixture()
@@ -32,7 +31,8 @@ struct TempDirFixture
         fs::remove_all(tmp_dir);
     }
 
-    [[nodiscard]] auto make_config() const -> malachi::config::Config
+    [[nodiscard]]
+    auto make_config() const -> malachi::config::Config
     {
         return malachi::config::Config {
             .config_dir = tmp_dir / "config",

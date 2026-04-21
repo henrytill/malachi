@@ -2,26 +2,6 @@ AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: true
 AlignTrailingComments: true
 BasedOnStyle: WebKit
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterCaseLabel: true
-  AfterClass: true
-  AfterControlStatement: Always
-  AfterEnum: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterObjCDeclaration: true
-  AfterStruct: true
-  AfterUnion: true
-  AfterExternBlock: true
-  BeforeCatch: true
-  BeforeElse: true
-  BeforeLambdaBody: false
-  BeforeWhile: false
-  IndentBraces: false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
 ColumnLimit: 0
 DerivePointerAlignment: false
 IndentPPDirectives: AfterHash
